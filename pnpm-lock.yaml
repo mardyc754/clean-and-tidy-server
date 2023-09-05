@@ -5,6 +5,12 @@ settings:
   excludeLinksFromLockfile: false
 
 devDependencies:
+  '@types/node':
+    specifier: ^20.5.9
+    version: 20.5.9
+  '@types/nodemon':
+    specifier: ^1.19.2
+    version: 1.19.2
   express:
     specifier: ^4.18.2
     version: 4.18.2
@@ -64,6 +70,12 @@ packages:
 
   /@types/node@20.5.9:
     resolution: {integrity: sha512-PcGNd//40kHAS3sTlzKB9C9XL4K0sTup8nbG5lC14kzEteTNuAFh9u5nA0o5TWnSG2r/JNPRXFVcHJIIeRlmqQ==}
+    dev: true
+
+  /@types/nodemon@1.19.2:
+    resolution: {integrity: sha512-4GWiTN3HevkxMIxEQ7OpD3MAHhlVsX2tairCMRmf8oYZxmhHw9+UpQpIdGdJrjsMT2Ty26FtJzUUcP/qM5fR8A==}
+    dependencies:
+      '@types/node': 20.5.9
     dev: true
 
   /@types/strip-bom@3.0.0:
