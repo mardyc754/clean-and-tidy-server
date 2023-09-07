@@ -24,15 +24,16 @@ model User {
 model Reservation {
   id                    String      @id @default(cuid())
   name                  String      // @db.VarChar()
-  date                  DateTime
-  duration              Int         
-  includeDetergents     Boolean
-  cost                  Decimal
+  date                  DateTime    // @db.Date
+  startDate             DateTime    // @db.Date
+  endDate               DateTime    // @db.Date
+  includeDetergents     Boolean 
+  cost                  Decimal     // @db.Money or // @db.Decimal(4,2)
 }
 
 model ReservationGroup {
   id                    String      @id @default(cuid())
-  name                  String
+  name                  String      // @db.VarChar(50)
   frequency             Int
   user                  User        @relation(fields: [userId], references: [id])
   userId                String      @unique
@@ -40,26 +41,26 @@ model ReservationGroup {
 
 model Residence {
   id                    String      @id @default(cuid())
-  areaSize              Decimal
-  street                String
+  areaSize              Decimal     // @db.Money or // @db.Decimal(4,2)
+  street                String      // @db.VarChar(40)
   houseNumber           Int
-  postCode              String
-  city                  String
+  postCode              String      // @db.VarChar(5)
+  city                  String      // @db.VarChar(40)
 }
 
 model Service {
   id                    Int         @id @default(autoincrement())
-  name                  String
-  price                 Decimal
+  name                  String      // @db.VarChar(100)
+  price                 Decimal     // @db.Money or // @db.Decimal(4,2)
   employees             Employee[]
 }
 
 model Employee {
-  id                 String   @id @default(cuid())
-  name               String
-  surname            String
-  email              String @unique
-  password           String
-  availability       DateTime // here should be the timestamp
-  services           Service[]
+  id                    String       @id @default(cuid())
+  name                  String       // @db.VarChar(50)
+  surname               String       // @db.VarChar(50)
+  email                 String       @unique  // @db.VarChar(40)
+  password              String       // @db.VarChar(32)
+  availability          DateTime     // here should be the timestamp
+  services              Service[]
 }
