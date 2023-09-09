@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import express, { Express } from 'express';
 
-import type { AbstractController } from 'controllers';
+import type { AbstractController } from '~/controllers';
 
 export default class App {
   private app: Express;

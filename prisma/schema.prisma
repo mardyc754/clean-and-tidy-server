@@ -14,7 +14,7 @@ model User {
   id                    String      @id @default(cuid())
   name                  String?     // @db.VarChar(50)
   surname               String?     // @db.VarChar(50)
-  username              String      // @db.VarChar(30)
+  username              String      @unique // @db.VarChar(30)
   email                 String      @unique // @db.VarChar(40)
   password              String      // @db.VarChar(32)
   phone                 String?     // @db.VarChar(15)
