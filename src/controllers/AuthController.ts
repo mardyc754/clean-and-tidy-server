@@ -33,8 +33,14 @@ export default class AuthController extends AbstractController {
     // const hashedPassword = await bcrypt.hash(password, 8);
     user = await this.userService.createUser(username, email, password);
 
-    res
-      .status(201)
-      .send({ username: user?.username, message: 'User created succesfully' });
+    if (user) {
+      res.status(201).send({
+        id: user?.id,
+        username: user?.username,
+        message: 'User created succesfully'
+      });
+    } else {
+      res.status(400).send({ message: 'Error when creating new user' });
+    }
   };
 }
