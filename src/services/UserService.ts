@@ -1,4 +1,4 @@
-import { User } from '@prisma/client';
+import { Reservation, User } from '@prisma/client';
 
 import { prisma } from '~/db';
 
@@ -48,5 +48,41 @@ export default class UserService {
       console.error(`Something went wrong: ${err}`);
     }
     return user;
+  }
+
+  public async getAllUsers() {
+    let users: User[] | null = null;
+
+    try {
+      users = await prisma.user.findMany();
+    } catch (err) {
+      console.error(`Something went wrong: ${err}`);
+    }
+    return users;
+  }
+
+  public async getUserReservations(userId: User['id']) {
+    let reservations: Reservation[] | null = null;
+
+    try {
+      const userWithReservations = await prisma.user.findUnique({
+        where: { id: userId },
+        include: {
+          reservationGroups: {
+            include: {
+              reservations: true
+            }
+          }
+        }
+      });
+
+      reservations =
+        userWithReservations?.reservationGroups.flatMap(
+          (group) => group.reservations
+        ) ?? [];
+    } catch (err) {
+      console.error(`Something went wrong: ${err}`);
+    }
+    return reservations;
   }
 }

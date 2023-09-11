@@ -11,9 +11,22 @@ export default class UserController extends AbstractController {
   }
 
   public createRouters() {
-    // this.router.get('/', this.getAllUsers);
+    this.router.get('/', this.getAllUsers);
     this.router.get('/:id', this.getUserById);
+    this.router.get('/:id/reservations', this.getUserReservations);
   }
+
+  private getAllUsers = async (req: Request, res: Response) => {
+    const users = await this.userService.getAllUsers();
+
+    if (users !== null) {
+      res.status(200).send({
+        ...users
+      });
+    } else {
+      res.status(400).send({ message: 'Error when receiving all users' });
+    }
+  };
 
   private getUserById = async (req: Request, res: Response) => {
     const { id } = req.params;
@@ -31,6 +44,23 @@ export default class UserController extends AbstractController {
       });
     } else {
       res.status(404).send({ message: 'User not found' });
+    }
+  };
+
+  private getUserReservations = async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    if (!id) {
+      res.status(400).send({ message: 'User id not provided' });
+      return;
+    }
+
+    const reservations = await this.userService.getUserReservations(id);
+
+    if (reservations !== null) {
+      res.status(200).send({ data: reservations });
+    } else {
+      res.status(400).send({ message: 'Error when receiving reservations' });
     }
   };
 }
