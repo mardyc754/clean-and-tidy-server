@@ -1,4 +1,5 @@
-import { Reservation, User } from '@prisma/client';
+import type { Reservation, Residence, User } from '@prisma/client';
+import type { RequireAtLeastOne } from 'type-fest';
 
 import { prisma } from '~/db';
 
@@ -84,5 +85,62 @@ export default class UserService {
       console.error(`Something went wrong: ${err}`);
     }
     return reservations;
+  }
+
+  public async getUserAddresses(userId: User['id']) {
+    let addresses: Residence[] | null = null;
+
+    try {
+      const userWithReservations = await prisma.user.findUnique({
+        where: { id: userId },
+        include: {
+          reservationGroups: {
+            include: {
+              residence: true
+            }
+          }
+        }
+      });
+
+      addresses =
+        userWithReservations?.reservationGroups.flatMap(
+          (group) => group.residence
+        ) ?? [];
+    } catch (err) {
+      console.error(`Something went wrong: ${err}`);
+    }
+    return addresses;
+  }
+
+  public async changeUserData(userData: RequireAtLeastOne<User, 'id'>) {
+    const { id, ...rest } = userData;
+    let newUserData: User | null = null;
+
+    try {
+      newUserData = await prisma.user.update({
+        where: { id },
+        data: {
+          ...rest
+        }
+      });
+    } catch (err) {
+      console.error(`Something went wrong: ${err}`);
+    }
+
+    return newUserData;
+  }
+
+  public async deleteUser(userId: User['id']) {
+    let deleteUser: User | null = null;
+
+    try {
+      deleteUser = await prisma.user.delete({
+        where: { id: userId }
+      });
+    } catch (err) {
+      console.error(`Something went wrong: ${err}`);
+    }
+
+    return deleteUser;
   }
 }
