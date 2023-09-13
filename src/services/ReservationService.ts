@@ -4,37 +4,87 @@ import type { RequireAtLeastOne } from 'type-fest';
 import { prisma } from '~/db';
 
 export default class ReservationService {
-  public getAllReservations = () => {
-    /** TODO */
-  };
+  public async getAllReservations() {
+    let reservations: Reservation[] | null = null;
 
-  public getReservationById = (id: Reservation['id']) => {
-    /** TODO */
-  };
+    try {
+      reservations = await prisma.reservation.findMany();
+    } catch (err) {
+      console.error(`Something went wrong: ${err}`);
+    }
 
-  public createReservation = (data: Omit<Reservation, 'id'>) => {
-    /** TODO */
-  };
+    return reservations;
+  }
 
-  public changeReservationData = (
+  public async getReservationById(id: Reservation['id']) {
+    let reservation: Reservation | null = null;
+
+    try {
+      reservation = await prisma.reservation.findFirst({
+        where: { id }
+      });
+    } catch (err) {
+      console.error(`Something went wrong: ${err}`);
+    }
+
+    return reservation;
+  }
+
+  public async createReservation(data: Omit<Reservation, 'id'>) {
+    let reservation: Reservation | null = null;
+
+    try {
+      reservation = await prisma.reservation.create({
+        data
+      });
+    } catch (err) {
+      console.error(`Something went wrong: ${err}`);
+    }
+
+    return reservation;
+  }
+
+  public async changeReservationData(
     data: RequireAtLeastOne<Reservation, 'id'>
-  ) => {
-    /** TODO */
-  };
+  ) {
+    const { id, ...rest } = data;
+    let updatedReservation: Reservation | null = null;
 
-  public deleteReservation = (id: Reservation['id']) => {
-    /** TODO */
-  };
+    try {
+      updatedReservation = await prisma.reservation.update({
+        where: { id },
+        data: { ...rest }
+      });
+    } catch (err) {
+      console.error(`Something went wrong: ${err}`);
+    }
 
-  public confirmReservationCreation = (id: Reservation['id']) => {
-    /** TODO */
-  };
+    return updatedReservation;
+  }
 
-  public confirmReservationChange = (id: Reservation['id']) => {
-    /** TODO */
-  };
+  public async deleteReservation(id: Reservation['id']) {
+    let deletedReservation: Reservation | null = null;
 
-  public confirmReservationDeletion = (id: Reservation['id']) => {
-    /** TODO */
-  };
+    try {
+      deletedReservation = await prisma.reservation.delete({
+        where: { id }
+      });
+    } catch (err) {
+      console.error(`Something went wrong: ${err}`);
+    }
+
+    return deletedReservation;
+  }
+
+  public async confirmReservationCreation(id: Reservation['id']) {
+    /** TODO Here the status of the reservation should be changed */
+  }
+
+  public async confirmReservationChange(id: Reservation['id']) {
+    /** TODO Here the status of the reservation should be changed */
+  }
+
+  public async confirmReservationDeletion(id: Reservation['id']) {
+    /** TODO Here the status of the reservation should be changed */
+  }
 }

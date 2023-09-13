@@ -10,6 +10,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// uncomment for PostgreSQL
+// enum ReservationStatus {
+// WAITING_FOR_CONFIRMATION
+// CONFIRMED
+// CANCELLED (?)
+// }
+
 model User {
   id                    String      @id @default(cuid())
   name                  String?     // @db.VarChar(50)
@@ -31,6 +38,7 @@ model Reservation {
   cost                  Decimal     // @db.Money or // @db.Decimal(4,2)
   reservationGroup      ReservationGroup @relation(fields: [reservationGroupId], references: [id])
   reservationGroupId    String      @unique
+  // status             'pending' | 'confirmed'
 }
 
 model ReservationGroup {

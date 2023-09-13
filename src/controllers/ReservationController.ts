@@ -1,12 +1,13 @@
 import type { Request, Response } from 'express';
-import type { RequireAtLeastOne } from 'type-fest';
 
 import { ReservationService } from '~/services';
 
 import AbstractController from './AbstractController';
+import { Reservation } from '@prisma/client';
+import { TypedRequest } from '~/types';
 
 export default class ReservationController extends AbstractController {
-  private reservationService = new ReservationService();
+  private readonly reservationService = new ReservationService();
 
   constructor() {
     super('/reservations');
@@ -24,35 +25,115 @@ export default class ReservationController extends AbstractController {
     this.router.delete('/:id/confirm', this.confirmReservationDeletion);
   }
 
-  private getAllReservations = (req: Request, res: Response) => {
+  private getAllReservations = async (req: Request, res: Response) => {
+    const reservations = await this.reservationService.getAllReservations();
+
+    if (reservations !== null) {
+      res.status(200).send({
+        ...reservations
+      });
+    } else {
+      res
+        .status(400)
+        .send({ message: 'Error when receiving all reservations' });
+    }
+  };
+
+  private getReservationById = async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    if (!id) {
+      res.status(400).send({ message: 'Reservation id not provided' });
+      return;
+    }
+
+    const reservation = await this.reservationService.getReservationById(id);
+
+    if (reservation) {
+      res.status(200).send({
+        ...reservation
+      });
+    } else {
+      res.status(404).send({ message: 'Reservation not found' });
+    }
+  };
+
+  private createReservation = async (
+    req: Request<Omit<Reservation, 'id'>>,
+    res: Response
+  ) => {
+    const data = req.body;
+
+    if (!id) {
+      res.status(400).send({ message: 'Reservation id not provided' });
+      return;
+    }
+
+    const reservation = await this.reservationService.createReservation(data);
+
+    if (reservation) {
+      res.status(201).send({
+        ...reservation
+      });
+    } else {
+      res.status(400).send({ message: 'Error when creating the reservation' });
+    }
+  };
+
+  private changeReservationData = async (
+    req: TypedRequest<{ id: string }, { data: Omit<Reservation, 'id'> }>,
+    res: Response
+  ) => {
+    const { id } = req.query;
+    const { data } = req.body;
+
+    if (!id) {
+      res.status(400).send({ message: 'Reservation id not provided' });
+      return;
+    }
+
+    const reservation = await this.reservationService.changeReservationData({
+      id,
+      ...data
+    });
+
+    if (reservation) {
+      res.status(200).send({
+        ...reservation
+      });
+    } else {
+      res.status(400).send({ message: 'Error when updating reservation data' });
+    }
+  };
+
+  private deleteReservation = async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    if (!id) {
+      res.status(400).send({ message: 'Reservation id not provided' });
+      return;
+    }
+
+    const reservation = await this.reservationService.deleteReservation(id);
+
+    if (reservation) {
+      res.status(200).send({
+        ...reservation
+      });
+    } else {
+      res.status(400).send({ message: 'Error when deleting the reservation' });
+    }
+  };
+
+  private confirmReservationCreation = async (req: Request, res: Response) => {
     /** TODO */
   };
 
-  private getReservationById = (req: Request, res: Response) => {
+  private confirmReservationChange = async (req: Request, res: Response) => {
     /** TODO */
   };
 
-  private createReservation = (req: Request, res: Response) => {
-    /** TODO */
-  };
-
-  private changeReservationData = (req: Request, res: Response) => {
-    /** TODO */
-  };
-
-  private deleteReservation = (req: Request, res: Response) => {
-    /** TODO */
-  };
-
-  private confirmReservationCreation = (req: Request, res: Response) => {
-    /** TODO */
-  };
-
-  private confirmReservationChange = (req: Request, res: Response) => {
-    /** TODO */
-  };
-
-  private confirmReservationDeletion = (req: Request, res: Response) => {
+  private confirmReservationDeletion = async (req: Request, res: Response) => {
     /** TODO */
   };
 }
