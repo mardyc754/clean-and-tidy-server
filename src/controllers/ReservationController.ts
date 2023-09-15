@@ -20,9 +20,7 @@ export default class ReservationController extends AbstractController {
     this.router.get('/:id', this.getReservationById);
     this.router.put('/:id', this.changeReservationData);
     this.router.delete('/:id', this.deleteReservation);
-    this.router.post('/:id/confirm', this.confirmReservationCreation);
-    this.router.put('/:id.confirm', this.confirmReservationChange);
-    this.router.delete('/:id/confirm', this.confirmReservationDeletion);
+    this.router.put('/:id/confirm', this.confirmReservationDataChange);
   }
 
   private getAllReservations = async (req: Request, res: Response) => {
@@ -63,11 +61,6 @@ export default class ReservationController extends AbstractController {
     res: Response
   ) => {
     const data = req.body;
-
-    if (!id) {
-      res.status(400).send({ message: 'Reservation id not provided' });
-      return;
-    }
 
     const reservation = await this.reservationService.createReservation(data);
 
@@ -125,15 +118,28 @@ export default class ReservationController extends AbstractController {
     }
   };
 
-  private confirmReservationCreation = async (req: Request, res: Response) => {
-    /** TODO */
-  };
+  private confirmReservationDataChange = async (
+    req: Request,
+    res: Response
+  ) => {
+    const { id } = req.params;
 
-  private confirmReservationChange = async (req: Request, res: Response) => {
-    /** TODO */
-  };
+    if (!id) {
+      res.status(400).send({ message: 'Reservation id not provided' });
+      return;
+    }
 
-  private confirmReservationDeletion = async (req: Request, res: Response) => {
-    /** TODO */
+    const reservation =
+      await this.reservationService.confirmReservationDataChange(id);
+
+    if (reservation) {
+      res.status(200).send({
+        ...reservation
+      });
+    } else {
+      res
+        .status(400)
+        .send({ message: 'Error when confirm reservation change' });
+    }
   };
 }

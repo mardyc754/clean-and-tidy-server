@@ -1,4 +1,4 @@
-import type { Reservation } from '@prisma/client';
+import { ReservationStatus, type Reservation } from '@prisma/client';
 import type { RequireAtLeastOne } from 'type-fest';
 
 import { prisma } from '~/db';
@@ -30,12 +30,12 @@ export default class ReservationService {
     return reservation;
   }
 
-  public async createReservation(data: Omit<Reservation, 'id'>) {
+  public async createReservation(data: Omit<Reservation, 'id' | 'status'>) {
     let reservation: Reservation | null = null;
 
     try {
       reservation = await prisma.reservation.create({
-        data
+        data: { ...data, status: ReservationStatus.WAITING_FOR_CONFIRMATION }
       });
     } catch (err) {
       console.error(`Something went wrong: ${err}`);
@@ -45,7 +45,7 @@ export default class ReservationService {
   }
 
   public async changeReservationData(
-    data: RequireAtLeastOne<Reservation, 'id'>
+    data: RequireAtLeastOne<Omit<Reservation, 'status'>, 'id'>
   ) {
     const { id, ...rest } = data;
     let updatedReservation: Reservation | null = null;
@@ -53,7 +53,7 @@ export default class ReservationService {
     try {
       updatedReservation = await prisma.reservation.update({
         where: { id },
-        data: { ...rest }
+        data: { ...rest, status: ReservationStatus.WAITING_FOR_CONFIRMATION }
       });
     } catch (err) {
       console.error(`Something went wrong: ${err}`);
@@ -76,15 +76,18 @@ export default class ReservationService {
     return deletedReservation;
   }
 
-  public async confirmReservationCreation(id: Reservation['id']) {
-    /** TODO Here the status of the reservation should be changed */
-  }
+  public async confirmReservationDataChange(id: Reservation['id']) {
+    let updatedReservation: Reservation | null = null;
 
-  public async confirmReservationChange(id: Reservation['id']) {
-    /** TODO Here the status of the reservation should be changed */
-  }
+    try {
+      updatedReservation = await prisma.reservation.update({
+        where: { id },
+        data: { status: ReservationStatus.CONFIRMED }
+      });
+    } catch (err) {
+      console.error(`Something went wrong: ${err}`);
+    }
 
-  public async confirmReservationDeletion(id: Reservation['id']) {
-    /** TODO Here the status of the reservation should be changed */
+    return updatedReservation;
   }
 }
