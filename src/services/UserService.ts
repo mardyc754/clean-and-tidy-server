@@ -69,7 +69,7 @@ export default class UserService {
       const userWithReservations = await prisma.user.findUnique({
         where: { id: userId },
         include: {
-          reservationGroups: {
+          recurringReservations: {
             include: {
               reservations: true
             }
@@ -78,7 +78,7 @@ export default class UserService {
       });
 
       reservations =
-        userWithReservations?.reservationGroups.flatMap(
+        userWithReservations?.recurringReservations.flatMap(
           (group) => group.reservations
         ) ?? [];
     } catch (err) {
@@ -94,7 +94,7 @@ export default class UserService {
       const userWithReservations = await prisma.user.findUnique({
         where: { id: userId },
         include: {
-          reservationGroups: {
+          recurringReservations: {
             include: {
               residence: true
             }
@@ -103,7 +103,7 @@ export default class UserService {
       });
 
       addresses =
-        userWithReservations?.reservationGroups.flatMap(
+        userWithReservations?.recurringReservations.flatMap(
           (group) => group.residence
         ) ?? [];
     } catch (err) {

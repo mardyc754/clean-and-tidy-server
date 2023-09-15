@@ -118,6 +118,7 @@ export default class ReservationController extends AbstractController {
     }
   };
 
+  // this should be protected
   private confirmReservationDataChange = async (
     req: Request,
     res: Response
