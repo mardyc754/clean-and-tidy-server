@@ -1,5 +1,5 @@
 {
-  "name": "clean-and-tide-server",
+  "name": "clean-and-tidy-server",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -42,6 +42,7 @@
   },
   "dependencies": {
     "@prisma/client": "^5.2.0",
+    "@types/express-serve-static-core": "^4.17.36",
     "dotenv": "^16.3.1",
     "type-fest": "^4.3.1"
   }

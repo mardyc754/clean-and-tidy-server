@@ -46,7 +46,7 @@ export default class UserController extends AbstractController {
     const user = await this.userService.getUserById(id);
 
     if (user) {
-      res.status(201).send({
+      res.status(200).send({
         ...user
       });
     } else {
