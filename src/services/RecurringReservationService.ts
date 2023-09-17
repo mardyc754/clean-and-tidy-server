@@ -2,7 +2,8 @@ import {
   type RecurringReservation,
   type Reservation,
   CleaningFrequency,
-  RecurringReservationStatus
+  RecurringReservationStatus,
+  ReservationStatus
 } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -277,6 +278,54 @@ export default class RecurringReservationService {
     }
 
     return recurringReservation;
+  }
+
+  public async closeRecurringReservation(id: Reservation['id']) {
+    let reservationToClose: RecurringReservation | null = null;
+
+    try {
+      reservationToClose = await prisma.recurringReservation.update({
+        where: { id },
+        data: {
+          status: RecurringReservationStatus.CLOSED
+        }
+      });
+    } catch (err) {
+      console.error(`Something went wrong: ${err}`);
+    }
+
+    return reservationToClose;
+  }
+
+  public async autoCloseRecurringReservation(id: Reservation['id']) {
+    let reservationToClose: RecurringReservation | null = null;
+
+    const reservations = await this.getReservationsFromRecurringReservation(id);
+
+    if (!reservations) {
+      return reservationToClose;
+    }
+
+    const finishedReservations = reservations.filter(
+      (reservation) =>
+        reservation.status === ReservationStatus.CANCELLED ||
+        reservation.status === ReservationStatus.CLOSED
+    );
+
+    if (finishedReservations.length === reservations.length) {
+      try {
+        reservationToClose = await prisma.recurringReservation.update({
+          where: { id },
+          data: {
+            status: RecurringReservationStatus.CLOSED
+          }
+        });
+      } catch (err) {
+        console.error(`Something went wrong: ${err}`);
+      }
+    }
+
+    return reservationToClose;
   }
 
   // the most important function in the project

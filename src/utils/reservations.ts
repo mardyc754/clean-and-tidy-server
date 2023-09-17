@@ -187,3 +187,10 @@ export function confirmReservationsCancelation(reservations: Reservation[]) {
     status: ReservationStatus.CANCELLED
   }));
 }
+
+export function closeReservations(reservations: Reservation[]) {
+  return reservations.map((reservation) => ({
+    ...reservation,
+    status: ReservationStatus.CLOSED
+  }));
+}
