@@ -35,7 +35,7 @@ export default class ReservationService {
 
     try {
       reservation = await prisma.reservation.create({
-        data: { ...data, status: ReservationStatus.WAITING_FOR_CONFIRMATION }
+        data: { ...data, status: ReservationStatus.TO_BE_CONFIRMED }
       });
     } catch (err) {
       console.error(`Something went wrong: ${err}`);
@@ -53,7 +53,7 @@ export default class ReservationService {
     try {
       updatedReservation = await prisma.reservation.update({
         where: { id },
-        data: { ...rest, status: ReservationStatus.WAITING_FOR_CONFIRMATION }
+        data: { ...rest, status: ReservationStatus.TO_BE_CONFIRMED }
       });
     } catch (err) {
       console.error(`Something went wrong: ${err}`);
@@ -82,7 +82,7 @@ export default class ReservationService {
     try {
       updatedReservation = await prisma.reservation.update({
         where: { id },
-        data: { status: ReservationStatus.CONFIRMED }
+        data: { status: ReservationStatus.ACTIVE }
       });
     } catch (err) {
       console.error(`Something went wrong: ${err}`);
