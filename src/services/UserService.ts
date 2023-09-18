@@ -1,4 +1,4 @@
-import type { Reservation, Address, User } from '@prisma/client';
+import { Reservation, Address, User, ReservationStatus } from '@prisma/client';
 import type { RequireAtLeastOne } from 'type-fest';
 
 import { prisma } from '~/db';
@@ -62,8 +62,13 @@ export default class UserService {
     return users;
   }
 
-  public async getUserReservations(userId: User['id']) {
+  public async getUserReservations(
+    userId: User['id'],
+    status?: ReservationStatus
+  ) {
     let reservations: Reservation[] | null = null;
+
+    const reservationStatusFilter = status ? { where: { status } } : true;
 
     try {
       const userWithReservations = await prisma.user.findUnique({
@@ -71,7 +76,7 @@ export default class UserService {
         include: {
           recurringReservations: {
             include: {
-              reservations: true
+              reservations: reservationStatusFilter
             }
           }
         }
@@ -112,7 +117,10 @@ export default class UserService {
     return addresses;
   }
 
-  public async changeUserData(userData: RequireAtLeastOne<User, 'id'>) {
+  public async changeUserData(
+    userData: Pick<User, 'id'> &
+      RequireAtLeastOne<User, 'name' | 'surname' | 'phone'>
+  ) {
     const { id, ...rest } = userData;
     let newUserData: User | null = null;
 
@@ -130,15 +138,23 @@ export default class UserService {
     return newUserData;
   }
 
+  // delete user - user can be deleted only when one does not have any active reservations
   public async deleteUser(userId: User['id']) {
     let deleteUser: User | null = null;
 
-    try {
-      deleteUser = await prisma.user.delete({
-        where: { id: userId }
-      });
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
+    const userActiveReservations = await this.getUserReservations(
+      userId,
+      ReservationStatus.ACTIVE
+    );
+
+    if (!userActiveReservations || userActiveReservations.length === 0) {
+      try {
+        deleteUser = await prisma.user.delete({
+          where: { id: userId }
+        });
+      } catch (err) {
+        console.error(`Something went wrong: ${err}`);
+      }
     }
 
     return deleteUser;
