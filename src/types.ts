@@ -14,7 +14,7 @@ export type ReservationCreationData = Pick<
 
 export type RecurringReservationCreationData = Pick<
   RecurringReservation,
-  'frequency' | 'userId' | 'addressId' | 'serviceId' | 'endDate'
+  'frequency' | 'userId' | 'addressId' | 'employeeId' | 'endDate'
 > & { reservationData: ReservationCreationData };
 
 export type StartEndDate = {
