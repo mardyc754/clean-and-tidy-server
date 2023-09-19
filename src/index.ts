@@ -1,8 +1,15 @@
-import { AuthController, UserController } from '~/controllers';
+import {
+  AuthController,
+  UserController,
+  TypesOfCleaningController
+} from '~/controllers';
 import App from './App';
 
 const port = process.env.PORT || 8080;
 
-const app = new App([new AuthController(), new UserController()], port);
+const app = new App(
+  [new AuthController(), new UserController(), new TypesOfCleaningController()],
+  port
+);
 
 app.listen();

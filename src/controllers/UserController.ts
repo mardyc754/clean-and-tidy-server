@@ -23,7 +23,7 @@ export default class UserController extends AbstractController {
     this.router.delete('/:id', this.deleteUserData);
   }
 
-  private getAllUsers = async (req: Request, res: Response) => {
+  private getAllUsers = async (_: Request, res: Response) => {
     const users = await this.userService.getAllUsers();
 
     if (users !== null) {
@@ -35,7 +35,10 @@ export default class UserController extends AbstractController {
     }
   };
 
-  private getUserById = async (req: Request, res: Response) => {
+  private getUserById = async (
+    req: Request<Pick<User, 'id'>>,
+    res: Response
+  ) => {
     const { id } = req.params;
 
     if (!id) {
@@ -54,7 +57,10 @@ export default class UserController extends AbstractController {
     }
   };
 
-  private getUserReservations = async (req: Request, res: Response) => {
+  private getUserReservations = async (
+    req: Request<Pick<User, 'id'>>,
+    res: Response
+  ) => {
     const { id } = req.params;
 
     if (!id) {
@@ -71,7 +77,10 @@ export default class UserController extends AbstractController {
     }
   };
 
-  private getUserAddresses = async (req: Request, res: Response) => {
+  private getUserAddresses = async (
+    req: Request<Pick<User, 'id'>>,
+    res: Response
+  ) => {
     const { id } = req.params;
 
     if (!id) {
@@ -108,7 +117,10 @@ export default class UserController extends AbstractController {
     }
   };
 
-  private deleteUserData = async (req: Request, res: Response) => {
+  private deleteUserData = async (
+    req: Request<Pick<User, 'id'>>,
+    res: Response
+  ) => {
     const { id } = req.params;
 
     if (!id) {

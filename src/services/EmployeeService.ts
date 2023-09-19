@@ -1,6 +1,7 @@
 import {
   type Reservation,
   type Employee,
+  type Service,
   ReservationStatus
 } from '@prisma/client';
 
@@ -59,6 +60,24 @@ export default class EmployeeService {
       console.error(`Something went wrong: ${err}`);
     }
     return reservations;
+  }
+
+  public async getEmployeeServices(employeeId: Employee['id']) {
+    let services: Service[] | null = null;
+
+    try {
+      const employeeWithServices = await prisma.employee.findUnique({
+        where: { id: employeeId },
+        include: {
+          services: true
+        }
+      });
+
+      services = employeeWithServices?.services ?? [];
+    } catch (err) {
+      console.error(`Something went wrong: ${err}`);
+    }
+    return services;
   }
 
   // before finishing this function implementation,
