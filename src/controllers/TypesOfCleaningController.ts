@@ -3,7 +3,11 @@ import type { Request, Response } from 'express';
 
 import { TypesOfCleaningService } from '~/services';
 
+import { transformIdToNumber } from '~/parsers';
+import type { TypedRequest } from '~/types';
+
 import AbstractController from './AbstractController';
+import { ParamsDictionary } from 'express-serve-static-core';
 
 export default class TypesOfCleaningController extends AbstractController {
   private typesOfCleaningService = new TypesOfCleaningService();
@@ -33,10 +37,10 @@ export default class TypesOfCleaningController extends AbstractController {
   };
 
   private getServiceById = async (
-    req: Request<Pick<Service, 'id'>>,
+    req: TypedRequest<{ id: string }>,
     res: Response
   ) => {
-    const { id } = req.params;
+    const id = transformIdToNumber.parse(req.params.id);
 
     const service = await this.typesOfCleaningService.getServiceById(id);
 
@@ -50,7 +54,7 @@ export default class TypesOfCleaningController extends AbstractController {
   };
 
   private createService = async (
-    req: Request<undefined, unknown, Omit<Service, 'id'>>,
+    req: TypedRequest<ParamsDictionary, Omit<Service, 'id'>>,
     res: Response
   ) => {
     const data = req.body;
@@ -64,11 +68,11 @@ export default class TypesOfCleaningController extends AbstractController {
   };
 
   private changeServicePrice = async (
-    req: Request<Pick<Service, 'id'>, unknown, Pick<Service, 'price'>>,
+    req: TypedRequest<{ id: string }, Pick<Service, 'price'>>,
     res: Response
   ) => {
     const { price } = req.body;
-    const { id } = req.params;
+    const id = transformIdToNumber.parse(req.params.id);
 
     const service = await this.typesOfCleaningService.changeServicePrice({
       id,
@@ -83,10 +87,10 @@ export default class TypesOfCleaningController extends AbstractController {
   };
 
   private deleteService = async (
-    req: Request<Pick<Service, 'id'>>,
+    req: TypedRequest<{ id: string }>,
     res: Response
   ) => {
-    const { id } = req.params;
+    const id = transformIdToNumber.parse(req.params.id);
 
     const service = await this.typesOfCleaningService.deleteService(id);
 
@@ -98,10 +102,10 @@ export default class TypesOfCleaningController extends AbstractController {
   };
 
   private getEmployeesOfferingService = async (
-    req: Request<Pick<Service, 'id'>>,
+    req: TypedRequest<{ id: string }>,
     res: Response
   ) => {
-    const { id } = req.params;
+    const id = transformIdToNumber.parse(req.params.id);
 
     const employees =
       await this.typesOfCleaningService.getEmployeesOfferingService(id);

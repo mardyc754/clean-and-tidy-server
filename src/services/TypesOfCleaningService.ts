@@ -77,6 +77,7 @@ export default class TypesOfCleaningService {
 
   // admin only
   public async deleteService(id: Service['id']) {
+    console.log({ id });
     let service: Service | null = null;
 
     try {
