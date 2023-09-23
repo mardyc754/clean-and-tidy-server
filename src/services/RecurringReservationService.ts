@@ -86,6 +86,7 @@ export default class RecurringReservationService {
         data: {
           ...data,
           status: RecurringReservationStatus.TO_BE_CONFIRMED,
+          // weekDay: extractWeekDayFromDate(data.endDate),
           weekDay: dayjs(data.endDate).day(),
           reservations: {
             createMany: {

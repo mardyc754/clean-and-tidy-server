@@ -23,3 +23,7 @@ export function areStartEndDateValid(
 export function hourToISOString(hourString: string) {
   return dayjs(hourString, 'HH:mm').toISOString();
 }
+
+export function extractWeekDayFromDate(date: string) {
+  return dayjs(date).day();
+}

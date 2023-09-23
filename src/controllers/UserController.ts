@@ -1,10 +1,13 @@
-import type { User } from '@prisma/client';
+import type { RecurringReservationStatus, User } from '@prisma/client';
 import type { Request, Response } from 'express';
-import type { RequireAtLeastOne } from 'type-fest';
+import type { Stringified } from 'type-fest';
 
 import { UserService } from '~/services';
 
 import AbstractController from './AbstractController';
+import { DefaultBodyType } from '~/types';
+import { validateUserUpdateData } from '~/middlewares/type-validators/user';
+import { UserUpdateData } from '~/schemas/user';
 
 export default class UserController extends AbstractController {
   private userService = new UserService();
@@ -19,7 +22,7 @@ export default class UserController extends AbstractController {
     this.router.get('/:id', this.getUserById);
     this.router.get('/:id/reservations', this.getUserReservations);
     this.router.get('/:id/addresses', this.getUserAddresses);
-    this.router.put('/:id', this.changeUserData);
+    this.router.put('/:id', validateUserUpdateData(), this.changeUserData);
     this.router.delete('/:id', this.deleteUserData);
   }
 
@@ -28,112 +31,98 @@ export default class UserController extends AbstractController {
 
     if (users !== null) {
       res.status(200).send({
-        ...users
+        data: users
       });
     } else {
       res.status(400).send({ message: 'Error when receiving all users' });
     }
   };
 
-  private getUserById = async (
-    req: Request<Pick<User, 'id'>>,
-    res: Response
-  ) => {
-    const { id } = req.params;
-
-    if (!id) {
-      res.status(400).send({ message: 'User id not provided' });
-      return;
-    }
-
-    const user = await this.userService.getUserById(id);
+  private getUserById = async (req: Request<{ id: string }>, res: Response) => {
+    const user = await this.userService.getUserById(parseInt(req.params.id));
 
     if (user) {
       res.status(200).send({
-        ...user
+        data: user
       });
     } else {
-      res.status(404).send({ message: 'User not found' });
+      res
+        .status(404)
+        .send({ message: `User with id=${req.params.id} not found` });
     }
   };
 
   private getUserReservations = async (
-    req: Request<Pick<User, 'id'>>,
+    req: Request<
+      Stringified<Pick<User, 'id'>>,
+      DefaultBodyType,
+      { status?: RecurringReservationStatus }
+    >,
     res: Response
   ) => {
-    const { id } = req.params;
-
-    if (!id) {
-      res.status(400).send({ message: 'User id not provided' });
-      return;
-    }
-
-    const reservations = await this.userService.getUserReservations(id);
+    const reservations = await this.userService.getUserReservations(
+      parseInt(req.params.id),
+      req.query.status as RecurringReservationStatus | undefined
+    );
 
     if (reservations !== null) {
       res.status(200).send({ data: reservations });
     } else {
-      res.status(400).send({ message: 'Error when receiving reservations' });
+      res
+        .status(404)
+        .send({ message: `User with id=${req.params.id} not found` });
     }
   };
 
   private getUserAddresses = async (
-    req: Request<Pick<User, 'id'>>,
+    req: Request<Stringified<Pick<User, 'id'>>>,
     res: Response
   ) => {
-    const { id } = req.params;
-
-    if (!id) {
-      res.status(400).send({ message: 'User id not provided' });
-      return;
-    }
-
-    const addresses = await this.userService.getUserAddresses(id);
+    const addresses = await this.userService.getUserAddresses(
+      parseInt(req.params.id)
+    );
 
     if (addresses !== null) {
       res.status(200).send({ data: addresses });
     } else {
-      res.status(400).send({ message: 'Error when receiving addresses' });
+      res
+        .status(404)
+        .send({ message: `User with id=${req.params.id} not found` });
     }
   };
 
   private changeUserData = async (
-    req: Request<{ data: RequireAtLeastOne<User, 'id'> }>,
+    req: Request<Stringified<Pick<User, 'id'>>, UserUpdateData>,
     res: Response
   ) => {
-    const { id } = req.params.data;
-
-    if (!id) {
-      res.status(400).send({ message: 'User id not provided' });
-      return;
-    }
-
-    const newData = await this.userService.changeUserData(req.params.data);
+    const newData = await this.userService.changeUserData({
+      id: parseInt(req.params.id),
+      ...req.body
+    });
 
     if (newData !== null) {
       res.status(200).send({ data: newData });
     } else {
-      res.status(400).send({ message: 'Error when changing user data' });
+      res
+        .status(404)
+        .send({ message: `User with id=${req.params.id} not found` });
     }
   };
 
   private deleteUserData = async (
-    req: Request<Pick<User, 'id'>>,
+    req: Request<Stringified<Pick<User, 'id'>>>,
     res: Response
   ) => {
-    const { id } = req.params;
-
-    if (!id) {
-      res.status(400).send({ message: 'User id not provided' });
-      return;
-    }
-
-    const deletedUser = await this.userService.deleteUser(id);
+    const deletedUser = await this.userService.deleteUser(
+      parseInt(req.params.id)
+    );
 
     if (deletedUser !== null) {
       res.status(200).send({ data: deletedUser });
     } else {
-      res.status(400).send({ message: 'Error when deleting user' });
+      res
+        .status(404)
+        .send({ message: `User with id=${req.params.id} not found` });
     }
   };
 }
