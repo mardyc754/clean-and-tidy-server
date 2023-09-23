@@ -19,3 +19,7 @@ export function areStartEndDateValid(
     dayjs(endDate).diff(dayjs(oldEndDate)) < 7
   );
 }
+
+export function hourToISOString(hourString: string) {
+  return dayjs(hourString, 'HH:mm').toISOString();
+}

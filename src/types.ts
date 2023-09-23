@@ -2,8 +2,8 @@ import type { Query, ParamsDictionary } from 'express-serve-static-core';
 import type { Request } from 'express';
 import type { Reservation, RecurringReservation } from '@prisma/client';
 export interface TypedRequest<
-  P extends ParamsDictionary,
-  U = object,
+  P extends ParamsDictionary = ParamsDictionary,
+  U = Record<string, unknown>,
   Q extends Query = Query
 > extends Request {
   body: U;

@@ -5,6 +5,8 @@ import {
   ReservationStatus
 } from '@prisma/client';
 
+import type { ZodEmployee } from '~/parsers';
+
 import { prisma } from '~/db';
 
 export default class EmployeeService {
@@ -78,6 +80,23 @@ export default class EmployeeService {
       console.error(`Something went wrong: ${err}`);
     }
     return services;
+  }
+
+  // admin only
+  public async createEmployee(data: ZodEmployee) {
+    let employee: Employee | null = null;
+
+    try {
+      employee = await prisma.employee.create({
+        data: {
+          ...data,
+          isAdmin: false
+        }
+      });
+    } catch (err) {
+      console.error(`Something went wrong: ${err}`);
+    }
+    return employee;
   }
 
   // before finishing this function implementation,

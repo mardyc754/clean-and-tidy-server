@@ -1,8 +1,12 @@
-// import type { Employee } from '@prisma/client';
 import type { Request, Response } from 'express';
-import { transformIdToNumber } from '~/parsers';
+import type { ParamsDictionary } from 'express-serve-static-core';
+
+import { validateIdFromParams } from '~/middlewares/common';
+import { verifyEmployeeData } from '~/middlewares/employee';
 
 import { EmployeeService } from '~/services';
+import { type ZodEmployee } from '~/parsers';
+import type { TypedRequest } from '~/types';
 
 import AbstractController from './AbstractController';
 
@@ -16,10 +20,19 @@ export default class EmployeeController extends AbstractController {
 
   public createRouters() {
     this.router.get('/', this.getAllEmployees);
-    this.router.get('/:id', this.getEmployeeById);
-    this.router.get('/:id/reservations', this.getEmployeeReservations);
-    this.router.get('/:id/services', this.getEmployeeServices);
-    this.router.delete('/:id', this.deleteEmployeeData);
+    this.router.post('/', verifyEmployeeData, this.createEmployee);
+    this.router.get('/:id', validateIdFromParams, this.getEmployeeById);
+    this.router.get(
+      '/:id/reservations',
+      validateIdFromParams,
+      this.getEmployeeReservations
+    );
+    this.router.get(
+      '/:id/services',
+      validateIdFromParams,
+      this.getEmployeeServices
+    );
+    this.router.delete('/:id', validateIdFromParams, this.deleteEmployeeData);
   }
 
   private getAllEmployees = async (_: Request, res: Response) => {
@@ -34,15 +47,13 @@ export default class EmployeeController extends AbstractController {
     }
   };
 
-  private getEmployeeById = async (req: Request, res: Response) => {
-    const id = transformIdToNumber.parse(req.params.id);
-
-    if (!id) {
-      res.status(400).send({ message: 'Employee id not provided' });
-      return;
-    }
-
-    const employee = await this.employeeService.getEmployeeById(id);
+  private getEmployeeById = async (
+    req: TypedRequest<{ id: string }>,
+    res: Response
+  ) => {
+    const employee = await this.employeeService.getEmployeeById(
+      parseInt(req.params.id)
+    );
 
     if (employee) {
       res.status(200).send({
@@ -53,54 +64,73 @@ export default class EmployeeController extends AbstractController {
     }
   };
 
-  private getEmployeeReservations = async (req: Request, res: Response) => {
-    const id = transformIdToNumber.parse(req.params.id);
-
-    if (!id) {
-      res.status(400).send({ message: 'Employee id not provided' });
-      return;
-    }
-
-    const reservations = await this.employeeService.getEmployeeReservations(id);
+  private getEmployeeReservations = async (
+    req: TypedRequest<{ id: string }>,
+    res: Response
+  ) => {
+    const reservations = await this.employeeService.getEmployeeReservations(
+      parseInt(req.params.id)
+    );
 
     if (reservations !== null) {
       res.status(200).send({ data: reservations });
     } else {
-      res.status(400).send({ message: 'Error when receiving reservations' });
+      res
+        .status(404)
+        .send({ message: `Employee with id=${req.params.id} not found` });
     }
   };
 
-  private getEmployeeServices = async (req: Request, res: Response) => {
-    const id = transformIdToNumber.parse(req.params.id);
-
-    if (!id) {
-      res.status(400).send({ message: 'Employee id not provided' });
-      return;
-    }
-
-    const services = await this.employeeService.getEmployeeServices(id);
+  private getEmployeeServices = async (
+    req: TypedRequest<{ id: string }>,
+    res: Response
+  ) => {
+    const services = await this.employeeService.getEmployeeServices(
+      parseInt(req.params.id)
+    );
 
     if (services !== null) {
       res.status(200).send({ data: services });
     } else {
-      res.status(400).send({ message: 'Error when receiving reservations' });
+      res
+        .status(404)
+        .send({ message: `Employee with id=${req.params.id} not found` });
     }
   };
 
-  private deleteEmployeeData = async (req: Request, res: Response) => {
-    const id = transformIdToNumber.parse(req.params.id);
+  private createEmployee = async (
+    req: TypedRequest<ParamsDictionary, ZodEmployee>,
+    res: Response
+  ) => {
+    const employee = await this.employeeService.createEmployee({
+      ...req.body
+    });
 
-    if (!id) {
-      res.status(400).send({ message: 'Employee id not provided' });
-      return;
+    if (employee) {
+      res.status(201).send({
+        data: employee
+      });
+    } else {
+      res
+        .status(404)
+        .send({ message: `Employee with id=${req.params.id} not found` });
     }
+  };
 
-    const deletedEmployee = await this.employeeService.deleteEmployee(id);
+  private deleteEmployeeData = async (
+    req: TypedRequest<{ id: string }>,
+    res: Response
+  ) => {
+    const deletedEmployee = await this.employeeService.deleteEmployee(
+      parseInt(req.params.id)
+    );
 
     if (deletedEmployee !== null) {
       res.status(200).send({ data: deletedEmployee });
     } else {
-      res.status(400).send({ message: 'Error when deleting employee' });
+      res
+        .status(404)
+        .send({ message: `Employee with id=${req.params.id} not found` });
     }
   };
 }
