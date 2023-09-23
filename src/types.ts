@@ -1,10 +1,15 @@
 import type { Query, ParamsDictionary } from 'express-serve-static-core';
 import type { Request } from 'express';
 import type { Reservation, RecurringReservation } from '@prisma/client';
+
+export type DefaultParamsType = ParamsDictionary;
+export type DefaultBodyType = Record<string, unknown>;
+export type DefaultQueryType = Query;
+
 export interface TypedRequest<
-  P extends ParamsDictionary = ParamsDictionary,
-  U = Record<string, unknown>,
-  Q extends Query = Query
+  P extends ParamsDictionary = DefaultParamsType,
+  U = DefaultBodyType,
+  Q extends Query = DefaultQueryType
 > extends Request {
   body: U;
   params: P;

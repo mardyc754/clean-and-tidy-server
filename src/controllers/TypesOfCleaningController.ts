@@ -2,12 +2,9 @@ import type { Service } from '@prisma/client';
 import type { Request, Response } from 'express';
 
 import { TypesOfCleaningService } from '~/services';
-
-import { transformIdToNumber } from '~/parsers';
-import type { TypedRequest } from '~/types';
+import type { DefaultParamsType, TypedRequest } from '~/types';
 
 import AbstractController from './AbstractController';
-import { ParamsDictionary } from 'express-serve-static-core';
 
 export default class TypesOfCleaningController extends AbstractController {
   private typesOfCleaningService = new TypesOfCleaningService();
@@ -40,9 +37,9 @@ export default class TypesOfCleaningController extends AbstractController {
     req: TypedRequest<{ id: string }>,
     res: Response
   ) => {
-    const id = transformIdToNumber.parse(req.params.id);
-
-    const service = await this.typesOfCleaningService.getServiceById(id);
+    const service = await this.typesOfCleaningService.getServiceById(
+      parseInt(req.params.id)
+    );
 
     if (service !== null) {
       res.status(200).send({ data: service });
@@ -54,7 +51,7 @@ export default class TypesOfCleaningController extends AbstractController {
   };
 
   private createService = async (
-    req: TypedRequest<ParamsDictionary, Omit<Service, 'id'>>,
+    req: TypedRequest<DefaultParamsType, Omit<Service, 'id'>>,
     res: Response
   ) => {
     const data = req.body;
@@ -72,10 +69,9 @@ export default class TypesOfCleaningController extends AbstractController {
     res: Response
   ) => {
     const { price } = req.body;
-    const id = transformIdToNumber.parse(req.params.id);
 
     const service = await this.typesOfCleaningService.changeServicePrice({
-      id,
+      id: parseInt(req.params.id),
       price
     });
 
@@ -90,9 +86,9 @@ export default class TypesOfCleaningController extends AbstractController {
     req: TypedRequest<{ id: string }>,
     res: Response
   ) => {
-    const id = transformIdToNumber.parse(req.params.id);
-
-    const service = await this.typesOfCleaningService.deleteService(id);
+    const service = await this.typesOfCleaningService.deleteService(
+      parseInt(req.params.id)
+    );
 
     if (service !== null) {
       res.status(200).send({ data: service });
@@ -105,10 +101,10 @@ export default class TypesOfCleaningController extends AbstractController {
     req: TypedRequest<{ id: string }>,
     res: Response
   ) => {
-    const id = transformIdToNumber.parse(req.params.id);
-
     const employees =
-      await this.typesOfCleaningService.getEmployeesOfferingService(id);
+      await this.typesOfCleaningService.getEmployeesOfferingService(
+        parseInt(req.params.id)
+      );
 
     if (employees !== null) {
       res.status(200).send({ data: employees });
