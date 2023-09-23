@@ -1,12 +1,9 @@
 import type { Request, Response } from 'express';
-import type { ParamsDictionary } from 'express-serve-static-core';
-
-import { validateIdFromParams } from '~/middlewares/common';
-import { verifyEmployeeData } from '~/middlewares/employee';
 
 import { EmployeeService } from '~/services';
-import { type ZodEmployee } from '~/parsers';
-import type { TypedRequest } from '~/types';
+import { validateEmployeeCreationData } from '~/middlewares/type-validators/employee';
+import type { EmployeeCreationData } from '~/schemas/employee';
+import type { DefaultParamsType, TypedRequest } from '~/types';
 
 import AbstractController from './AbstractController';
 
@@ -20,19 +17,16 @@ export default class EmployeeController extends AbstractController {
 
   public createRouters() {
     this.router.get('/', this.getAllEmployees);
-    this.router.post('/', verifyEmployeeData, this.createEmployee);
-    this.router.get('/:id', validateIdFromParams, this.getEmployeeById);
-    this.router.get(
-      '/:id/reservations',
-      validateIdFromParams,
-      this.getEmployeeReservations
+    this.router.post('/', validateEmployeeCreationData(), this.createEmployee);
+    this.router.get('/:id', this.getEmployeeById);
+    this.router.get('/:id/reservations', this.getEmployeeReservations);
+    this.router.get('/:id/services', this.getEmployeeServices);
+
+    this.router.post(
+      '/:employeeId/services/:serviceId',
+      this.linkEmployeeWithService
     );
-    this.router.get(
-      '/:id/services',
-      validateIdFromParams,
-      this.getEmployeeServices
-    );
-    this.router.delete('/:id', validateIdFromParams, this.deleteEmployeeData);
+    this.router.delete('/:id', this.deleteEmployeeData);
   }
 
   private getAllEmployees = async (_: Request, res: Response) => {
@@ -60,7 +54,9 @@ export default class EmployeeController extends AbstractController {
         data: employee
       });
     } else {
-      res.status(404).send({ message: 'Employee not found' });
+      res
+        .status(404)
+        .send({ message: `Employee with id=${req.params.id} not found` });
     }
   };
 
@@ -99,7 +95,7 @@ export default class EmployeeController extends AbstractController {
   };
 
   private createEmployee = async (
-    req: TypedRequest<ParamsDictionary, ZodEmployee>,
+    req: TypedRequest<DefaultParamsType, EmployeeCreationData>,
     res: Response
   ) => {
     const employee = await this.employeeService.createEmployee({
@@ -131,6 +127,24 @@ export default class EmployeeController extends AbstractController {
       res
         .status(404)
         .send({ message: `Employee with id=${req.params.id} not found` });
+    }
+  };
+
+  private linkEmployeeWithService = async (
+    req: TypedRequest<{ employeeId: string; serviceId: string }>,
+    res: Response
+  ) => {
+    const newLinkedService = await this.employeeService.linkEmployeeWithService(
+      parseInt(req.params.employeeId),
+      parseInt(req.params.serviceId)
+    );
+
+    if (newLinkedService !== null) {
+      res.status(200).send({ data: newLinkedService });
+    } else {
+      res.status(404).send({
+        message: `Employee with id=${req.params.employeeId} or service with id=${req.params.serviceId} not found`
+      });
     }
   };
 }

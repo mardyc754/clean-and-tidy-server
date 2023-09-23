@@ -5,9 +5,8 @@ import {
   ReservationStatus
 } from '@prisma/client';
 
-import type { ZodEmployee } from '~/parsers';
-
 import { prisma } from '~/db';
+import { EmployeeCreationData } from '~/schemas/employee';
 
 export default class EmployeeService {
   public async getEmployeeById(id: Employee['id']) {
@@ -83,14 +82,19 @@ export default class EmployeeService {
   }
 
   // admin only
-  public async createEmployee(data: ZodEmployee) {
+  public async createEmployee(data: EmployeeCreationData) {
     let employee: Employee | null = null;
 
     try {
       employee = await prisma.employee.create({
         data: {
           ...data,
-          isAdmin: false
+          isAdmin: false,
+          services: {
+            connect: data.services.map((id) => ({
+              id
+            }))
+          }
         }
       });
     } catch (err) {
@@ -144,5 +148,32 @@ export default class EmployeeService {
     }
 
     return deleteEmployee;
+  }
+
+  public async linkEmployeeWithService(
+    employeeId: Employee['id'],
+    serviceId: Service['id']
+  ) {
+    let newEmployeeService: Service | null = null;
+
+    try {
+      const updatedEmployee = await prisma.employee.update({
+        where: { id: employeeId },
+        data: {
+          services: {
+            connect: { id: serviceId }
+          }
+        },
+        select: {
+          services: { where: { id: serviceId } }
+        }
+      });
+
+      newEmployeeService = updatedEmployee.services[0] ?? null;
+    } catch (err) {
+      console.error(`Something went wrong: ${err}`);
+    }
+
+    return newEmployeeService;
   }
 }
