@@ -88,7 +88,8 @@ model Service {
   id                        Int                          @id @default(autoincrement())
   name                      String                       @db.VarChar(100)
   price                     Decimal                      @db.Money // or // @db.Decimal(4,2)
-  employees                 EmployeeService[]
+  // employees              EmployeeService[]
+  employees                 Employee[]
 }
 
 model Employee {
@@ -100,16 +101,19 @@ model Employee {
   startHour                 DateTime                     @db.Time
   endHour                   DateTime                     @db.Time      
   recurringReservations     RecurringReservation[]
-  services                  EmployeeService[]
+  // services               EmployeeService[]
+  services                  Service[]
   isAdmin                   Boolean                      @default(false)
 }
 
-
-model EmployeeService {
-  service                   Service                      @relation(fields: [serviceId], references: [id])
-  serviceId                 Int
-  employee                  Employee                     @relation(fields: [employeeId], references: [id])
-  employeeId                Int
+// model may be needed 
+// if there would be an distinctive information about employee's service
+// 
+// model EmployeeService {
+//   service                   Service                      @relation(fields: [serviceId], references: [id])
+//   serviceId                 Int
+//   employee                  Employee                     @relation(fields: [employeeId], references: [id])
+//   employeeId                Int
   
-  @@id([serviceId, employeeId])
-}
+//   @@id([serviceId, employeeId])
+// }
