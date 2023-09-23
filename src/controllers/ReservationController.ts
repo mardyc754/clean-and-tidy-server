@@ -1,9 +1,9 @@
+import { Reservation } from '@prisma/client';
 import type { Request, Response } from 'express';
 
 import { ReservationService } from '~/services';
 
 import AbstractController from './AbstractController';
-import { Reservation } from '@prisma/client';
 import { TypedRequest } from '~/types';
 
 export default class ReservationController extends AbstractController {

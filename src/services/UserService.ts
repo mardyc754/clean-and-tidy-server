@@ -1,4 +1,4 @@
-import type { Reservation, Residence, User } from '@prisma/client';
+import type { Reservation, Address, User } from '@prisma/client';
 import type { RequireAtLeastOne } from 'type-fest';
 
 import { prisma } from '~/db';
@@ -88,7 +88,7 @@ export default class UserService {
   }
 
   public async getUserAddresses(userId: User['id']) {
-    let addresses: Residence[] | null = null;
+    let addresses: Address[] | null = null;
 
     try {
       const userWithReservations = await prisma.user.findUnique({
@@ -96,7 +96,7 @@ export default class UserService {
         include: {
           recurringReservations: {
             include: {
-              residence: true
+              address: true
             }
           }
         }
@@ -104,7 +104,7 @@ export default class UserService {
 
       addresses =
         userWithReservations?.recurringReservations.flatMap(
-          (group) => group.residence
+          (group) => group.address
         ) ?? [];
     } catch (err) {
       console.error(`Something went wrong: ${err}`);

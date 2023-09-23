@@ -9,6 +9,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "prisma:migrate": "npx prisma migrate dev --name init",
     "generate-db": "npx prisma generate",
+    "db-push": "npx prisma db push",
     "dev": "nodemon"
   },
   "engines": {
@@ -43,7 +44,10 @@
   "dependencies": {
     "@prisma/client": "^5.2.0",
     "@types/express-serve-static-core": "^4.17.36",
+    "@types/uuid": "^9.0.4",
+    "dayjs": "^1.11.9",
     "dotenv": "^16.3.1",
-    "type-fest": "^4.3.1"
+    "type-fest": "^4.3.1",
+    "uuid": "^9.0.1"
   }
 }
