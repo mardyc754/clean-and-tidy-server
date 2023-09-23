@@ -1,10 +1,14 @@
-import type { Query } from 'express-serve-static-core';
+import type { Query, ParamsDictionary } from 'express-serve-static-core';
 import type { Request } from 'express';
 import type { Reservation, RecurringReservation } from '@prisma/client';
-
-export interface TypedRequest<T extends Query, U> extends Request {
+export interface TypedRequest<
+  P extends ParamsDictionary = ParamsDictionary,
+  U = Record<string, unknown>,
+  Q extends Query = Query
+> extends Request {
   body: U;
-  query: T;
+  params: P;
+  query: Q;
 }
 
 export type ReservationCreationData = Pick<
@@ -14,7 +18,7 @@ export type ReservationCreationData = Pick<
 
 export type RecurringReservationCreationData = Pick<
   RecurringReservation,
-  'frequency' | 'userId' | 'addressId' | 'serviceId' | 'endDate'
+  'frequency' | 'userId' | 'addressId' | 'employeeId' | 'endDate'
 > & { reservationData: ReservationCreationData };
 
 export type StartEndDate = {

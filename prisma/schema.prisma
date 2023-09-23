@@ -68,8 +68,8 @@ model RecurringReservation {
   reservations              Reservation[]
   address                   Address                      @relation(fields: [addressId], references: [id])
   addressId                 Int                          @unique
-  service                   Service                      @relation(fields: [serviceId], references: [id])
-  serviceId                 Int                          @unique
+  employees                 Employee                     @relation(fields: [employeeId], references: [id])
+  employeeId                Int                          @unique
 	@@map("ReservationGroup")
 }
 
@@ -89,7 +89,6 @@ model Service {
   name                      String                       @db.VarChar(100)
   price                     Decimal                      @db.Money // or // @db.Decimal(4,2)
   employees                 Employee[]
-  recurringReservations     RecurringReservation[]
 }
 
 model Employee {
@@ -98,7 +97,9 @@ model Employee {
   surname                   String                       @db.VarChar(50)
   email                     String                       @unique  @db.VarChar(40)
   password                  String                       @db.VarChar(32)
-  availability              DateTime     
+  startHour                 DateTime                     @db.Time
+  endHour                   DateTime                     @db.Time      
+  recurringReservations     RecurringReservation[]
   services                  Service[]
   isAdmin                   Boolean                      @default(false)
 }
