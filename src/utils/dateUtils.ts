@@ -5,8 +5,8 @@ export function now() {
 }
 
 export function areStartEndDateValid(
-  startDate: Date,
-  endDate: Date,
+  startDate: string,
+  endDate: string,
   oldStartDate: Date,
   oldEndDate: Date
 ) {

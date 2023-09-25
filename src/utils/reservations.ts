@@ -7,7 +7,7 @@ import {
 
 import { dayjs } from '~/lib';
 
-import type { RecurringReservationCreationData } from '~/types';
+import type { RecurringReservationCreationData } from '~/schemas/recurringReservation';
 
 import { now } from './dateUtils';
 
@@ -174,23 +174,22 @@ export function changeWeekDay(
   return newReservations;
 }
 
-export function confirmReservations(reservations: Reservation[]) {
-  return reservations.map((reservation) => ({
+export function changeReservationStatus(
+  reservation: Reservation,
+  newStatus: ReservationStatus
+) {
+  return {
     ...reservation,
-    status: ReservationStatus.ACTIVE
-  }));
+    status: newStatus
+  };
 }
 
-export function confirmReservationsCancelation(reservations: Reservation[]) {
+export function changeMultipleReservationsStatus(
+  reservations: Reservation[],
+  newStatus: ReservationStatus
+) {
   return reservations.map((reservation) => ({
     ...reservation,
-    status: ReservationStatus.CANCELLED
-  }));
-}
-
-export function closeReservations(reservations: Reservation[]) {
-  return reservations.map((reservation) => ({
-    ...reservation,
-    status: ReservationStatus.CLOSED
+    status: newStatus
   }));
 }

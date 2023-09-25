@@ -4,10 +4,11 @@ import type { Stringified } from 'type-fest';
 
 import { UserService } from '~/services';
 
-import AbstractController from './AbstractController';
-import { DefaultBodyType } from '~/types';
 import { validateUserUpdateData } from '~/middlewares/type-validators/user';
 import { UserUpdateData } from '~/schemas/user';
+import type { DefaultBodyType } from '~/types';
+
+import AbstractController from './AbstractController';
 
 export default class UserController extends AbstractController {
   private userService = new UserService();

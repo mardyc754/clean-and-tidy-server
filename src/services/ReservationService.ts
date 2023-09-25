@@ -1,7 +1,10 @@
 import { ReservationStatus, type Reservation } from '@prisma/client';
-import type { RequireAtLeastOne } from 'type-fest';
 
 import { prisma } from '~/db';
+import {
+  ChangeReservationDateData,
+  SingleReservationCreationData
+} from '~/schemas/reservation';
 import { areStartEndDateValid, now } from '~/utils/dateUtils';
 
 export default class ReservationService {
@@ -31,12 +34,16 @@ export default class ReservationService {
     return reservation;
   }
 
-  public async createReservation(data: Omit<Reservation, 'id' | 'status'>) {
+  public async createReservation(data: SingleReservationCreationData) {
     let reservation: Reservation | null = null;
 
     try {
       reservation = await prisma.reservation.create({
-        data: { ...data, status: ReservationStatus.TO_BE_CONFIRMED }
+        data: {
+          ...data,
+          name: `${data.recurringReservationId}`, // reservation name should contain the reservation number
+          status: ReservationStatus.TO_BE_CONFIRMED
+        }
       });
     } catch (err) {
       console.error(`Something went wrong: ${err}`);
@@ -45,38 +52,7 @@ export default class ReservationService {
     return reservation;
   }
 
-  /**
-   * Change anything in reservation that is not a start or end date
-   * @param data new reservation data
-   * @returns reservation object with changed data if reservation was changed successfully, null otherwise
-   */
-  public async changeReservationData(
-    data: RequireAtLeastOne<
-      Omit<Reservation, 'status' | 'startDate' | 'endDate'>,
-      'id'
-    >
-  ) {
-    const { id, ...rest } = data;
-    let updatedReservation: Reservation | null = null;
-
-    try {
-      updatedReservation = await prisma.reservation.update({
-        where: { id },
-        data: {
-          ...rest,
-          status: ReservationStatus.TO_BE_CONFIRMED
-        }
-      });
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
-    }
-
-    return updatedReservation;
-  }
-
-  public async changeReservationDate(
-    data: Pick<Reservation, 'id' | 'startDate' | 'endDate'>
-  ) {
+  public async changeReservationDate(data: ChangeReservationDateData) {
     const { id, startDate, endDate } = data;
 
     const oldReservationData = await this.getReservationById(id);
@@ -107,23 +83,6 @@ export default class ReservationService {
     return updatedReservation;
   }
 
-  public async cancelReservation(id: Reservation['id']) {
-    let cancelledReservation: Reservation | null = null;
-
-    try {
-      cancelledReservation = await prisma.reservation.update({
-        where: { id },
-        data: {
-          status: ReservationStatus.TO_BE_CANCELLED
-        }
-      });
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
-    }
-
-    return cancelledReservation;
-  }
-
   public async deleteReservation(id: Reservation['id']) {
     let deletedReservation: Reservation | null = null;
 
@@ -138,13 +97,16 @@ export default class ReservationService {
     return deletedReservation;
   }
 
-  public async confirmReservationDataChange(id: Reservation['id']) {
+  public async changeReservationStatus(
+    id: Reservation['id'],
+    newStatus: Reservation['status']
+  ) {
     let updatedReservation: Reservation | null = null;
 
     try {
       updatedReservation = await prisma.reservation.update({
         where: { id },
-        data: { status: ReservationStatus.ACTIVE }
+        data: { status: newStatus }
       });
     } catch (err) {
       console.error(`Something went wrong: ${err}`);
@@ -153,47 +115,16 @@ export default class ReservationService {
     return updatedReservation;
   }
 
-  public async confirmReservationCancelation(id: Reservation['id']) {
-    let cancelledReservation: Reservation | null = null;
-
-    try {
-      cancelledReservation = await prisma.reservation.update({
-        where: { id },
-        data: {
-          status: ReservationStatus.CANCELLED
-        }
-      });
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
-    }
-
-    return cancelledReservation;
-  }
-
-  public async closeReservation(id: Reservation['id']) {
-    let reservationToClose: Reservation | null = null;
-
-    try {
-      reservationToClose = await prisma.reservation.update({
-        where: { id },
-        data: {
-          status: ReservationStatus.CLOSED
-        }
-      });
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
-    }
-
-    return reservationToClose;
-  }
-
   public async autoCloseReservation(data: Pick<Reservation, 'id' | 'endDate'>) {
     let reservationToClose: Reservation | null = null;
 
     const { id, endDate } = data;
 
     if (now().isAfter(endDate)) {
-      reservationToClose = await this.closeReservation(id);
+      reservationToClose = await this.changeReservationStatus(
+        id,
+        ReservationStatus.CLOSED
+      );
     }
 
     return reservationToClose;

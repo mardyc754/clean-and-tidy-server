@@ -4,6 +4,7 @@ import {
   CleaningFrequency,
   RecurringReservationStatus,
   ReservationStatus
+  // Address
 } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -11,14 +12,13 @@ import { dayjs } from '~/lib';
 import { prisma } from '~/db';
 import {
   cancelReservations,
+  changeMultipleReservationsStatus,
   changeReservationFrequency,
   changeWeekDay,
-  confirmReservations,
-  confirmReservationsCancelation,
   createReservations
 } from '~/utils/reservations';
 
-import type { RecurringReservationCreationData } from '~/types';
+import type { RecurringReservationCreationData } from '~/schemas/recurringReservation';
 
 export default class RecurringReservationService {
   public async getAllRecurringReservations() {
@@ -54,9 +54,7 @@ export default class RecurringReservationService {
     return recurringReservation;
   }
 
-  public async getReservationsFromRecurringReservation(
-    id: RecurringReservation['id']
-  ) {
+  public async getReservations(id: RecurringReservation['id']) {
     let reservations: Reservation[] | null = [];
 
     try {
@@ -81,19 +79,33 @@ export default class RecurringReservationService {
       reservationGroupName // TODO: it can be changed to normal id later because right now, the name will be too long
     );
 
+    const { userId, endDate } = data;
+
     try {
+      // const addressRecord = await prisma.address.create({
+      //   data: {
+      //     ...address
+      //   }
+      // });
+
       recurringReservation = await prisma.recurringReservation.create({
         data: {
           ...data,
+          userId: userId,
           status: RecurringReservationStatus.TO_BE_CONFIRMED,
           // weekDay: extractWeekDayFromDate(data.endDate),
-          weekDay: dayjs(data.endDate).day(),
+          weekDay: dayjs(endDate).day(),
           reservations: {
             createMany: {
               data: reservations
             }
           },
           name: reservationGroupName
+          // address: {
+          //   connect: {
+          //     id: addressRecord.id
+          //   }
+          // }
         }
       });
     } catch (err) {
@@ -109,7 +121,7 @@ export default class RecurringReservationService {
     const { id, frequency } = data;
     let recurringReservation: RecurringReservation | null = null;
 
-    const reservations = await this.getReservationsFromRecurringReservation(id);
+    const reservations = await this.getReservations(id);
 
     const oldRecurringReservation = await this.getRecurringReservationById(id);
 
@@ -160,7 +172,7 @@ export default class RecurringReservationService {
     const { id, weekDay, frequency } = data;
     let recurringReservation: RecurringReservation | null = null;
 
-    const reservations = await this.getReservationsFromRecurringReservation(id);
+    const reservations = await this.getReservations(id);
 
     if (!reservations) {
       return recurringReservation;
@@ -191,7 +203,7 @@ export default class RecurringReservationService {
   public async cancelReservation(id: RecurringReservation['id']) {
     let recurringReservation: RecurringReservation | null = null;
     const oldRecurringReservation = await this.getRecurringReservationById(id);
-    const reservations = await this.getReservationsFromRecurringReservation(id);
+    const reservations = await this.getReservations(id);
 
     if (!oldRecurringReservation || !reservations) {
       return recurringReservation;
@@ -221,21 +233,28 @@ export default class RecurringReservationService {
     return recurringReservation;
   }
 
-  public async confirmReservationDataChange(id: RecurringReservation['id']) {
+  public async changeReservationStatus(
+    id: RecurringReservation['id'],
+    newRecurringReservationStatus: RecurringReservationStatus,
+    newReservationStatus: ReservationStatus
+  ) {
     let recurringReservation: RecurringReservation | null = null;
-    const reservations = await this.getReservationsFromRecurringReservation(id);
+    const reservations = await this.getReservations(id);
 
     if (!reservations) {
       return recurringReservation;
     }
 
-    const newReservations = confirmReservations(reservations);
+    const newReservations = changeMultipleReservationsStatus(
+      reservations,
+      newReservationStatus
+    );
 
     try {
       recurringReservation = await prisma.recurringReservation.update({
         where: { id },
         data: {
-          status: RecurringReservationStatus.ACTIVE,
+          status: newRecurringReservationStatus,
           reservations: {
             updateMany: {
               where: { recurringReservationId: id },
@@ -249,59 +268,12 @@ export default class RecurringReservationService {
     }
 
     return recurringReservation;
-  }
-
-  public async confirmReservationCancelation(id: RecurringReservation['id']) {
-    let recurringReservation: RecurringReservation | null = null;
-    const reservations = await this.getReservationsFromRecurringReservation(id);
-
-    if (!reservations) {
-      return recurringReservation;
-    }
-
-    const newReservations = confirmReservationsCancelation(reservations);
-
-    try {
-      recurringReservation = await prisma.recurringReservation.update({
-        where: { id },
-        data: {
-          status: RecurringReservationStatus.CANCELLED,
-          reservations: {
-            updateMany: {
-              where: { recurringReservationId: id },
-              data: newReservations
-            }
-          }
-        }
-      });
-    } catch (err) {
-      console.log(err);
-    }
-
-    return recurringReservation;
-  }
-
-  public async closeRecurringReservation(id: Reservation['id']) {
-    let reservationToClose: RecurringReservation | null = null;
-
-    try {
-      reservationToClose = await prisma.recurringReservation.update({
-        where: { id },
-        data: {
-          status: RecurringReservationStatus.CLOSED
-        }
-      });
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
-    }
-
-    return reservationToClose;
   }
 
   public async autoCloseRecurringReservation(id: Reservation['id']) {
     let reservationToClose: RecurringReservation | null = null;
 
-    const reservations = await this.getReservationsFromRecurringReservation(id);
+    const reservations = await this.getReservations(id);
 
     if (!reservations) {
       return reservationToClose;
