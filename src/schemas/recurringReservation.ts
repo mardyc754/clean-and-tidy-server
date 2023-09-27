@@ -11,17 +11,18 @@ const cleaningFrequencySchema = z.nativeEnum(CleaningFrequency);
 export const recurringReservationCreationSchema = z.object({
   frequency: cleaningFrequencySchema,
   userId: z.number().int(),
-  addressId: z.number(),
-  employeeId: z.number(),
+  employeeId: z.number().int(),
   endDate: z.string().datetime(),
-  reservationData: reservationCreationDataSchema
-  // address: z.object({
-  //   areaSize: z.number(),
-  //   street: z.string().max(40),
-  //   houseNumber: z.number().int(),
-  //   postCode: z.string().length(6),
-  //   city: z.string().max(40)
-  // })
+  reservationData: reservationCreationDataSchema,
+  address: z
+    .object({
+      areaSize: z.number(),
+      street: z.string().max(40),
+      houseNumber: z.string().max(6),
+      postCode: z.string().length(6),
+      city: z.string().max(40)
+    })
+    .or(z.number().int())
 });
 
 export type RecurringReservationCreationData = z.infer<

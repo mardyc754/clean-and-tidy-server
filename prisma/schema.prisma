@@ -12,16 +12,15 @@ datasource db {
 }
 
 enum ReservationStatus {
-  TO_BE_CONFIRMED @map("WAITING_FOR_CONFIRMATION")
-  ACTIVE @map("CONFIRMED")
+  TO_BE_CONFIRMED
+  ACTIVE
   CLOSED
   TO_BE_CANCELLED
   CANCELLED
 }
 
 enum RecurringReservationStatus {
-  TO_BE_CONFIRMED @map("WAITING_FOR_CONFIRMATION")
-  ACTIVE
+  TO_BE_CONFIRMED
   CLOSED
   TO_BE_CANCELLED
   CANCELLED
@@ -52,7 +51,7 @@ model Reservation {
   includeDetergents         Boolean 
   cost                      Decimal                      @db.Money // or @db.Decimal(4,2)
   recurringReservation      RecurringReservation         @relation(fields: [recurringReservationId], references: [id])
-  recurringReservationId    Int                          @unique @map("reservationGroupId")
+  recurringReservationId    Int                          @unique
   status                    ReservationStatus
 }
 
@@ -70,18 +69,16 @@ model RecurringReservation {
   addressId                 Int                          @unique
   employees                 Employee                     @relation(fields: [employeeId], references: [id])
   employeeId                Int                          @unique
-	@@map("ReservationGroup")
 }
 
 model Address {
   id                        Int                          @id @default(autoincrement())
   areaSize                  Decimal                      @db.Money // or // @db.Decimal(4,2)
   street                    String                       @db.VarChar(40)
-  houseNumber               Int         
-  postCode                  String                       @db.VarChar(5)
+  houseNumber               String                       @db.VarChar(6)        
+  postCode                  String                       @db.VarChar(6)
   city                      String                       @db.VarChar(40)
   recurringReservations     RecurringReservation[]
-	@@map("Residence")
 }
 
 model Service {

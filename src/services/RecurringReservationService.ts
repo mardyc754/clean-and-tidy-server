@@ -4,11 +4,9 @@ import {
   CleaningFrequency,
   RecurringReservationStatus,
   ReservationStatus
-  // Address
 } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 
-import { dayjs } from '~/lib';
 import { prisma } from '~/db';
 import {
   cancelReservations,
@@ -17,6 +15,8 @@ import {
   changeWeekDay,
   createReservations
 } from '~/utils/reservations';
+
+import { extractWeekDayFromDate } from '~/utils/dateUtils';
 
 import type { RecurringReservationCreationData } from '~/schemas/recurringReservation';
 
@@ -79,33 +79,38 @@ export default class RecurringReservationService {
       reservationGroupName // TODO: it can be changed to normal id later because right now, the name will be too long
     );
 
-    const { userId, endDate } = data;
+    const { userId, endDate, frequency, employeeId, address } = data;
 
     try {
-      // const addressRecord = await prisma.address.create({
-      //   data: {
-      //     ...address
-      //   }
-      // });
+      let addressId: number;
+
+      if (typeof address === 'number') {
+        addressId = address;
+      } else {
+        const addressRecord = await prisma.address.create({
+          data: {
+            ...address
+          }
+        });
+
+        addressId = addressRecord.id;
+      }
 
       recurringReservation = await prisma.recurringReservation.create({
         data: {
-          ...data,
-          userId: userId,
+          userId,
           status: RecurringReservationStatus.TO_BE_CONFIRMED,
-          // weekDay: extractWeekDayFromDate(data.endDate),
-          weekDay: dayjs(endDate).day(),
+          weekDay: extractWeekDayFromDate(endDate),
           reservations: {
             createMany: {
               data: reservations
             }
           },
-          name: reservationGroupName
-          // address: {
-          //   connect: {
-          //     id: addressRecord.id
-          //   }
-          // }
+          name: reservationGroupName,
+          frequency,
+          endDate,
+          employeeId,
+          addressId
         }
       });
     } catch (err) {
@@ -159,7 +164,7 @@ export default class RecurringReservationService {
           }
         });
       } catch (err) {
-        console.log(err);
+        console.error(err);
       }
     }
 
@@ -194,7 +199,7 @@ export default class RecurringReservationService {
         }
       });
     } catch (err) {
-      console.log(err);
+      console.error(err);
     }
 
     return recurringReservation;
@@ -227,7 +232,7 @@ export default class RecurringReservationService {
         }
       });
     } catch (err) {
-      console.log(err);
+      console.error(err);
     }
 
     return recurringReservation;
@@ -264,7 +269,7 @@ export default class RecurringReservationService {
         }
       });
     } catch (err) {
-      console.log(err);
+      console.error(err);
     }
 
     return recurringReservation;
