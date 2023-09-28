@@ -12,10 +12,10 @@ import type { DefaultParamsType, TypedRequest } from '~/types';
 
 import AbstractController from './AbstractController';
 import {
-  validateCleaningFrequency,
+  // validateCleaningFrequency,
+  // validateWeekDay,
   validateRecurringReservationCreationData,
-  validateStatusChange,
-  validateWeekDay
+  validateStatusChange
 } from '~/middlewares/type-validators/recurringReservation';
 
 export default class ReservationController extends AbstractController {
@@ -39,12 +39,13 @@ export default class ReservationController extends AbstractController {
       '/:id/reservations',
       this.getReservationsFromRecurringReservation
     );
-    this.router.put(
-      '/:id/frequency',
-      validateCleaningFrequency(),
-      this.changeFrequency
-    );
-    this.router.put('/:id/weekDay', validateWeekDay(), this.changeWeekDay);
+    // TODO: The methods below needs to be improved
+    // this.router.put(
+    //   '/:id/frequency',
+    //   validateCleaningFrequency(),
+    //   this.changeFrequency
+    // );
+    // this.router.put('/:id/weekDay', validateWeekDay(), this.changeWeekDay);
     this.router.put(
       '/:id/status',
       validateStatusChange(),

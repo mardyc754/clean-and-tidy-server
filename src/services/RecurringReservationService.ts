@@ -120,6 +120,7 @@ export default class RecurringReservationService {
     return recurringReservation;
   }
 
+  // TODO: To be improved
   public async changeFrequency(
     data: Pick<RecurringReservation, 'id' | 'frequency'>
   ) {
@@ -158,7 +159,14 @@ export default class RecurringReservationService {
                 // updateMany may not work because that function updates already existing records only
                 // recommendation - create new reservations based on new ones
                 // and after confirmation remove old ones
-                data: newReservations
+                data: newReservations.map((reservation) => ({
+                  name: reservation.name,
+                  startDate: reservation.startDate,
+                  endDate: reservation.endDate,
+                  includeDetergents: reservation.includeDetergents,
+                  cost: reservation.cost,
+                  status: reservation.status
+                }))
               }
             }
           }
@@ -171,6 +179,7 @@ export default class RecurringReservationService {
     return recurringReservation;
   }
 
+  // TODO: To be improved
   public async changeWeekDay(
     data: Pick<RecurringReservation, 'id' | 'weekDay' | 'frequency'>
   ) {
@@ -205,6 +214,7 @@ export default class RecurringReservationService {
     return recurringReservation;
   }
 
+  // TODO: To be improved
   public async cancelReservation(id: RecurringReservation['id']) {
     let recurringReservation: RecurringReservation | null = null;
     const oldRecurringReservation = await this.getRecurringReservationById(id);
