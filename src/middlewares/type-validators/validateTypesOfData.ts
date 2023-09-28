@@ -1,3 +1,10 @@
+import {
+  z,
+  type ZodObject,
+  type ZodRawShape,
+  type ZodString,
+  type ZodUnknown
+} from 'zod';
 import type { Response, NextFunction } from 'express';
 
 import type {
@@ -6,8 +13,6 @@ import type {
   TypedRequest,
   DefaultQueryType
 } from '~/types';
-
-import { z, ZodObject, ZodRawShape, ZodString, ZodUnknown } from 'zod';
 
 type ParamsParser<T extends ZodRawShape = Record<string, ZodString>> =
   ZodObject<T>;

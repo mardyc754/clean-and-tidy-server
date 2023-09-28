@@ -2,7 +2,10 @@ import {
   AuthController,
   UserController,
   TypesOfCleaningController,
-  EmployeeController
+  EmployeeController,
+  RecurringReservationController,
+  ReservationController,
+  AddressController
 } from '~/controllers';
 import App from './App';
 
@@ -13,7 +16,10 @@ const app = new App(
     new AuthController(),
     new UserController(),
     new TypesOfCleaningController(),
-    new EmployeeController()
+    new EmployeeController(),
+    new ReservationController(),
+    new RecurringReservationController(),
+    new AddressController()
   ],
   port
 );

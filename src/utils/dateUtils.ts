@@ -5,8 +5,8 @@ export function now() {
 }
 
 export function areStartEndDateValid(
-  startDate: Date,
-  endDate: Date,
+  startDate: string,
+  endDate: string,
   oldStartDate: Date,
   oldEndDate: Date
 ) {
@@ -22,4 +22,8 @@ export function areStartEndDateValid(
 
 export function hourToISOString(hourString: string) {
   return dayjs(hourString, 'HH:mm').toISOString();
+}
+
+export function extractWeekDayFromDate(date: string) {
+  return dayjs(date).day();
 }

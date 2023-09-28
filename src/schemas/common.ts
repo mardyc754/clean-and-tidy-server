@@ -20,3 +20,5 @@ export const isHourStringSchema = z.string().refine((val) => {
     hourParts[1]! < 60
   );
 });
+
+export const ISOString = z.string().datetime();

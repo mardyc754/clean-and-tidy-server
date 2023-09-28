@@ -12,16 +12,15 @@ datasource db {
 }
 
 enum ReservationStatus {
-  TO_BE_CONFIRMED @map("WAITING_FOR_CONFIRMATION")
-  ACTIVE @map("CONFIRMED")
+  TO_BE_CONFIRMED
+  ACTIVE
   CLOSED
   TO_BE_CANCELLED
   CANCELLED
 }
 
 enum RecurringReservationStatus {
-  TO_BE_CONFIRMED @map("WAITING_FOR_CONFIRMATION")
-  ACTIVE
+  TO_BE_CONFIRMED
   CLOSED
   TO_BE_CANCELLED
   CANCELLED
@@ -50,9 +49,9 @@ model Reservation {
   startDate                 DateTime                     @db.Date
   endDate                   DateTime                     @db.Date
   includeDetergents         Boolean 
-  cost                      Decimal                      @db.Money // or @db.Decimal(4,2)
-  recurringReservation      RecurringReservation         @relation(fields: [recurringReservationId], references: [id])
-  recurringReservationId    Int                          @unique @map("reservationGroupId")
+  cost                      Decimal                      @db.Money
+  recurringReservation      RecurringReservation         @relation(fields: [recurringReservationId], references: [id], onDelete: Cascade)
+  recurringReservationId    Int                          
   status                    ReservationStatus
 }
 
@@ -64,30 +63,28 @@ model RecurringReservation {
   weekDay                   Int                          @db.SmallInt
   status                    RecurringReservationStatus
   user                      User                         @relation(fields: [userId], references: [id])
-  userId                    Int                          @unique
+  userId                    Int                          
   reservations              Reservation[]
   address                   Address                      @relation(fields: [addressId], references: [id])
-  addressId                 Int                          @unique
+  addressId                 Int                          
   employees                 Employee                     @relation(fields: [employeeId], references: [id])
-  employeeId                Int                          @unique
-	@@map("ReservationGroup")
+  employeeId                Int                          
 }
 
 model Address {
   id                        Int                          @id @default(autoincrement())
-  areaSize                  Decimal                      @db.Money // or // @db.Decimal(4,2)
+  areaSize                  Decimal                      @db.Money
   street                    String                       @db.VarChar(40)
-  houseNumber               Int         
-  postCode                  String                       @db.VarChar(5)
+  houseNumber               String                       @db.VarChar(6)        
+  postCode                  String                       @db.VarChar(6)
   city                      String                       @db.VarChar(40)
   recurringReservations     RecurringReservation[]
-	@@map("Residence")
 }
 
 model Service {
   id                        Int                          @id @default(autoincrement())
   name                      String                       @db.VarChar(100)
-  price                     Decimal                      @db.Money // or // @db.Decimal(4,2)
+  price                     Decimal                      @db.Money
   // employees              EmployeeService[]
   employees                 Employee[]
 }

@@ -18,6 +18,18 @@ export default class AddressService {
     return address;
   }
 
+  public async getAllAddresses() {
+    let addresses: Address[] | null = null;
+
+    try {
+      addresses = await prisma.address.findMany();
+    } catch (err) {
+      console.error(err);
+    }
+
+    return addresses;
+  }
+
   public async getAddressById(id: Address['id']) {
     let address: Address | null = null;
 

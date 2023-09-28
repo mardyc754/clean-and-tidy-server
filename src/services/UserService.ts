@@ -70,6 +70,7 @@ export default class UserService {
 
     const reservationStatusFilter = status ? { where: { status } } : true;
 
+    // let userWithReservations;
     try {
       const userWithReservations = await prisma.user.findUnique({
         where: { id: userId },
@@ -90,6 +91,7 @@ export default class UserService {
       console.error(`Something went wrong: ${err}`);
     }
     return reservations;
+    // return userWithReservations;
   }
 
   public async getUserAddresses(userId: User['id']) {
