@@ -29,8 +29,21 @@ export default class UserService {
     let user: User | null = null;
 
     try {
-      user = await prisma.user.findFirst({
+      user = await prisma.user.findUnique({
         where: { username }
+      });
+    } catch (err) {
+      console.error(`Something went wrong: ${err}`);
+    }
+    return user;
+  }
+
+  public async getUserByEmail(email: User['email']) {
+    let user: User | null = null;
+
+    try {
+      user = await prisma.user.findUnique({
+        where: { email }
       });
     } catch (err) {
       console.error(`Something went wrong: ${err}`);
@@ -42,7 +55,7 @@ export default class UserService {
     let user: User | null = null;
 
     try {
-      user = await prisma.user.findFirst({
+      user = await prisma.user.findUnique({
         where: { id }
       });
     } catch (err) {

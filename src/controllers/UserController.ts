@@ -9,6 +9,7 @@ import { UserUpdateData } from '~/schemas/user';
 import type { DefaultBodyType } from '~/types';
 
 import AbstractController from './AbstractController';
+import { authenticate } from '~/middlewares/auth/authenticate';
 
 export default class UserController extends AbstractController {
   private userService = new UserService();
@@ -21,7 +22,11 @@ export default class UserController extends AbstractController {
   public createRouters() {
     this.router.get('/', this.getAllUsers);
     this.router.get('/:id', this.getUserById);
-    this.router.get('/:id/reservations', this.getUserReservations);
+    this.router.get(
+      '/:id/reservations',
+      authenticate,
+      this.getUserReservations
+    );
     this.router.get('/:id/addresses', this.getUserAddresses);
     this.router.put('/:id', validateUserUpdateData(), this.changeUserData);
     this.router.delete('/:id', this.deleteUserData);
