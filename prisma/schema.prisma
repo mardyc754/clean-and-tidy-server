@@ -38,7 +38,7 @@ model Client {
   surname                   String?                      @db.VarChar(50)
   username                  String                       @unique @db.VarChar(30)
   email                     String                       @unique @db.VarChar(40)
-  password                  String                       @db.VarChar(32)
+  password                  String                       @db.VarChar(60)
   phone                     String?                      @db.VarChar(15)
   recurringReservations     RecurringReservation[]
 }

@@ -104,10 +104,11 @@ export default class ClientService {
       reservations =
         userWithReservations?.recurringReservations.flatMap(
           (group) => group.reservations
-        ) ?? [];
+        ) ?? null;
     } catch (err) {
       console.error(`Something went wrong: ${err}`);
     }
+
     return reservations;
     // return userWithReservations;
   }
@@ -130,7 +131,7 @@ export default class ClientService {
       addresses =
         userWithReservations?.recurringReservations.flatMap(
           (group) => group.address
-        ) ?? [];
+        ) ?? null;
     } catch (err) {
       console.error(`Something went wrong: ${err}`);
     }

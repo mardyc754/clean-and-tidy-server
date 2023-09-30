@@ -4,8 +4,8 @@ import type { Stringified } from 'type-fest';
 
 import { ClientService } from '~/services';
 
-import { validateClientUpdateData } from '~/middlewares/type-validators/user';
-import { ClientUpdateData } from '~/schemas/user';
+import { validateClientUpdateData } from '~/middlewares/type-validators/client';
+import { ClientUpdateData } from '~/schemas/client';
 import type { DefaultBodyType } from '~/types';
 
 import AbstractController from './AbstractController';
