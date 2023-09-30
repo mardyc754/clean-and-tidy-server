@@ -79,7 +79,7 @@ export default class RecurringReservationService {
       reservationGroupName // TODO: it can be changed to normal id later because right now, the name will be too long
     );
 
-    const { userId, endDate, frequency, employeeId, address } = data;
+    const { clientId, endDate, frequency, employeeId, address } = data;
 
     try {
       let addressId: number;
@@ -98,7 +98,7 @@ export default class RecurringReservationService {
 
       recurringReservation = await prisma.recurringReservation.create({
         data: {
-          userId,
+          clientId,
           status: RecurringReservationStatus.TO_BE_CONFIRMED,
           weekDay: extractWeekDayFromDate(endDate),
           reservations: {

@@ -1,18 +1,23 @@
-import { Reservation, Address, User, ReservationStatus } from '@prisma/client';
+import {
+  Reservation,
+  Address,
+  Client,
+  ReservationStatus
+} from '@prisma/client';
 import type { RequireAtLeastOne } from 'type-fest';
 
 import { prisma } from '~/db';
 
-export default class UserService {
-  public async createUser(
-    username: User['username'],
-    email: User['email'],
-    password: User['password']
+export default class ClientService {
+  public async createClient(
+    username: Client['username'],
+    email: Client['email'],
+    password: Client['password']
   ) {
-    let user: User | null = null;
+    let user: Client | null = null;
 
     try {
-      user = await prisma.user.create({
+      user = await prisma.client.create({
         data: {
           email,
           username,
@@ -25,11 +30,11 @@ export default class UserService {
     return user;
   }
 
-  public async getUserByUsername(username: User['username']) {
-    let user: User | null = null;
+  public async getClientByClientname(username: Client['username']) {
+    let user: Client | null = null;
 
     try {
-      user = await prisma.user.findUnique({
+      user = await prisma.client.findUnique({
         where: { username }
       });
     } catch (err) {
@@ -38,11 +43,11 @@ export default class UserService {
     return user;
   }
 
-  public async getUserByEmail(email: User['email']) {
-    let user: User | null = null;
+  public async getClientByEmail(email: Client['email']) {
+    let user: Client | null = null;
 
     try {
-      user = await prisma.user.findUnique({
+      user = await prisma.client.findUnique({
         where: { email }
       });
     } catch (err) {
@@ -51,11 +56,11 @@ export default class UserService {
     return user;
   }
 
-  public async getUserById(id: User['id']) {
-    let user: User | null = null;
+  public async getClientById(id: Client['id']) {
+    let user: Client | null = null;
 
     try {
-      user = await prisma.user.findUnique({
+      user = await prisma.client.findUnique({
         where: { id }
       });
     } catch (err) {
@@ -64,19 +69,19 @@ export default class UserService {
     return user;
   }
 
-  public async getAllUsers() {
-    let users: User[] | null = null;
+  public async getAllClients() {
+    let users: Client[] | null = null;
 
     try {
-      users = await prisma.user.findMany();
+      users = await prisma.client.findMany();
     } catch (err) {
       console.error(`Something went wrong: ${err}`);
     }
     return users;
   }
 
-  public async getUserReservations(
-    userId: User['id'],
+  public async getClientReservations(
+    clientId: Client['id'],
     status?: ReservationStatus
   ) {
     let reservations: Reservation[] | null = null;
@@ -85,8 +90,8 @@ export default class UserService {
 
     // let userWithReservations;
     try {
-      const userWithReservations = await prisma.user.findUnique({
-        where: { id: userId },
+      const userWithReservations = await prisma.client.findUnique({
+        where: { id: clientId },
         include: {
           recurringReservations: {
             include: {
@@ -107,12 +112,12 @@ export default class UserService {
     // return userWithReservations;
   }
 
-  public async getUserAddresses(userId: User['id']) {
+  public async getClientAddresses(clientId: Client['id']) {
     let addresses: Address[] | null = null;
 
     try {
-      const userWithReservations = await prisma.user.findUnique({
-        where: { id: userId },
+      const userWithReservations = await prisma.client.findUnique({
+        where: { id: clientId },
         include: {
           recurringReservations: {
             include: {
@@ -132,15 +137,15 @@ export default class UserService {
     return addresses;
   }
 
-  public async changeUserData(
-    userData: Pick<User, 'id'> &
-      RequireAtLeastOne<User, 'name' | 'surname' | 'phone'>
+  public async changeClientData(
+    userData: Pick<Client, 'id'> &
+      RequireAtLeastOne<Client, 'name' | 'surname' | 'phone'>
   ) {
     const { id, ...rest } = userData;
-    let newUserData: User | null = null;
+    let newClientData: Client | null = null;
 
     try {
-      newUserData = await prisma.user.update({
+      newClientData = await prisma.client.update({
         where: { id },
         data: {
           ...rest
@@ -150,28 +155,28 @@ export default class UserService {
       console.error(`Something went wrong: ${err}`);
     }
 
-    return newUserData;
+    return newClientData;
   }
 
   // delete user - user can be deleted only when one does not have any active reservations
-  public async deleteUser(userId: User['id']) {
-    let deleteUser: User | null = null;
+  public async deleteClient(clientId: Client['id']) {
+    let deleteClient: Client | null = null;
 
-    const userActiveReservations = await this.getUserReservations(
-      userId,
+    const userActiveReservations = await this.getClientReservations(
+      clientId,
       ReservationStatus.ACTIVE
     );
 
     if (!userActiveReservations || userActiveReservations.length === 0) {
       try {
-        deleteUser = await prisma.user.delete({
-          where: { id: userId }
+        deleteClient = await prisma.client.delete({
+          where: { id: clientId }
         });
       } catch (err) {
         console.error(`Something went wrong: ${err}`);
       }
     }
 
-    return deleteUser;
+    return deleteClient;
   }
 }

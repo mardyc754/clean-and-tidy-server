@@ -2,7 +2,7 @@ import 'dotenv/config';
 
 export const JWT_SECRET = process.env.JWT_SECRET || 'some_very_secret_key';
 
-export enum UserRole {
+export enum ClientRole {
   CLIENT = 'client',
   EMPLOYEE = 'employee',
   ADMIN = 'admin'

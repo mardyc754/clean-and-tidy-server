@@ -1,6 +1,6 @@
 import {
   AuthController,
-  UserController,
+  ClientController,
   TypesOfCleaningController,
   EmployeeController,
   RecurringReservationController,
@@ -14,7 +14,7 @@ const port = process.env.PORT || 8080;
 const app = new App(
   [
     new AuthController(),
-    new UserController(),
+    new ClientController(),
     new TypesOfCleaningController(),
     new EmployeeController(),
     new ReservationController(),
