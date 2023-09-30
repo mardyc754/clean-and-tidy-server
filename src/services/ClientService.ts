@@ -30,7 +30,7 @@ export default class ClientService {
     return user;
   }
 
-  public async getClientByClientname(username: Client['username']) {
+  public async getClientByUsername(username: Client['username']) {
     let user: Client | null = null;
 
     try {

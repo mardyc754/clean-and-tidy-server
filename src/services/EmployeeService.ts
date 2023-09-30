@@ -104,7 +104,7 @@ export default class EmployeeService {
           ...data,
           isAdmin: false,
           services: {
-            connect: data.services.map((id) => ({
+            connect: data.services?.map((id) => ({
               id
             }))
           }

@@ -1,8 +1,8 @@
-import type { Request, Response } from 'express';
-import * as bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import * as bcrypt from 'bcrypt';
+import type { Request, Response } from 'express';
 
-import { JWT_SECRET, ClientRole as UserRole } from '~/constants';
+import { JWT_SECRET, UserRole } from '~/constants';
 import { ClientService, EmployeeService } from '~/services';
 import { DefaultParamsType, TypedRequest } from '~/types';
 import { LoginData } from '~/schemas/auth';
@@ -23,15 +23,15 @@ export default class AuthController extends AbstractController {
 
   public createRouters() {
     this.router.post('/register', this.register);
-    this.router.post('/login-client', this.loginClient);
-    this.router.post('/login-employee', this.loginEmployee);
+    this.router.post('/login-client', this.loginAsClient);
+    this.router.post('/login-employee', this.loginAsEmployee);
     this.router.post('/logout', this.logout);
   }
 
   private register = async (req: Request, res: Response) => {
     const { username, email, password } = req.body;
 
-    let user = await this.clientService.getClientByClientname(username);
+    let user = await this.clientService.getClientByUsername(username);
 
     if (user !== null) {
       res
@@ -58,7 +58,7 @@ export default class AuthController extends AbstractController {
     }
   };
 
-  private loginClient = async (
+  private loginAsClient = async (
     req: TypedRequest<DefaultParamsType, LoginData>,
     res: Response
   ) => {
@@ -88,10 +88,14 @@ export default class AuthController extends AbstractController {
       httpOnly: true
     });
 
-    res.status(200).send({ message: 'Login success', isAuthenticated: true });
+    res.status(200).send({
+      message: 'Logged in successfully',
+      isAuthenticated: true,
+      role: UserRole.CLIENT
+    });
   };
 
-  private loginEmployee = async (
+  private loginAsEmployee = async (
     req: TypedRequest<DefaultParamsType, LoginData>,
     res: Response
   ) => {
@@ -111,11 +115,13 @@ export default class AuthController extends AbstractController {
       return res.status(400).send({ message: 'Invalid password' });
     }
 
+    const role = user.isAdmin ? UserRole.ADMIN : UserRole.EMPLOYEE;
+
     const token = jwt.sign(
       {
         id: user.id,
         email: user.email,
-        role: user.isAdmin ? UserRole.ADMIN : UserRole.EMPLOYEE
+        role
       },
       JWT_SECRET
     );
@@ -127,7 +133,7 @@ export default class AuthController extends AbstractController {
 
     res
       .status(200)
-      .send({ message: 'Logged in successfully', isAuthenticated: true });
+      .send({ message: 'Logged in successfully', isAuthenticated: true, role });
   };
 
   private logout = (_: Request, res: Response) => {

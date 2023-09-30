@@ -1,8 +1,13 @@
+import * as bcrypt from 'bcrypt';
 import type { Request, Response } from 'express';
 
-import { EmployeeService } from '~/services';
-import { validateEmployeeCreationData } from '~/middlewares/type-validators/employee';
 import type { EmployeeCreationData } from '~/schemas/employee';
+
+import { validateIsEmployee } from '~/middlewares/auth/authenticate';
+import { validateEmployeeCreationData } from '~/middlewares/type-validators/employee';
+
+import { EmployeeService } from '~/services';
+
 import type { DefaultParamsType, TypedRequest } from '~/types';
 
 import AbstractController from './AbstractController';
@@ -19,7 +24,11 @@ export default class EmployeeController extends AbstractController {
     this.router.get('/', this.getAllEmployees);
     this.router.post('/', validateEmployeeCreationData(), this.createEmployee);
     this.router.get('/:id', this.getEmployeeById);
-    this.router.get('/:id/reservations', this.getEmployeeReservations);
+    this.router.get(
+      '/:id/reservations',
+      validateIsEmployee(),
+      this.getEmployeeReservations
+    );
     this.router.get('/:id/services', this.getEmployeeServices);
 
     this.router.post(
@@ -98,8 +107,21 @@ export default class EmployeeController extends AbstractController {
     req: TypedRequest<DefaultParamsType, EmployeeCreationData>,
     res: Response
   ) => {
+    const { email, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 8);
+
+    const user = await this.employeeService.getEmployeeByEmail(email);
+
+    if (user !== null) {
+      res
+        .status(409)
+        .send({ message: 'Employee with given email already exists' });
+      return;
+    }
+
     const employee = await this.employeeService.createEmployee({
-      ...req.body
+      ...req.body,
+      password: hashedPassword
     });
 
     if (employee) {

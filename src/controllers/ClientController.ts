@@ -4,12 +4,14 @@ import type { Stringified } from 'type-fest';
 
 import { ClientService } from '~/services';
 
-import { validateClientUpdateData } from '~/middlewares/type-validators/client';
 import { ClientUpdateData } from '~/schemas/client';
+
+import { validateClientUpdateData } from '~/middlewares/type-validators/client';
+import { validateAccessToClientData } from '~/middlewares/auth/authenticate';
+
 import type { DefaultBodyType } from '~/types';
 
 import AbstractController from './AbstractController';
-import { authenticate } from '~/middlewares/auth/authenticate';
 
 export default class ClientController extends AbstractController {
   private userService = new ClientService();
@@ -24,7 +26,7 @@ export default class ClientController extends AbstractController {
     this.router.get('/:id', this.getClientById);
     this.router.get(
       '/:id/reservations',
-      authenticate,
+      validateAccessToClientData(),
       this.getClientReservations
     );
     this.router.get('/:id/addresses', this.getClientAddresses);
