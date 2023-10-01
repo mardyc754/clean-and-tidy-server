@@ -4,8 +4,12 @@ import type { Request, Response } from 'express';
 
 import { JWT_SECRET, UserRole } from '~/constants';
 import { ClientService, EmployeeService } from '~/services';
-import { DefaultParamsType, TypedRequest } from '~/types';
 import { LoginData } from '~/schemas/auth';
+import {
+  validateLoginData,
+  validateRegisterData
+} from '~/middlewares/type-validators/auth';
+import type { DefaultParamsType, TypedRequest } from '~/types';
 
 import AbstractController from './AbstractController';
 
@@ -22,9 +26,13 @@ export default class AuthController extends AbstractController {
   }
 
   public createRouters() {
-    this.router.post('/register', this.register);
-    this.router.post('/login-client', this.loginAsClient);
-    this.router.post('/login-employee', this.loginAsEmployee);
+    this.router.post('/register', validateRegisterData(), this.register);
+    this.router.post('/login-client', validateLoginData(), this.loginAsClient);
+    this.router.post(
+      '/login-employee',
+      validateLoginData(),
+      this.loginAsEmployee
+    );
     this.router.post('/logout', this.logout);
   }
 
