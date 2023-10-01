@@ -41,11 +41,20 @@ export default class AuthController extends AbstractController {
 
     let user = await this.clientService.getClientByUsername(username);
 
-    if (user !== null) {
-      res
-        .status(409)
-        .send({ message: 'Client with given username already exists' });
-      return;
+    if (user?.username === username) {
+      return res.status(409).send({
+        message: 'Client with given username already exists',
+        affectedField: 'username'
+      });
+    }
+
+    user = await this.clientService.getClientByEmail(email);
+
+    if (user?.email === email) {
+      return res.status(409).send({
+        message: 'Client with given email already exists',
+        affectedField: 'email'
+      });
     }
 
     const hashedPassword = await bcrypt.hash(password, 8);
