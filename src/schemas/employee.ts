@@ -7,7 +7,7 @@ export const employeeCreationSchema = z.object({
   surname: z.string(),
   email: z.string().email(),
   password: z.string(),
-  services: z.array(z.number())
+  services: z.array(z.number()).nullish()
 });
 
 export type EmployeeCreationData = z.infer<typeof employeeCreationSchema>;

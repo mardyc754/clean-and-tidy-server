@@ -35,10 +35,7 @@ export default class ReservationController extends AbstractController {
       this.createRecurringReservation
     );
     this.router.get('/:id', this.getRecurringReservationById);
-    this.router.get(
-      '/:id/reservations',
-      this.getReservationsFromRecurringReservation
-    );
+    this.router.get('/:id/reservations', this.getReservations);
     // TODO: The methods below needs to be improved
     // this.router.put(
     //   '/:id/frequency',
@@ -46,11 +43,7 @@ export default class ReservationController extends AbstractController {
     //   this.changeFrequency
     // );
     // this.router.put('/:id/weekDay', validateWeekDay(), this.changeWeekDay);
-    this.router.put(
-      '/:id/status',
-      validateStatusChange(),
-      this.changeRecurringReservationStatus
-    );
+    this.router.put('/:id/status', validateStatusChange(), this.changeStatus);
   }
 
   private getAllRecurringReservations = async (req: Request, res: Response) => {
@@ -88,7 +81,7 @@ export default class ReservationController extends AbstractController {
     }
   };
 
-  private getReservationsFromRecurringReservation = async (
+  private getReservations = async (
     req: Request<{ id: string }>,
     res: Response
   ) => {
@@ -171,7 +164,7 @@ export default class ReservationController extends AbstractController {
     }
   };
 
-  private changeRecurringReservationStatus = async (
+  private changeStatus = async (
     req: TypedRequest<{ id: string }, RecurringReservationStatusChangeData>,
     res: Response
   ) => {

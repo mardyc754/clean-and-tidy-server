@@ -13,8 +13,21 @@ export default class EmployeeService {
     let employee: Employee | null = null;
 
     try {
-      employee = await prisma.employee.findFirst({
+      employee = await prisma.employee.findUnique({
         where: { id }
+      });
+    } catch (err) {
+      console.error(`Something went wrong: ${err}`);
+    }
+    return employee;
+  }
+
+  public async getEmployeeByEmail(email: Employee['email']) {
+    let employee: Employee | null = null;
+
+    try {
+      employee = await prisma.employee.findUnique({
+        where: { email }
       });
     } catch (err) {
       console.error(`Something went wrong: ${err}`);
@@ -91,7 +104,7 @@ export default class EmployeeService {
           ...data,
           isAdmin: false,
           services: {
-            connect: data.services.map((id) => ({
+            connect: data.services?.map((id) => ({
               id
             }))
           }

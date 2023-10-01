@@ -31,16 +31,12 @@ export default class ReservationController extends AbstractController {
       this.createReservation
     );
     this.router.get('/:id', this.getReservationById);
-    this.router.put(
-      '/:id',
-      validateReservationDate(),
-      this.changeReservationDate
-    );
+    this.router.put('/:id/date', validateReservationDate(), this.changeDate);
     this.router.delete('/:id', this.deleteReservation);
     this.router.put(
       '/:id/status',
       validateReservationStatus(),
-      this.changeReservationStatus
+      this.changeStatus
     );
   }
 
@@ -92,7 +88,7 @@ export default class ReservationController extends AbstractController {
     }
   };
 
-  private changeReservationDate = async (
+  private changeDate = async (
     req: TypedRequest<{ id: string }, ChangeReservationDateData>,
     res: Response
   ) => {
@@ -128,7 +124,7 @@ export default class ReservationController extends AbstractController {
   };
 
   // this should be protected
-  private changeReservationStatus = async (
+  private changeStatus = async (
     req: TypedRequest<{ id: string }, ChangeReservationStatusData>,
     res: Response
   ) => {

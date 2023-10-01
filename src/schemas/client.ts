@@ -9,4 +9,4 @@ export const userUpdateDataSchema = z
   .strict()
   .partial();
 
-export type UserUpdateData = z.infer<typeof userUpdateDataSchema>;
+export type ClientUpdateData = z.infer<typeof userUpdateDataSchema>;

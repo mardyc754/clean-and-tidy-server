@@ -1,5 +1,7 @@
 import 'dotenv/config';
 import express, { Express } from 'express';
+import cookieParser from 'cookie-parser';
+
 import type { AbstractController } from '~/controllers';
 
 export default class App {
@@ -10,6 +12,8 @@ export default class App {
     this.app = express();
     this.app.use(express.urlencoded({ extended: true }));
     this.app.use(express.json());
+    this.app.use(cookieParser());
+
     this.port = port;
 
     this.initializeControllers(controllers);
