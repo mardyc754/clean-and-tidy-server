@@ -1,6 +1,5 @@
 import type { Query, ParamsDictionary } from 'express-serve-static-core';
 import type { Request } from 'express';
-import type { Reservation, RecurringReservation } from '@prisma/client';
 
 export type DefaultParamsType = ParamsDictionary;
 export type DefaultBodyType = Record<string, unknown>;
@@ -15,16 +14,6 @@ export interface TypedRequest<
   params: P;
   query: Q;
 }
-
-export type ReservationCreationData = Pick<
-  Reservation,
-  'includeDetergents' | 'cost' | 'startDate' | 'endDate'
->;
-
-export type RecurringReservationCreationData = Pick<
-  RecurringReservation,
-  'frequency' | 'clientId' | 'addressId' | 'employeeId' | 'endDate'
-> & { reservationData: ReservationCreationData };
 
 export type StartEndDate = {
   startDate: Date;

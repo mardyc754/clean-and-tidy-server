@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express, { Express } from 'express';
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
 
 import type { AbstractController } from '~/controllers';
 
@@ -13,6 +14,11 @@ export default class App {
     this.app.use(express.urlencoded({ extended: true }));
     this.app.use(express.json());
     this.app.use(cookieParser());
+    this.app.use(
+      cors({
+        origin: process.env.FRONTEND_BASE_URL
+      })
+    );
 
     this.port = port;
 
