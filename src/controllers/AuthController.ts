@@ -87,13 +87,18 @@ export default class AuthController extends AbstractController {
     if (!user) {
       return res
         .status(404)
-        .send({ message: 'Client with given email does not exist' });
+        .send({
+          message: 'Client with given email does not exist',
+          affectedField: 'email'
+        });
     }
 
     const passwordsMatch = await bcrypt.compare(password, user.password);
 
     if (!passwordsMatch) {
-      return res.status(400).send({ message: 'Invalid password' });
+      return res
+        .status(400)
+        .send({ message: 'Invalid password', affectedField: 'password' });
     }
 
     const token = jwt.sign(

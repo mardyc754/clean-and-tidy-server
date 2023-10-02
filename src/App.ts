@@ -16,7 +16,8 @@ export default class App {
     this.app.use(cookieParser());
     this.app.use(
       cors({
-        origin: process.env.FRONTEND_BASE_URL
+        origin: process.env.FRONTEND_BASE_URL,
+        credentials: true
       })
     );
 
