@@ -66,8 +66,9 @@ export default class AuthController extends AbstractController {
 
     if (user) {
       res.status(201).send({
-        id: user?.id,
-        username: user?.username,
+        id: user.id,
+        username: user.username,
+        email: user.email,
         message: 'Client created succesfully'
       });
     } else {
