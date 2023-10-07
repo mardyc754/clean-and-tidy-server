@@ -6,7 +6,7 @@ import {
 } from '@prisma/client';
 
 import { prisma } from '~/db';
-import { EmployeeCreationData } from '~/schemas/employee';
+import type { EmployeeCreationData } from '~/schemas/employee';
 
 export default class EmployeeService {
   public async getEmployeeById(id: Employee['id']) {

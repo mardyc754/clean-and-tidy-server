@@ -5,6 +5,7 @@ import { TypesOfCleaningService } from '~/services';
 import type { DefaultParamsType, TypedRequest } from '~/types';
 
 import AbstractController from './AbstractController';
+import { ChangeServicePriceData } from '~/schemas/typesOfCleaning';
 
 export default class TypesOfCleaningController extends AbstractController {
   private typesOfCleaningService = new TypesOfCleaningService();
@@ -65,7 +66,7 @@ export default class TypesOfCleaningController extends AbstractController {
   };
 
   private changeServicePrice = async (
-    req: TypedRequest<{ id: string }, Pick<Service, 'price'>>,
+    req: TypedRequest<{ id: string }, Pick<ChangeServicePriceData, 'price'>>,
     res: Response
   ) => {
     const { price } = req.body;

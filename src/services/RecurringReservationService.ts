@@ -15,7 +15,6 @@ import {
   changeWeekDay,
   createReservations
 } from '~/utils/reservations';
-
 import { extractWeekDayFromDate } from '~/utils/dateUtils';
 
 import type { RecurringReservationCreationData } from '~/schemas/recurringReservation';
@@ -109,7 +108,11 @@ export default class RecurringReservationService {
           name: reservationGroupName,
           frequency,
           endDate,
-          employeeId,
+          employees: {
+            connect: {
+              id: employeeId
+            }
+          },
           addressId
         }
       });

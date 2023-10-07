@@ -1,6 +1,8 @@
 import { type Employee, type Service } from '@prisma/client';
 
 import { prisma } from '~/db';
+import { ChangeServicePriceData } from '~/schemas/typesOfCleaning';
+import { executeDatabaseOperation } from './utils';
 
 export default class TypesOfCleaningService {
   public async getServiceById(id: Service['id']) {
@@ -18,12 +20,9 @@ export default class TypesOfCleaningService {
   }
 
   public async getAllServices() {
-    let services: Service[] | null = null;
-    try {
-      services = await prisma.service.findMany();
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
-    }
+    const services = await executeDatabaseOperation(
+      async () => await prisma.service.findMany()
+    );
     return services;
   }
 
@@ -60,18 +59,18 @@ export default class TypesOfCleaningService {
   }
 
   // admin only
-  public async changeServicePrice(data: Pick<Service, 'id' | 'price'>) {
+  public async changeServicePrice(data: ChangeServicePriceData) {
     const { id, price } = data;
-    let service: Service | null = null;
-
-    try {
-      service = await prisma.service.update({
+    const service = await executeDatabaseOperation(async () => {
+      await prisma.service.update({
         where: { id },
-        data: { price }
+        data: {
+          unit: {
+            update: { price }
+          }
+        }
       });
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
-    }
+    });
     return service;
   }
 
