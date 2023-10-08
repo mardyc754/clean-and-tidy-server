@@ -7,13 +7,14 @@ type AuthenticationData = { acceptableRoles: UserRole[] };
 
 function authenticate(data?: AuthenticationData) {
   return (req: Request, res: Response, next: NextFunction) => {
-    if (!req.cookies.token) {
+    console.log({ cookies: req.cookies });
+    if (!req.cookies.authToken) {
       return res.status(401).send({ message: 'Credentials were not provided' });
     }
 
     try {
       const decoded = jwt.verify(
-        req.cookies.token,
+        req.cookies.authToken,
         JWT_SECRET
       ) as jwt.JwtPayload;
 
