@@ -9,6 +9,7 @@ export type ChangeServicePriceData = z.infer<typeof changeServicePriceSchema>;
 
 export const createServiceSchema = z.object({
   name: z.string().max(100),
+  isPrimary: z.boolean().optional(),
   unit: z
     .object({
       name: z.string().max(40),

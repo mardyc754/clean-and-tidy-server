@@ -78,7 +78,7 @@ export default class RecurringReservationService {
       reservationGroupName // TODO: it can be changed to normal id later because right now, the name will be too long
     );
 
-    const { clientId, endDate, frequency, employeeId, address } = data;
+    const { clientId, endDate, frequency, address } = data;
 
     try {
       let addressId: number;
@@ -108,11 +108,6 @@ export default class RecurringReservationService {
           name: reservationGroupName,
           frequency,
           endDate,
-          employees: {
-            connect: {
-              id: employeeId
-            }
-          },
           addressId
         }
       });

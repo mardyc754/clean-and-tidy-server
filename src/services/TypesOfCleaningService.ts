@@ -49,9 +49,7 @@ export default class TypesOfCleaningService {
 
   // admin only
   public async createService(data: CreateServiceData) {
-    console.log({ data });
-
-    const { name, unit } = data;
+    const { unit, ...otherData } = data;
 
     const unitCreationQuery = unit
       ? {
@@ -61,17 +59,15 @@ export default class TypesOfCleaningService {
         }
       : {};
 
-    const service = await executeDatabaseOperation(
+    return await executeDatabaseOperation(
       async () =>
         await prisma.service.create({
           data: {
-            name,
+            ...otherData,
             ...unitCreationQuery
           }
         })
     );
-
-    return service;
   }
 
   // admin only

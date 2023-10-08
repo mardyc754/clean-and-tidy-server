@@ -53,6 +53,7 @@ model Reservation {
   recurringReservation      RecurringReservation         @relation(fields: [recurringReservationId], references: [id], onDelete: Cascade)
   recurringReservationId    Int                          
   status                    ReservationStatus
+  employees                 Employee[]                                          
 }
 
 model RecurringReservation {
@@ -67,7 +68,6 @@ model RecurringReservation {
   reservations              Reservation[]
   address                   Address                      @relation(fields: [addressId], references: [id])
   addressId                 Int                          
-  employees                 Employee[]                                          
 }
 
 model Address {
@@ -88,7 +88,7 @@ model Employee {
   password                  String                       @db.VarChar(60)
   startHour                 DateTime                     @db.Time
   endHour                   DateTime                     @db.Time      
-  recurringReservations     RecurringReservation[]
+  reservations              Reservation[]
   // services               EmployeeService[]
   services                  Service[]
   isAdmin                   Boolean                      @default(false)
@@ -99,6 +99,7 @@ model Service {
   name                      String                       @db.VarChar(100)
   unit                      ServiceUnit?                 @relation(fields: [unitId], references: [id])
   unitId                    Int?                         @unique
+  isPrimary                 Boolean                      @default(false)
   // employees              EmployeeService[]
   employees                 Employee[]
   primaryService            Service[]                    @relation("PrimarySecondaryService")
