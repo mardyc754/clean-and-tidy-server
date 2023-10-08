@@ -6,3 +6,16 @@ export const changeServicePriceSchema = z.object({
 });
 
 export type ChangeServicePriceData = z.infer<typeof changeServicePriceSchema>;
+
+export const createServiceSchema = z.object({
+  name: z.string().max(100),
+  unit: z
+    .object({
+      name: z.string().max(40),
+      price: z.number().max(300),
+      duration: z.number().max(480)
+    })
+    .optional()
+});
+
+export type CreateServiceData = z.infer<typeof createServiceSchema>;

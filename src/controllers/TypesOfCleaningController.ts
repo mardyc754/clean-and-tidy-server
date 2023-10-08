@@ -1,11 +1,15 @@
-import type { Service } from '@prisma/client';
 import type { Request, Response } from 'express';
 
 import { TypesOfCleaningService } from '~/services';
+import { validateServiceCreationData } from '~/middlewares/type-validators/typesOfCleaning';
 import type { DefaultParamsType, TypedRequest } from '~/types';
 
+import type {
+  ChangeServicePriceData,
+  CreateServiceData
+} from '~/schemas/typesOfCleaning';
+
 import AbstractController from './AbstractController';
-import { ChangeServicePriceData } from '~/schemas/typesOfCleaning';
 
 export default class TypesOfCleaningController extends AbstractController {
   private typesOfCleaningService = new TypesOfCleaningService();
@@ -17,7 +21,7 @@ export default class TypesOfCleaningController extends AbstractController {
 
   public createRouters() {
     this.router.get('/', this.getAllServices);
-    this.router.post('/', this.createService);
+    this.router.post('/', validateServiceCreationData(), this.createService);
     this.router.get('/:id', this.getServiceById);
     this.router.get('/:id/employees', this.getEmployeesOfferingService);
     this.router.put('/:id', this.changeServicePrice);
@@ -52,7 +56,7 @@ export default class TypesOfCleaningController extends AbstractController {
   };
 
   private createService = async (
-    req: TypedRequest<DefaultParamsType, Omit<Service, 'id'>>,
+    req: TypedRequest<DefaultParamsType, CreateServiceData>,
     res: Response
   ) => {
     const data = req.body;

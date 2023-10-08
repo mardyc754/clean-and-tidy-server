@@ -1,7 +1,10 @@
 import { type Employee, type Service } from '@prisma/client';
 
 import { prisma } from '~/db';
-import { ChangeServicePriceData } from '~/schemas/typesOfCleaning';
+import {
+  ChangeServicePriceData,
+  CreateServiceData
+} from '~/schemas/typesOfCleaning';
 import { executeDatabaseOperation } from './utils';
 
 export default class TypesOfCleaningService {
@@ -45,32 +48,46 @@ export default class TypesOfCleaningService {
   }
 
   // admin only
-  public async createService(data: Omit<Service, 'id'>) {
-    let service: Service | null = null;
+  public async createService(data: CreateServiceData) {
+    console.log({ data });
 
-    try {
-      service = await prisma.service.create({
-        data
-      });
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
-    }
+    const { name, unit } = data;
+
+    const unitCreationQuery = unit
+      ? {
+          unit: {
+            create: unit
+          }
+        }
+      : {};
+
+    const service = await executeDatabaseOperation(
+      async () =>
+        await prisma.service.create({
+          data: {
+            name,
+            ...unitCreationQuery
+          }
+        })
+    );
+
     return service;
   }
 
   // admin only
   public async changeServicePrice(data: ChangeServicePriceData) {
     const { id, price } = data;
-    const service = await executeDatabaseOperation(async () => {
-      await prisma.service.update({
-        where: { id },
-        data: {
-          unit: {
-            update: { price }
+    const service = await executeDatabaseOperation(
+      async () =>
+        await prisma.service.update({
+          where: { id },
+          data: {
+            unit: {
+              update: { price }
+            }
           }
-        }
-      });
-    });
+        })
+    );
     return service;
   }
 
