@@ -2,7 +2,7 @@ import type { Request, Response } from 'express';
 
 import { TypesOfCleaningService } from '~/services';
 import { validateServiceCreationData } from '~/middlewares/type-validators/typesOfCleaning';
-import type { DefaultParamsType, TypedRequest } from '~/types';
+import type { DefaultBodyType, DefaultParamsType, TypedRequest } from '~/types';
 
 import type {
   ChangeServicePriceData,
@@ -10,6 +10,7 @@ import type {
 } from '~/schemas/typesOfCleaning';
 
 import AbstractController from './AbstractController';
+import { queryParamToBoolean } from '~/utils/general';
 
 export default class TypesOfCleaningController extends AbstractController {
   private typesOfCleaningService = new TypesOfCleaningService();
@@ -26,6 +27,10 @@ export default class TypesOfCleaningController extends AbstractController {
     this.router.get('/:id/employees', this.getEmployeesOfferingService);
     this.router.put('/:id', this.changeServicePrice);
     this.router.delete('/:id', this.deleteService);
+    this.router.post(
+      '/:primaryServiceId/connect/:secondaryServiceId',
+      this.linkPrimaryAndSecondaryService
+    );
   }
 
   private getAllServices = async (_: Request, res: Response) => {
@@ -39,11 +44,23 @@ export default class TypesOfCleaningController extends AbstractController {
   };
 
   private getServiceById = async (
-    req: TypedRequest<{ id: string }>,
+    req: TypedRequest<
+      { id: string },
+      DefaultBodyType,
+      { includeSecondaryServices?: string; includePrimaryServices?: string }
+    >,
     res: Response
   ) => {
     const service = await this.typesOfCleaningService.getServiceById(
-      parseInt(req.params.id)
+      parseInt(req.params.id),
+      {
+        includeSecondaryServices: queryParamToBoolean(
+          req.query.includeSecondaryServices
+        ),
+        includePrimaryServices: queryParamToBoolean(
+          req.query.includePrimaryServices
+        )
+      }
     );
 
     if (service !== null) {
@@ -117,6 +134,26 @@ export default class TypesOfCleaningController extends AbstractController {
       res
         .status(400)
         .send({ message: 'Error when fetching employees offering service' });
+    }
+  };
+
+  private linkPrimaryAndSecondaryService = async (
+    req: TypedRequest<{ primaryServiceId: string; secondaryServiceId: string }>,
+    res: Response
+  ) => {
+    const { primaryServiceId, secondaryServiceId } = req.params;
+    const primaryService =
+      await this.typesOfCleaningService.linkPrimaryAndSecondaryService({
+        primaryServiceId: parseInt(primaryServiceId),
+        secondaryServiceId: parseInt(secondaryServiceId)
+      });
+
+    if (primaryService !== null) {
+      res.status(200).send({ ...primaryService });
+    } else {
+      res
+        .status(400)
+        .send({ message: 'Error when linking primary and secondary service' });
     }
   };
 }

@@ -20,3 +20,12 @@ export const createServiceSchema = z.object({
 });
 
 export type CreateServiceData = z.infer<typeof createServiceSchema>;
+
+export const linkPrimarySecondaryServiceSchema = z.object({
+  primaryServiceId: z.number().int(),
+  secondaryServiceId: z.number().int()
+});
+
+export type PrimarySecondaryIds = z.infer<
+  typeof linkPrimarySecondaryServiceSchema
+>;

@@ -102,8 +102,8 @@ model Service {
   isPrimary                 Boolean                      @default(false)
   // employees              EmployeeService[]
   employees                 Employee[]
-  primaryService            Service[]                    @relation("PrimarySecondaryService")
-  secondaryService          Service[]                    @relation("PrimarySecondaryService")
+  primaryServices           Service[]                    @relation("PrimarySecondaryService")
+  secondaryServices         Service[]                    @relation("PrimarySecondaryService")
 
 }
 

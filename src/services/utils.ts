@@ -1,9 +1,7 @@
-export async function executeDatabaseOperation<T>(
-  transaction: () => Promise<T>
-) {
+export async function executeDatabaseOperation<T>(transaction: Promise<T>) {
   let result: T | null = null;
   try {
-    result = await transaction();
+    result = await transaction;
   } catch (err) {
     console.error(err);
   }

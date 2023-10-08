@@ -39,17 +39,16 @@ export default class ReservationService {
     const { employeeIds, ...otherData } = data;
 
     return await executeDatabaseOperation(
-      async () =>
-        await prisma.reservation.create({
-          data: {
-            ...otherData,
-            name: `${data.recurringReservationId}`, // reservation name should contain the reservation number
-            status: ReservationStatus.TO_BE_CONFIRMED,
-            employees: {
-              connect: employeeIds.map((id) => ({ id }))
-            }
+      prisma.reservation.create({
+        data: {
+          ...otherData,
+          name: `${data.recurringReservationId}`, // reservation name should contain the reservation number
+          status: ReservationStatus.TO_BE_CONFIRMED,
+          employees: {
+            connect: employeeIds.map((id) => ({ id }))
           }
-        })
+        }
+      })
     );
   }
 
