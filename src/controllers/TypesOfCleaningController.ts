@@ -1,16 +1,15 @@
-import type { Request, Response } from 'express';
+import type { Response } from 'express';
 
 import { TypesOfCleaningService } from '~/services';
 import { validateServiceCreationData } from '~/middlewares/type-validators/typesOfCleaning';
+import { queryParamToBoolean } from '~/utils/general';
 import type { DefaultBodyType, DefaultParamsType, TypedRequest } from '~/types';
-
 import type {
   ChangeServicePriceData,
   CreateServiceData
 } from '~/schemas/typesOfCleaning';
 
 import AbstractController from './AbstractController';
-import { queryParamToBoolean } from '~/utils/general';
 
 export default class TypesOfCleaningController extends AbstractController {
   private typesOfCleaningService = new TypesOfCleaningService();
@@ -33,11 +32,20 @@ export default class TypesOfCleaningController extends AbstractController {
     );
   }
 
-  private getAllServices = async (_: Request, res: Response) => {
-    const services = await this.typesOfCleaningService.getAllServices();
+  private getAllServices = async (
+    req: TypedRequest<
+      DefaultParamsType,
+      DefaultBodyType,
+      { primaryOnly?: string }
+    >,
+    res: Response
+  ) => {
+    const services = await this.typesOfCleaningService.getAllServices({
+      primaryOnly: queryParamToBoolean(req.query.primaryOnly)
+    });
 
     if (services !== null) {
-      res.status(200).send({ data: services });
+      res.status(200).send(services);
     } else {
       res.status(400).send({ message: 'Error when fetching all services' });
     }
@@ -64,7 +72,7 @@ export default class TypesOfCleaningController extends AbstractController {
     );
 
     if (service !== null) {
-      res.status(200).send({ data: service });
+      res.status(200).send(service);
     } else {
       res
         .status(400)

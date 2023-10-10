@@ -7,29 +7,55 @@ import {
   PrimarySecondaryIds
 } from '~/schemas/typesOfCleaning';
 import { executeDatabaseOperation } from './utils';
+import { getResponseServiceData } from '~/utils/services';
+
+type AllServicesQueryOptions = {
+  primaryOnly: boolean;
+};
 
 type ServiceQueryOptions = {
   includeSecondaryServices: boolean;
   includePrimaryServices: boolean;
 };
+
 export default class TypesOfCleaningService {
   public async getServiceById(
     id: Service['id'],
     options?: ServiceQueryOptions
   ) {
-    return await executeDatabaseOperation(
+    const service = await executeDatabaseOperation(
       prisma.service.findUnique({
         where: { id },
         include: {
           primaryServices: options?.includePrimaryServices,
-          secondaryServices: options?.includeSecondaryServices
+          secondaryServices: options?.includeSecondaryServices,
+          unit: true
         }
       })
     );
+
+    if (!service) {
+      return null;
+    }
+
+    return getResponseServiceData(service);
   }
 
-  public async getAllServices() {
-    return await executeDatabaseOperation(prisma.service.findMany());
+  public async getAllServices(options?: AllServicesQueryOptions) {
+    const services = await executeDatabaseOperation(
+      prisma.service.findMany({
+        ...(options?.primaryOnly ? { where: { isPrimary: true } } : {}),
+        include: {
+          unit: true
+        }
+      })
+    );
+
+    if (!services) {
+      return null;
+    }
+
+    return services.map((service) => getResponseServiceData(service));
   }
 
   public async getEmployeesOfferingService(id: Service['id']) {
@@ -90,20 +116,6 @@ export default class TypesOfCleaningService {
   public async linkPrimaryAndSecondaryService(data: PrimarySecondaryIds) {
     const { primaryServiceId, secondaryServiceId } = data;
 
-    // await executeDatabaseOperation(
-    //   prisma.service.update({
-    //     where: { id: secondaryServiceId },
-    //     data: {
-    //       // primaryService: {
-    //       //   connect: { id: primaryServiceId }
-    //       // },
-    //       primaryServices: {
-    //         connect: { id: primaryServiceId }
-    //       }
-    //     }
-    //   })
-    // );
-
     return await executeDatabaseOperation(
       prisma.service.update({
         where: { id: primaryServiceId },
@@ -122,7 +134,6 @@ export default class TypesOfCleaningService {
 
   // admin only
   public async deleteService(id: Service['id']) {
-    console.log({ id });
     let service: Service | null = null;
 
     try {
