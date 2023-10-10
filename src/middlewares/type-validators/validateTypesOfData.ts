@@ -53,7 +53,7 @@ export function validateParamsTypes<T extends ZodRawShape>(
       console.error(err);
       return res
         .status(400)
-        .send({ message: 'Error when parsing params type' });
+        .send({ message: 'Error when parsing params type', hasError: true });
     }
 
     return next();
@@ -75,7 +75,9 @@ export function validateBodyTypes<T extends ZodRawShape>(
       parser.parse(req.body);
     } catch (err) {
       console.error(err);
-      return res.status(400).send({ message: 'Error when parsing body type' });
+      return res
+        .status(400)
+        .send({ message: 'Error when parsing body type', hasError: true });
     }
 
     return next();
@@ -98,9 +100,10 @@ export function validateQueryTypes<T extends ZodRawShape>(
       parser.parse(req.query);
     } catch (err) {
       console.error(err);
-      return res
-        .status(400)
-        .send({ message: 'Error when parsing query params type' });
+      return res.status(400).send({
+        message: 'Error when parsing query params type',
+        hasError: true
+      });
     }
 
     return next();
@@ -127,7 +130,9 @@ export function validateTypes<
       queryParser && queryParser.parse(req.body);
     } catch (err) {
       console.error(err);
-      return res.status(400).send({ message: 'Error when parsing data type' });
+      return res
+        .status(400)
+        .send({ message: 'Error when parsing data type', hasError: true });
     }
 
     return next();

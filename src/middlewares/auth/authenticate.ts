@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 
 import { JWT_SECRET, UserRole } from '~/constants';
 
@@ -9,7 +9,9 @@ function authenticate(data?: AuthenticationData) {
   return (req: Request, res: Response, next: NextFunction) => {
     console.log({ cookies: req.cookies });
     if (!req.cookies.authToken) {
-      return res.status(401).send({ message: 'Credentials were not provided' });
+      return res
+        .status(401)
+        .send({ message: 'Credentials were not provided', hasError: true });
     }
 
     try {
@@ -22,16 +24,17 @@ function authenticate(data?: AuthenticationData) {
         data?.acceptableRoles &&
         !data.acceptableRoles.includes(decoded.role)
       ) {
-        return res
-          .status(403)
-          .send({ message: 'Cannot access resource with given permissions' });
+        return res.status(403).send({
+          message: 'Cannot access resource with given permissions',
+          hasError: true
+        });
       }
 
       if (decoded) {
         return next();
       }
     } catch (err) {
-      res.status(403).send({ message: 'Invalid token' });
+      res.status(403).send({ message: 'Invalid token', hasError: true });
     }
   };
 }
