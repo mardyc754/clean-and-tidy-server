@@ -18,6 +18,17 @@ type ServiceQueryOptions = {
   includePrimaryServices: boolean;
 };
 
+const includeIfTrue = (name: string, option: boolean | undefined) =>
+  option
+    ? {
+        [name]: {
+          include: {
+            unit: true
+          }
+        }
+      }
+    : undefined;
+
 export default class TypesOfCleaningService {
   public async getServiceById(
     id: Service['id'],
@@ -27,8 +38,12 @@ export default class TypesOfCleaningService {
       prisma.service.findUnique({
         where: { id },
         include: {
-          primaryServices: options?.includePrimaryServices,
-          secondaryServices: options?.includeSecondaryServices,
+          ...includeIfTrue('primaryServices', options?.includePrimaryServices),
+          ...includeIfTrue(
+            'secondaryServices',
+            options?.includeSecondaryServices
+          ),
+
           unit: true
         }
       })

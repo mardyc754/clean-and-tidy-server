@@ -59,6 +59,7 @@ export default class TypesOfCleaningController extends AbstractController {
     >,
     res: Response
   ) => {
+    console.log({ query: req.query });
     const service = await this.typesOfCleaningService.getServiceById(
       parseInt(req.params.id),
       {
