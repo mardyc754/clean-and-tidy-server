@@ -1,30 +1,61 @@
 import { type Employee, type Service } from '@prisma/client';
 
 import { prisma } from '~/db';
+import {
+  ChangeServicePriceData,
+  CreateServiceData,
+  PrimarySecondaryIds
+} from '~/schemas/typesOfCleaning';
+import { executeDatabaseOperation } from './utils';
+import { getResponseServiceData } from '~/utils/services';
+
+type AllServicesQueryOptions = {
+  primaryOnly: boolean;
+};
+
+type ServiceQueryOptions = {
+  includeSecondaryServices: boolean;
+  includePrimaryServices: boolean;
+};
 
 export default class TypesOfCleaningService {
-  public async getServiceById(id: Service['id']) {
-    let service: Service | null = null;
+  public async getServiceById(
+    id: Service['id'],
+    options?: ServiceQueryOptions
+  ) {
+    const service = await executeDatabaseOperation(
+      prisma.service.findUnique({
+        where: { id },
+        include: {
+          primaryServices: options?.includePrimaryServices,
+          secondaryServices: options?.includeSecondaryServices,
+          unit: true
+        }
+      })
+    );
 
-    try {
-      service = await prisma.service.findUnique({
-        where: { id }
-      });
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
+    if (!service) {
+      return null;
     }
 
-    return service;
+    return getResponseServiceData(service);
   }
 
-  public async getAllServices() {
-    let services: Service[] | null = null;
-    try {
-      services = await prisma.service.findMany();
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
+  public async getAllServices(options?: AllServicesQueryOptions) {
+    const services = await executeDatabaseOperation(
+      prisma.service.findMany({
+        ...(options?.primaryOnly ? { where: { isPrimary: true } } : {}),
+        include: {
+          unit: true
+        }
+      })
+    );
+
+    if (!services) {
+      return null;
     }
-    return services;
+
+    return services.map((service) => getResponseServiceData(service));
   }
 
   public async getEmployeesOfferingService(id: Service['id']) {
@@ -46,38 +77,63 @@ export default class TypesOfCleaningService {
   }
 
   // admin only
-  public async createService(data: Omit<Service, 'id'>) {
-    let service: Service | null = null;
+  public async createService(data: CreateServiceData) {
+    const { unit, ...otherData } = data;
 
-    try {
-      service = await prisma.service.create({
-        data
-      });
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
-    }
-    return service;
+    const unitCreationQuery = unit
+      ? {
+          unit: {
+            create: unit
+          }
+        }
+      : {};
+
+    return await executeDatabaseOperation(
+      prisma.service.create({
+        data: {
+          ...otherData,
+          ...unitCreationQuery
+        }
+      })
+    );
   }
 
   // admin only
-  public async changeServicePrice(data: Pick<Service, 'id' | 'price'>) {
+  public async changeServicePrice(data: ChangeServicePriceData) {
     const { id, price } = data;
-    let service: Service | null = null;
-
-    try {
-      service = await prisma.service.update({
+    return await executeDatabaseOperation(
+      prisma.service.update({
         where: { id },
-        data: { price }
-      });
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
-    }
-    return service;
+        data: {
+          unit: {
+            update: { price }
+          }
+        }
+      })
+    );
+  }
+
+  public async linkPrimaryAndSecondaryService(data: PrimarySecondaryIds) {
+    const { primaryServiceId, secondaryServiceId } = data;
+
+    return await executeDatabaseOperation(
+      prisma.service.update({
+        where: { id: primaryServiceId },
+        data: {
+          secondaryServices: {
+            connect: { id: secondaryServiceId }
+          }
+        },
+        include: {
+          secondaryServices: true
+          // primaryServices: true
+        }
+      })
+    );
   }
 
   // admin only
   public async deleteService(id: Service['id']) {
-    console.log({ id });
     let service: Service | null = null;
 
     try {

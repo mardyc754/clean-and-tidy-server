@@ -6,6 +6,7 @@ import {
   SingleReservationCreationData
 } from '~/schemas/reservation';
 import { areStartEndDateValid, now } from '~/utils/dateUtils';
+import { executeDatabaseOperation } from './utils';
 
 export default class ReservationService {
   public async getAllReservations() {
@@ -35,21 +36,20 @@ export default class ReservationService {
   }
 
   public async createReservation(data: SingleReservationCreationData) {
-    let reservation: Reservation | null = null;
+    const { employeeIds, ...otherData } = data;
 
-    try {
-      reservation = await prisma.reservation.create({
+    return await executeDatabaseOperation(
+      prisma.reservation.create({
         data: {
-          ...data,
+          ...otherData,
           name: `${data.recurringReservationId}`, // reservation name should contain the reservation number
-          status: ReservationStatus.TO_BE_CONFIRMED
+          status: ReservationStatus.TO_BE_CONFIRMED,
+          employees: {
+            connect: employeeIds.map((id) => ({ id }))
+          }
         }
-      });
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
-    }
-
-    return reservation;
+      })
+    );
   }
 
   public async changeReservationDate(data: ChangeReservationDateData) {

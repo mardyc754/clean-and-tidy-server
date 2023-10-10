@@ -11,7 +11,6 @@ const cleaningFrequencySchema = z.nativeEnum(CleaningFrequency);
 export const recurringReservationCreationSchema = z.object({
   frequency: cleaningFrequencySchema,
   clientId: z.number().int(),
-  employeeId: z.number().int(),
   endDate: z.string().datetime(),
   reservationData: reservationCreationDataSchema,
   address: z

@@ -6,7 +6,7 @@ import {
 } from '@prisma/client';
 
 import { prisma } from '~/db';
-import { EmployeeCreationData } from '~/schemas/employee';
+import type { EmployeeCreationData } from '~/schemas/employee';
 
 export default class EmployeeService {
   public async getEmployeeById(id: Employee['id']) {
@@ -58,18 +58,11 @@ export default class EmployeeService {
       const employeeWithReservations = await prisma.employee.findUnique({
         where: { id: employeeId },
         include: {
-          recurringReservations: {
-            include: {
-              reservations: reservationStatusFilter
-            }
-          }
+          reservations: reservationStatusFilter
         }
       });
 
-      reservations =
-        employeeWithReservations?.recurringReservations.flatMap(
-          (group) => group.reservations
-        ) ?? [];
+      reservations = employeeWithReservations?.reservations ?? [];
     } catch (err) {
       console.error(`Something went wrong: ${err}`);
     }

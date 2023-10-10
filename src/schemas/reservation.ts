@@ -6,7 +6,8 @@ export const reservationCreationDataSchema = z.object({
   endDate: ISOString,
   startDate: ISOString,
   includeDetergents: z.boolean(),
-  cost: z.number()
+  cost: z.number(),
+  employeeIds: z.array(z.number().int())
 });
 
 export type ReservationCreationData = z.infer<
