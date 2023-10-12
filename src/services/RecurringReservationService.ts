@@ -1,7 +1,7 @@
 import {
   type RecurringReservation,
   type Reservation,
-  CleaningFrequency,
+  Frequency,
   RecurringReservationStatus,
   ReservationStatus
 } from '@prisma/client';
@@ -137,8 +137,8 @@ export default class RecurringReservationService {
 
     if (
       oldFrequency !== frequency &&
-      oldFrequency !== CleaningFrequency.ONCE &&
-      frequency !== CleaningFrequency.ONCE
+      oldFrequency !== Frequency.ONCE &&
+      frequency !== Frequency.ONCE
     ) {
       const newReservations = changeReservationFrequency(
         reservations,

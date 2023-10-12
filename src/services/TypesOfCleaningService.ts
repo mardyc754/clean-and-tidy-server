@@ -16,6 +16,7 @@ type AllServicesQueryOptions = {
 type ServiceQueryOptions = {
   includeSecondaryServices: boolean;
   includePrimaryServices: boolean;
+  includeCleaningFrequencies: boolean;
 };
 
 const includeIfTrue = (name: string, option: boolean | undefined) =>
@@ -43,7 +44,11 @@ export default class TypesOfCleaningService {
             'secondaryServices',
             options?.includeSecondaryServices
           ),
-
+          cleaningFrequencies: options?.includeCleaningFrequencies
+            ? {
+                select: { name: true, value: true }
+              }
+            : undefined,
           unit: true
         }
       })

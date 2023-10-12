@@ -1,15 +1,15 @@
 import {
-  CleaningFrequency,
+  Frequency,
   RecurringReservationStatus,
   ReservationStatus
 } from '@prisma/client';
 import { z } from 'zod';
 import { reservationCreationDataSchema } from './reservation';
 
-const cleaningFrequencySchema = z.nativeEnum(CleaningFrequency);
+const FrequencySchema = z.nativeEnum(Frequency);
 
 export const recurringReservationCreationSchema = z.object({
-  frequency: cleaningFrequencySchema,
+  frequency: FrequencySchema,
   clientId: z.number().int(),
   endDate: z.string().datetime(),
   reservationData: reservationCreationDataSchema,
@@ -28,19 +28,17 @@ export type RecurringReservationCreationData = z.infer<
   typeof recurringReservationCreationSchema
 >;
 
-export const cleaningFrequencyChangeSchema = z.object({
-  frequency: cleaningFrequencySchema
+export const FrequencyChangeSchema = z.object({
+  frequency: FrequencySchema
 });
 
-export type CleaningFrequencyChangeData = z.infer<
-  typeof cleaningFrequencyChangeSchema
->;
+export type FrequencyChangeData = z.infer<typeof FrequencyChangeSchema>;
 
 export const weekDaySchema = z
   .object({
     weekDay: z.number().min(0).max(6)
   })
-  .merge(cleaningFrequencyChangeSchema);
+  .merge(FrequencyChangeSchema);
 
 export type WeekDayChangeData = z.infer<typeof weekDaySchema>;
 

@@ -11,6 +11,11 @@ import type {
 
 import AbstractController from './AbstractController';
 
+type GetServiceByIdQueryParams = {
+  includeSecondaryServices?: string;
+  includePrimaryServices?: string;
+  includeCleaningFrequencies?: string;
+};
 export default class TypesOfCleaningController extends AbstractController {
   private typesOfCleaningService = new TypesOfCleaningService();
 
@@ -55,11 +60,10 @@ export default class TypesOfCleaningController extends AbstractController {
     req: TypedRequest<
       { id: string },
       DefaultBodyType,
-      { includeSecondaryServices?: string; includePrimaryServices?: string }
+      GetServiceByIdQueryParams
     >,
     res: Response
   ) => {
-    console.log({ query: req.query });
     const service = await this.typesOfCleaningService.getServiceById(
       parseInt(req.params.id),
       {
@@ -68,6 +72,9 @@ export default class TypesOfCleaningController extends AbstractController {
         ),
         includePrimaryServices: queryParamToBoolean(
           req.query.includePrimaryServices
+        ),
+        includeCleaningFrequencies: queryParamToBoolean(
+          req.query.includeCleaningFrequencies
         )
       }
     );

@@ -26,10 +26,11 @@ enum RecurringReservationStatus {
   CANCELLED
 }
 
-enum CleaningFrequency {
+enum Frequency {
   ONCE
   ONCE_A_WEEK
   EVERY_TWO_WEEKS
+  ONCE_A_MONTH
 }
 
 model Client {
@@ -59,7 +60,7 @@ model Reservation {
 model RecurringReservation {
   id                        Int                          @id @default(autoincrement())
   name                      String                       @db.VarChar(50)
-  frequency                 CleaningFrequency
+  frequency                 Frequency
   endDate                   DateTime  // not sure if this field is needed
   weekDay                   Int                          @db.SmallInt
   status                    RecurringReservationStatus
@@ -104,7 +105,7 @@ model Service {
   employees                 Employee[]
   primaryServices           Service[]                    @relation("PrimarySecondaryService")
   secondaryServices         Service[]                    @relation("PrimarySecondaryService")
-
+  cleaningFrequencies       CleaningFrequency[]         
 }
 
 model ServiceUnit {
@@ -113,6 +114,13 @@ model ServiceUnit {
   price                     Decimal                      @db.Money
   duration                  Int                          // duration of the service unit in minutes
   service                   Service?                     
+}
+
+model CleaningFrequency {
+  id                       Int                          @id @default(autoincrement())
+  name                     String 
+  value                    Frequency                    @unique
+  services                 Service[]
 }
 
 // model may be needed 

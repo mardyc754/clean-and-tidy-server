@@ -1,5 +1,5 @@
 import {
-  cleaningFrequencyChangeSchema,
+  FrequencyChangeSchema,
   recurringReservationCreationSchema,
   weekDaySchema
 } from '~/schemas/recurringReservation';
@@ -9,8 +9,8 @@ export function validateRecurringReservationCreationData() {
   return validateTypes({ bodyParser: recurringReservationCreationSchema });
 }
 
-export function validateCleaningFrequency() {
-  return validateTypes({ bodyParser: cleaningFrequencyChangeSchema });
+export function validateFrequency() {
+  return validateTypes({ bodyParser: FrequencyChangeSchema });
 }
 
 export function validateWeekDay() {
