@@ -1,0 +1,181 @@
+[
+  {
+    "name": "Home Cleaning",
+    "isPrimary": true,
+    "unit": {
+      "name": "m2",
+      "price": 5,
+      "duration": 6
+    }
+  },
+  {
+    "name": "Office Cleaning",
+    "isPrimary": true,
+    "unit": {
+      "name": "m2",
+      "price": 6.15,
+      "duration": 6
+    }
+  },
+  {
+    "name": "Cleaning after renovation",
+    "isPrimary": true,
+    "unit": {
+      "name": "m2",
+      "price": 10,
+      "duration": 12
+    }
+  },
+  {
+    "name": "Cleaning after moving",
+    "isPrimary": true,
+    "unit": {
+      "name": "m2",
+      "price": 7,
+      "duration": 6
+    }
+  },
+  {
+    "name": "Furniture cleaning",
+    "isPrimary": true,
+    "unit": null
+  },
+  {
+    "name": "Window cleaning",
+    "isPrimary": true,
+    "unit": {
+      "name": "window",
+      "price": 30,
+      "duration": 30
+    }
+  },
+  {
+    "name": "Ironing",
+    "isPrimary": true,
+    "unit": {
+      "name": "hour",
+      "price": 40,
+      "duration": 60
+    }
+  },
+  {
+    "name": "Oven cleaning",
+    "unit": {
+      "name": "oven",
+      "price": 40,
+      "duration": 60
+    }
+  },
+  {
+    "name": "Dishwashing",
+    "unit": {
+      "name": "1 kg",
+      "price": 20,
+      "duration": 30
+    }
+  },
+  {
+    "name": "Fridge cleaning",
+    "unit": {
+      "name": "fridge",
+      "price": 40,
+      "duration": 60
+    }
+  },
+  {
+    "name": "Microwave oven cleaning",
+    "unit": {
+      "name": "microwave oven",
+      "price": 20,
+      "duration": 20
+    }
+  },
+  {
+    "name": "Clothes/bedding/towels washing",
+    "unit": {
+      "name": "1 kg",
+      "price": 40,
+      "duration": 60
+    }
+  },
+  {
+    "name": "Balcony cleaning",
+    "unit": {
+      "name": "balcony",
+      "price": 40,
+      "duration": 30
+    }
+  },
+  {
+    "name": "Blinds/window blinds cleaning",
+    "unit": {
+      "name": "pieces",
+      "price": 25,
+      "duration": 30
+    }
+  },
+  {
+    "name": "Interior of the wardrobe cleaning",
+    "unit": {
+      "name": "wardrobe",
+      "price": 50,
+      "duration": 60
+    }
+  },
+  {
+    "name": "Interior of the kitchen cabinets cleaning",
+    "unit": {
+      "name": "pieces",
+      "price": 60,
+      "duration": 90
+    }
+  },
+  {
+    "name": "Couch washing",
+    "unit": {
+      "name": "couch",
+      "price": 150,
+      "duration": 60
+    }
+  },
+  {
+    "name": "Corner sofa washing",
+    "unit": {
+      "name": "corner sofa",
+      "price": 180,
+      "duration": 90
+    }
+  },
+  {
+    "name": "Carpet washing",
+    "unit": {
+      "name": "carpet",
+      "price": 15,
+      "duration": 10
+    }
+  },
+  {
+    "name": "Armchair washing",
+    "unit": {
+      "name": "armchair",
+      "price": 55,
+      "duration": 30
+    }
+  },
+  {
+    "name": "Chair/office chair/stool washing",
+    "unit": {
+      "name": "chair",
+      "price": 20,
+      "duration": 20
+    }
+  },
+  {
+    "name": "Paint/glue from floor cleaning",
+    "unit": {
+      "name": "hour",
+      "price": 40,
+      "duration": 60
+    }
+  }
+]

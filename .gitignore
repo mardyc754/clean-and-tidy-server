@@ -1,7 +1,7 @@
 node_modules
 .env
 dist
-temp
+# temp
 
 prisma/migrations
 prisma/db.sqlite*

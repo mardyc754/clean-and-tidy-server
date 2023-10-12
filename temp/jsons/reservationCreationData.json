@@ -1,0 +1,91 @@
+[
+  {
+    "frequency": "ONCE_A_WEEK",
+    "userId": 1,
+    "employeeId": 1,
+    "endDate": "2024-09-21T14:00:00.000Z",
+    "reservationData": {
+      "startDate": "2023-09-21T06:00:00.000Z",
+      "endDate": "2023-09-21T14:00:00.000Z",
+      "includeDetergents": true,
+      "cost": 25
+    },
+    "address": {
+      "areaSize": 50,
+      "street": "Kanonicza",
+      "houseNumber": "19",
+      "postCode": "31-002",
+      "city": "Krakow"
+    }
+  },
+  {
+    "frequency": "EVERY_TWO_WEEK",
+    "userId": 5,
+    "employeeId": 1,
+    "endDate": "2024-09-22T14:00:00.000Z",
+    "reservationData": {
+      "startDate": "2023-09-22T06:00:00.000Z",
+      "endDate": "2023-09-22T14:00:00.000Z",
+      "includeDetergents": true,
+      "cost": 25
+    },
+    "address": {
+      "areaSize": 150,
+      "street": "Krakusa 9",
+      "houseNumber": "92",
+      "postCode": "30-535",
+      "city": "Krakow"
+    }
+  },
+  {
+    "frequency": "ONCE",
+    "userId": 5,
+    "employeeId": 4,
+    "endDate": "2021-09-21T14:00:00.000Z",
+    "reservationData": {
+      "startDate": "2023-09-21T06:00:00.000Z",
+      "endDate": "2023-09-21T14:00:00.000Z",
+      "includeDetergents": true,
+      "cost": 25
+    },
+    "address": 2
+  },
+  {
+    "frequency": "ONCE_A_WEEK",
+    "userId": 3,
+    "employeeId": 4,
+    "endDate": "2024-09-19T14:00:00.000Z",
+    "reservationData": {
+      "startDate": "2023-09-19T08:00:00.000Z",
+      "endDate": "2023-09-19T16:00:00.000Z",
+      "includeDetergents": true,
+      "cost": 25
+    },
+    "address": {
+      "areaSize": 50,
+      "street": "Kanonicza",
+      "houseNumber": "19",
+      "postCode": "31-002",
+      "city": "Krakow"
+    }
+  },
+  {
+    "frequency": "EVERY_TWO_WEEK",
+    "userId": 1,
+    "employeeId": 1,
+    "endDate": "2024-09-25T16:00:00.000Z",
+    "reservationData": {
+      "startDate": "2023-09-25T10:00:00.000Z",
+      "endDate": "2023-09-25T16:00:00.000Z",
+      "includeDetergents": true,
+      "cost": 25
+    },
+    "address": {
+      "areaSize": 50,
+      "street": "Kanonicza",
+      "houseNumber": "19",
+      "postCode": "31-002",
+      "city": "Krakow"
+    }
+  }
+]

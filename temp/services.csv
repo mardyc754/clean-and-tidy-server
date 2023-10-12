@@ -1,0 +1,23 @@
+"id","name","unitId"
+1,"Home Cleaning",1
+2,"Office Cleaning",2
+3,"Cleaning after renovation",3
+4,"Cleaning after moving",4
+5,"Furniture cleaning",NULL
+6,"Window cleaning",5
+7,"Ironing",6
+8,"Oven cleaning",7
+9,"Dishwashing",8
+10,"Fridge cleaning",9
+11,"Microwave oven cleaning",10
+12,"Clothes/bedding/towels washing",11
+13,"Balcony cleaning",12
+14,"Window blinds cleaning",13
+15,"Interior of the wardrobe cleaning",14
+16,"Interior of the kitchen cabinets cleaning",15
+17,"Couch washing",16
+18,"Corner sofa washing",17
+19,"Carpet washing",18
+20,"Armchair washing",19
+21,"Chair/office chair/stool washing",20,
+22,"Paint/glue from floor cleaning",21
