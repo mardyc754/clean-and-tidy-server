@@ -10,12 +10,11 @@ const FrequencySchema = z.nativeEnum(Frequency);
 
 export const recurringReservationCreationSchema = z.object({
   frequency: FrequencySchema,
-  clientId: z.number().int(),
+  clientId: z.number().int(), // it can be an client email as well
   endDate: z.string().datetime(),
   reservationData: reservationCreationDataSchema,
   address: z
     .object({
-      areaSize: z.number(),
       street: z.string().max(40),
       houseNumber: z.string().max(6),
       postCode: z.string().length(6),

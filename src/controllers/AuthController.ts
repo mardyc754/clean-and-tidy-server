@@ -76,7 +76,9 @@ export default class AuthController extends AbstractController {
         message: 'User created succesfully'
       });
     } else {
-      res.status(400).send({ message: 'Error when creating new user' });
+      res
+        .status(400)
+        .send({ message: 'Error when creating new user', hasError: true });
     }
   };
 
@@ -98,13 +100,18 @@ export default class AuthController extends AbstractController {
     if (!user) {
       return res
         .status(404)
-        .send({ message: 'User with given email does not exist' });
+        .send({
+          message: 'User with given email does not exist',
+          hasError: true
+        });
     }
 
     const passwordsMatch = await bcrypt.compare(password, user.password);
 
     if (!passwordsMatch) {
-      return res.status(400).send({ message: 'Invalid password' });
+      return res
+        .status(400)
+        .send({ message: 'Invalid password', hasError: true });
     }
 
     if ('isAdmin' in user) {
