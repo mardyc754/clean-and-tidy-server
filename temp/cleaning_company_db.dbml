@@ -61,6 +61,7 @@ Table RecurringReservation {
   weekDay integer [not null]
   clientId integer [not null, ref: > Client.id]
   addressId integer [not null, ref: > Address.id]
+  // serviceId integer [not null, ref: > Service.id]
 }
 
 Table Employee {
@@ -112,5 +113,11 @@ Table CleaningFrequency {
   id integer [primary key]
   name varchar(50) [not null]
   value Frequency
+}
+
+Table RecurringReservationService {
+  serviceId integer [ref: > Service.id]
+  recurringReservationId integer [ref: > RecurringReservation.id]
+  isMainServiceForReservation boolean [not null]
 }
 

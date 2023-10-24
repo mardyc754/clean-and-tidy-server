@@ -3,7 +3,7 @@ import type { Request, Response } from 'express';
 import { RecurringReservationService } from '~/services';
 
 import {
-  CleaningFrequencyChangeData,
+  FrequencyChangeData,
   RecurringReservationCreationData,
   RecurringReservationStatusChangeData,
   WeekDayChangeData
@@ -12,7 +12,7 @@ import type { DefaultParamsType, TypedRequest } from '~/types';
 
 import AbstractController from './AbstractController';
 import {
-  // validateCleaningFrequency,
+  // validateFrequency,
   // validateWeekDay,
   validateRecurringReservationCreationData,
   validateStatusChange
@@ -39,7 +39,7 @@ export default class ReservationController extends AbstractController {
     // TODO: The methods below needs to be improved
     // this.router.put(
     //   '/:id/frequency',
-    //   validateCleaningFrequency(),
+    //   validateFrequency(),
     //   this.changeFrequency
     // );
     // this.router.put('/:id/weekDay', validateWeekDay(), this.changeWeekDay);
@@ -121,7 +121,7 @@ export default class ReservationController extends AbstractController {
   };
 
   private changeFrequency = async (
-    req: TypedRequest<{ id: string }, CleaningFrequencyChangeData>,
+    req: TypedRequest<{ id: string }, FrequencyChangeData>,
     res: Response
   ) => {
     const recurringReservation =

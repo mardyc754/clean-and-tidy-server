@@ -1,21 +1,20 @@
 import {
-  CleaningFrequency,
+  Frequency,
   RecurringReservationStatus,
   ReservationStatus
 } from '@prisma/client';
 import { z } from 'zod';
 import { reservationCreationDataSchema } from './reservation';
 
-const cleaningFrequencySchema = z.nativeEnum(CleaningFrequency);
+const FrequencySchema = z.nativeEnum(Frequency);
 
 export const recurringReservationCreationSchema = z.object({
-  frequency: cleaningFrequencySchema,
-  clientId: z.number().int(),
+  frequency: FrequencySchema,
+  clientId: z.number().int(), // it can be an client email as well
   endDate: z.string().datetime(),
   reservationData: reservationCreationDataSchema,
   address: z
     .object({
-      areaSize: z.number(),
       street: z.string().max(40),
       houseNumber: z.string().max(6),
       postCode: z.string().length(6),
@@ -28,19 +27,17 @@ export type RecurringReservationCreationData = z.infer<
   typeof recurringReservationCreationSchema
 >;
 
-export const cleaningFrequencyChangeSchema = z.object({
-  frequency: cleaningFrequencySchema
+export const FrequencyChangeSchema = z.object({
+  frequency: FrequencySchema
 });
 
-export type CleaningFrequencyChangeData = z.infer<
-  typeof cleaningFrequencyChangeSchema
->;
+export type FrequencyChangeData = z.infer<typeof FrequencyChangeSchema>;
 
 export const weekDaySchema = z
   .object({
     weekDay: z.number().min(0).max(6)
   })
-  .merge(cleaningFrequencyChangeSchema);
+  .merge(FrequencyChangeSchema);
 
 export type WeekDayChangeData = z.infer<typeof weekDaySchema>;
 

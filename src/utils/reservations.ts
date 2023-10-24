@@ -1,5 +1,5 @@
 import {
-  CleaningFrequency,
+  Frequency,
   ReservationStatus,
   type RecurringReservation,
   type Reservation
@@ -31,15 +31,15 @@ export function createReservations(
   // we can count number of the weeks ocurring between start and end date
   // and we do not have to use magic numbers in that case
   switch (frequency) {
-    case CleaningFrequency.ONCE_A_WEEK:
+    case Frequency.ONCE_A_WEEK:
       weekNumbers = [...Array<unknown>(numberOfWeeks)].map((_, i) => i);
       break;
-    case CleaningFrequency.EVERY_TWO_WEEKS:
+    case Frequency.EVERY_TWO_WEEKS:
       weekNumbers = [...Array<unknown>(Math.ceil(numberOfWeeks / 2))].map(
         (_, i) => 2 * i
       );
       break;
-    case CleaningFrequency.ONCE:
+    case Frequency.ONCE:
     default:
       weekNumbers = [0];
   }
@@ -55,20 +55,21 @@ export function createReservations(
 }
 
 export function shouldChangeReservationFrequency(
-  oldFrequency: CleaningFrequency,
-  newFrequency: CleaningFrequency
+  oldFrequency: Frequency,
+  newFrequency: Frequency
 ) {
   return (
     oldFrequency !== newFrequency &&
-    ![oldFrequency, newFrequency].includes(CleaningFrequency.ONCE)
+    ![oldFrequency, newFrequency].includes(Frequency.ONCE)
   );
 }
 
 export function changeReservationFrequency(
   reservations: Reservation[],
   newFrequency:
-    | typeof CleaningFrequency.ONCE_A_WEEK
-    | typeof CleaningFrequency.EVERY_TWO_WEEKS,
+    | typeof Frequency.ONCE_A_WEEK
+    | typeof Frequency.EVERY_TWO_WEEKS
+    | typeof Frequency.ONCE_A_MONTH,
   reservationGroupName: RecurringReservation['name']
 ) {
   // for safety, it'd be better to change the date to UTC
@@ -87,7 +88,7 @@ export function changeReservationFrequency(
   );
 
   reservationsAfter2Weeks.forEach((reservation, i) => {
-    if (newFrequency === CleaningFrequency.EVERY_TWO_WEEKS) {
+    if (newFrequency === Frequency.EVERY_TWO_WEEKS) {
       if (i % 2) {
         newReservations.push({
           ...reservation,
@@ -95,7 +96,7 @@ export function changeReservationFrequency(
           name: `${reservationGroupName}-${newReservations.length + 1}`
         });
       }
-    } else if (newFrequency === CleaningFrequency.ONCE_A_WEEK) {
+    } else if (newFrequency === Frequency.ONCE_A_WEEK) {
       const { startDate, endDate } = reservation;
 
       // current reservation
@@ -125,7 +126,7 @@ export function cancelReservations(
 ) {
   let newReservations: Reservation[];
 
-  if (frequency === CleaningFrequency.ONCE) {
+  if (frequency === Frequency.ONCE) {
     newReservations = reservations.map((reservation) => ({
       ...reservation,
       status: ReservationStatus.TO_BE_CANCELLED
@@ -151,7 +152,7 @@ export function changeWeekDay(
 ) {
   let newReservations: Reservation[];
 
-  if (frequency === CleaningFrequency.ONCE) {
+  if (frequency === Frequency.ONCE) {
     newReservations = reservations.map((reservation) => ({
       ...reservation,
       startDate: dayjs(reservation.startDate).day(weekDay).toDate(),

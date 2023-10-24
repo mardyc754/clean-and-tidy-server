@@ -1,11 +1,14 @@
-import { type ServiceUnit, type Service } from '@prisma/client';
+import {
+  type ServiceUnit,
+  type Service,
+  type CleaningFrequency
+} from '@prisma/client';
 
 type ServiceWithUnit = Service & {
   unit: ServiceUnit | null;
-  // secondaryServices?: SetOptional<ServiceWithUnit, 'unit'>[];
-  // primaryServices?: SetOptional<ServiceWithUnit, 'unit'>[];
   secondaryServices?: ServiceWithUnit[];
   primaryServices?: ServiceWithUnit[];
+  cleaningFrequencies?: Omit<CleaningFrequency, 'id'>[];
 };
 
 function getSimplifiedServiceData(data: ServiceWithUnit) {
@@ -21,9 +24,11 @@ function getSimplifiedServiceData(data: ServiceWithUnit) {
 }
 
 export function getResponseServiceData(data: ServiceWithUnit) {
-  const { isPrimary, secondaryServices, primaryServices } = data;
+  const { isPrimary, secondaryServices, primaryServices, cleaningFrequencies } =
+    data;
   return {
     ...getSimplifiedServiceData(data),
+    cleaningFrequencies,
     isPrimary,
     secondaryServices: secondaryServices?.map((service) =>
       getSimplifiedServiceData(service)

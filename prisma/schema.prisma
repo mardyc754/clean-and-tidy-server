@@ -26,95 +26,115 @@ enum RecurringReservationStatus {
   CANCELLED
 }
 
-enum CleaningFrequency {
+enum Frequency {
   ONCE
   ONCE_A_WEEK
   EVERY_TWO_WEEKS
+  ONCE_A_MONTH
 }
 
 model Client {
-  id                        Int                          @id @default(autoincrement())
-  name                      String?                      @db.VarChar(50)
-  surname                   String?                      @db.VarChar(50)
-  username                  String                       @unique @db.VarChar(30)
-  email                     String                       @unique @db.VarChar(40)
-  password                  String                       @db.VarChar(60)
-  phone                     String?                      @db.VarChar(15)
-  recurringReservations     RecurringReservation[]
+  id                            Int                          @id @default(autoincrement())
+  name                          String?                      @db.VarChar(50)
+  surname                       String?                      @db.VarChar(50)
+  username                      String                       @unique @db.VarChar(30)
+  email                         String                       @unique @db.VarChar(40)
+  password                      String                       @db.VarChar(60)
+  phone                         String?                      @db.VarChar(15)
+  recurringReservations         RecurringReservation[]
 }
 
 model Reservation {
-  id                        Int                          @id @default(autoincrement())
-  name                      String                       @db.VarChar(30)
-  startDate                 DateTime                     @db.Date
-  endDate                   DateTime                     @db.Date
-  includeDetergents         Boolean 
-  cost                      Decimal                      @db.Money
-  recurringReservation      RecurringReservation         @relation(fields: [recurringReservationId], references: [id], onDelete: Cascade)
-  recurringReservationId    Int                          
-  status                    ReservationStatus
-  employees                 Employee[]                                          
+  id                            Int                          @id @default(autoincrement())
+  name                          String                       @db.VarChar(30)
+  startDate                     DateTime                     @db.Date
+  endDate                       DateTime                     @db.Date
+  includeDetergents             Boolean 
+  cost                          Decimal                      @db.Money
+  recurringReservation          RecurringReservation         @relation(fields: [recurringReservationId], references: [id], onDelete: Cascade)
+  recurringReservationId        Int                          
+  status                        ReservationStatus
+  employees                     Employee[]                                          
 }
 
 model RecurringReservation {
-  id                        Int                          @id @default(autoincrement())
-  name                      String                       @db.VarChar(50)
-  frequency                 CleaningFrequency
-  endDate                   DateTime  // not sure if this field is needed
-  weekDay                   Int                          @db.SmallInt
-  status                    RecurringReservationStatus
-  client                    Client                       @relation(fields: [clientId], references: [id])
-  clientId                  Int                          
-  reservations              Reservation[]
-  address                   Address                      @relation(fields: [addressId], references: [id])
-  addressId                 Int                          
+  id                            Int                           @id @default(autoincrement())
+  name                          String                        @db.VarChar(50)
+  frequency                     Frequency
+  endDate                       DateTime  // not sure if this field is needed
+  weekDay                       Int                           @db.SmallInt
+  status                        RecurringReservationStatus
+  client                        Client                        @relation(fields: [clientId], references: [id])
+  clientId                      Int                          
+  reservations                  Reservation[]
+  address                       Address                       @relation(fields: [addressId], references: [id])
+  addressId                     Int                          
+  services                      RecurringReservationService[]
 }
 
 model Address {
-  id                        Int                          @id @default(autoincrement())
-  street                    String                       @db.VarChar(40)
-  houseNumber               String                       @db.VarChar(6)        
-  postCode                  String                       @db.VarChar(6)
-  city                      String                       @db.VarChar(40)
-  recurringReservations     RecurringReservation[]
+  id                            Int                           @id @default(autoincrement())
+  street                        String                        @db.VarChar(40)
+  houseNumber                   String                        @db.VarChar(6)        
+  postCode                      String                        @db.VarChar(6)
+  city                          String                        @db.VarChar(40)
+  recurringReservations         RecurringReservation[]
 }
 
 
 model Employee {
-  id                        Int                          @id @default(autoincrement())
-  name                      String                       @db.VarChar(50)
-  surname                   String                       @db.VarChar(50)
-  email                     String                       @unique  @db.VarChar(40)
-  password                  String                       @db.VarChar(60)
-  startHour                 DateTime                     @db.Time
-  endHour                   DateTime                     @db.Time      
-  reservations              Reservation[]
-  // services               EmployeeService[]
-  services                  Service[]
-  isAdmin                   Boolean                      @default(false)
+  id                            Int                           @id @default(autoincrement())
+  name                          String                        @db.VarChar(50)
+  surname                       String                        @db.VarChar(50)
+  email                         String                        @unique  @db.VarChar(40)
+  password                      String                        @db.VarChar(60)
+  startHour                     DateTime                      @db.Time
+  endHour                       DateTime                      @db.Time      
+  reservations                  Reservation[]
+  // services                   EmployeeService[]
+  services                      Service[]
+  isAdmin                       Boolean                       @default(false)
 }
 
 model Service {
-  id                        Int                          @id @default(autoincrement())
-  name                      String                       @db.VarChar(100)
-  unit                      ServiceUnit?                 @relation(fields: [unitId], references: [id])
-  unitId                    Int?                         @unique
-  isPrimary                 Boolean                      @default(false)
-  // employees              EmployeeService[]
-  employees                 Employee[]
-  primaryServices           Service[]                    @relation("PrimarySecondaryService")
-  secondaryServices         Service[]                    @relation("PrimarySecondaryService")
-
+  id                            Int                           @id @default(autoincrement())
+  name                          String                        @db.VarChar(100)
+  unit                          ServiceUnit?                  @relation(fields: [unitId], references: [id])
+  unitId                        Int?                          @unique
+  isPrimary                     Boolean                       @default(false)
+  // employees                  EmployeeService[]
+  employees                     Employee[]
+  primaryServices               Service[]                     @relation("PrimarySecondaryService")
+  secondaryServices             Service[]                     @relation("PrimarySecondaryService")
+  cleaningFrequencies           CleaningFrequency[]
+  recurringReservations         RecurringReservationService[]        
 }
 
 model ServiceUnit {
-  id                        Int                          @id @default(autoincrement())
-  name                      String                       @db.VarChar(40)
-  price                     Decimal                      @db.Money
-  duration                  Int                          // duration of the service unit in minutes
-  service                   Service?                     
+  id                            Int                           @id @default(autoincrement())
+  name                          String                        @db.VarChar(40)
+  price                         Decimal                       @db.Money
+  duration                      Int                           // duration of the service unit in minutes
+  service                       Service?                     
 }
 
+model CleaningFrequency {
+  id                            Int                            @id @default(autoincrement())
+  name                          String 
+  value                         Frequency                      @unique
+  services                      Service[]
+}
+
+model RecurringReservationService {
+  recurringReservation          RecurringReservation          @relation(fields: [recurringReservationId], references: [id])
+  recurringReservationId        Int                          
+  service                       Service                       @relation(fields: [serviceId], references: [id])
+  serviceId                     Int
+  isMainServiceForReservation   Boolean                       @default(false)
+  numberOfUnits                 Int                           @default(1)
+  
+  @@id([recurringReservationId, serviceId])
+}
 // model may be needed 
 // if there would be a distinctive information about employee's service
 // 
