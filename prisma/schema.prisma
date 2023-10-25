@@ -35,11 +35,11 @@ enum Frequency {
 
 model Client {
   id                            Int                          @id @default(autoincrement())
-  name                          String?                      @db.VarChar(50)
-  surname                       String?                      @db.VarChar(50)
-  username                      String                       @unique @db.VarChar(30)
+  firstName                     String?                      @db.VarChar(50)
+  lastName                      String?                      @db.VarChar(50)
+  username                      String?                      @unique @db.VarChar(30)
   email                         String                       @unique @db.VarChar(40)
-  password                      String                       @db.VarChar(60)
+  password                      String?                      @db.VarChar(60)
   phone                         String?                      @db.VarChar(15)
   recurringReservations         RecurringReservation[]
 }
@@ -84,8 +84,8 @@ model Address {
 
 model Employee {
   id                            Int                           @id @default(autoincrement())
-  name                          String                        @db.VarChar(50)
-  surname                       String                        @db.VarChar(50)
+  firstName                     String                        @db.VarChar(50)
+  lastName                      String                        @db.VarChar(50)
   email                         String                        @unique  @db.VarChar(40)
   password                      String                        @db.VarChar(60)
   startHour                     DateTime                      @db.Time

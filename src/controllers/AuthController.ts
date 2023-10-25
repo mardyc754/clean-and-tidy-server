@@ -98,12 +98,17 @@ export default class AuthController extends AbstractController {
     }
 
     if (!user) {
-      return res
-        .status(404)
-        .send({
-          message: 'User with given email does not exist',
-          hasError: true
-        });
+      return res.status(404).send({
+        message: 'User with given email does not exist',
+        hasError: true
+      });
+    }
+
+    if (!user.password) {
+      return res.status(400).send({
+        message: 'User with given email does not exist',
+        hasError: true
+      });
     }
 
     const passwordsMatch = await bcrypt.compare(password, user.password);

@@ -31,6 +31,7 @@ export default class ClientService {
   }
 
   public async getClientByUsername(username: Client['username']) {
+    if (!username) return null;
     let user: Client | null = null;
 
     try {
@@ -140,7 +141,7 @@ export default class ClientService {
 
   public async changeClientData(
     userData: Pick<Client, 'id'> &
-      RequireAtLeastOne<Client, 'name' | 'surname' | 'phone'>
+      RequireAtLeastOne<Client, 'firstName' | 'lastName' | 'phone'>
   ) {
     const { id, ...rest } = userData;
     let newClientData: Client | null = null;

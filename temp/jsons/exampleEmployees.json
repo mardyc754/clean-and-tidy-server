@@ -1,8 +1,8 @@
 {
   "data": [
     {
-      "name": "Rusty",
-      "surname": "Simonis",
+      "firstName": "Rusty",
+      "lastName": "Simonis",
       "email": "Rusty.Simonis@hotmail.com",
       "password": "password",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -10,8 +10,8 @@
       "isAdmin": false
     },
     {
-      "name": "Arno",
-      "surname": "Goyette",
+      "firstName": "Arno",
+      "lastName": "Goyette",
       "email": "Arno_Goyette@gmail.com",
       "password": "dJmHcxoBhTY3N2N",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -19,8 +19,8 @@
       "isAdmin": false
     },
     {
-      "name": "Terrell",
-      "surname": "Lindgren",
+      "firstName": "Terrell",
+      "lastName": "Lindgren",
       "email": "Terrell.Lindgren70@hotmail.com",
       "password": "68oSXiAyPA3lBni",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -28,8 +28,8 @@
       "isAdmin": false
     },
     {
-      "name": "Scot",
-      "surname": "Farrell",
+      "firstName": "Scot",
+      "lastName": "Farrell",
       "email": "Scot.Farrell@yahoo.com",
       "password": "4Lx9lRGR2Tdu0tH",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -37,8 +37,8 @@
       "isAdmin": false
     },
     {
-      "name": "Brittany",
-      "surname": "Lynch",
+      "firstName": "Brittany",
+      "lastName": "Lynch",
       "email": "Brittany.Lynch35@gmail.com",
       "password": "7b3xbvmbbXb7GqD",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -46,8 +46,8 @@
       "isAdmin": false
     },
     {
-      "name": "Al",
-      "surname": "Olson",
+      "firstName": "Al",
+      "lastName": "Olson",
       "email": "Al.Olson62@gmail.com",
       "password": "42RLPh97DybIfVt",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -55,8 +55,8 @@
       "isAdmin": false
     },
     {
-      "name": "Maria",
-      "surname": "Barton",
+      "firstName": "Maria",
+      "lastName": "Barton",
       "email": "Maria.Barton16@hotmail.com",
       "password": "x4RuCk9iE4uSSP8",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -64,8 +64,8 @@
       "isAdmin": false
     },
     {
-      "name": "Newell",
-      "surname": "Greenholt",
+      "firstName": "Newell",
+      "lastName": "Greenholt",
       "email": "Newell60@yahoo.com",
       "password": "zz_vvvkymHYm__i",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -73,8 +73,8 @@
       "isAdmin": false
     },
     {
-      "name": "Chelsey",
-      "surname": "Murray",
+      "firstName": "Chelsey",
+      "lastName": "Murray",
       "email": "Chelsey_Murray@hotmail.com",
       "password": "mFcVqQ6cFOiT2oy",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -82,8 +82,8 @@
       "isAdmin": false
     },
     {
-      "name": "Oceane",
-      "surname": "Wilderman",
+      "firstName": "Oceane",
+      "lastName": "Wilderman",
       "email": "Oceane47@hotmail.com",
       "password": "GKMB8XYujo1aFUu",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -91,8 +91,8 @@
       "isAdmin": false
     },
     {
-      "name": "Paul",
-      "surname": "Crona-Rowe",
+      "firstName": "Paul",
+      "lastName": "Crona-Rowe",
       "email": "Paul73@hotmail.com",
       "password": "PoN1rw3y78rDcLR",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -100,8 +100,8 @@
       "isAdmin": false
     },
     {
-      "name": "Meghan",
-      "surname": "Jast",
+      "firstName": "Meghan",
+      "lastName": "Jast",
       "email": "Meghan_Jast36@yahoo.com",
       "password": "T8CjPZyG9ZVwjCH",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -109,8 +109,8 @@
       "isAdmin": false
     },
     {
-      "name": "Ebony",
-      "surname": "Kessler",
+      "firstName": "Ebony",
+      "lastName": "Kessler",
       "email": "Ebony_Kessler@hotmail.com",
       "password": "k9cAmxg_XQarjQD",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -118,8 +118,8 @@
       "isAdmin": false
     },
     {
-      "name": "London",
-      "surname": "Baumbach",
+      "firstName": "London",
+      "lastName": "Baumbach",
       "email": "London.Baumbach@hotmail.com",
       "password": "0DbRQZ9f9cWeE3K",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -127,8 +127,8 @@
       "isAdmin": false
     },
     {
-      "name": "Leanna",
-      "surname": "Towne",
+      "firstName": "Leanna",
+      "lastName": "Towne",
       "email": "Leanna41@yahoo.com",
       "password": "M2iTuyFYIEWix1f",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -136,8 +136,8 @@
       "isAdmin": false
     },
     {
-      "name": "Audreanne",
-      "surname": "Bashirian-Nader",
+      "firstName": "Audreanne",
+      "lastName": "Bashirian-Nader",
       "email": "Audreanne_Bashirian-Nader@hotmail.com",
       "password": "h8KEz3d2oJNe3pa",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -145,8 +145,8 @@
       "isAdmin": false
     },
     {
-      "name": "Elfrieda",
-      "surname": "Schultz",
+      "firstName": "Elfrieda",
+      "lastName": "Schultz",
       "email": "Elfrieda.Schultz@yahoo.com",
       "password": "t9l1XTI45yUGF6r",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -154,8 +154,8 @@
       "isAdmin": false
     },
     {
-      "name": "Selina",
-      "surname": "Ward",
+      "firstName": "Selina",
+      "lastName": "Ward",
       "email": "Selina67@yahoo.com",
       "password": "iPtOyLp8qeVvA2z",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -163,8 +163,8 @@
       "isAdmin": false
     },
     {
-      "name": "Trace",
-      "surname": "Miller",
+      "firstName": "Trace",
+      "lastName": "Miller",
       "email": "Trace.Miller@yahoo.com",
       "password": "JOSpPES9eeiA9Fx",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -172,8 +172,8 @@
       "isAdmin": false
     },
     {
-      "name": "Ollie",
-      "surname": "Fahey",
+      "firstName": "Ollie",
+      "lastName": "Fahey",
       "email": "Ollie.Fahey@yahoo.com",
       "password": "pElZpkxmHQ06nAd",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -181,8 +181,8 @@
       "isAdmin": false
     },
     {
-      "name": "Bret",
-      "surname": "Armstrong",
+      "firstName": "Bret",
+      "lastName": "Armstrong",
       "email": "Bret_Armstrong@yahoo.com",
       "password": "RdhLmZGvGmb0DSf",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -190,8 +190,8 @@
       "isAdmin": false
     },
     {
-      "name": "Brielle",
-      "surname": "Dickens",
+      "firstName": "Brielle",
+      "lastName": "Dickens",
       "email": "Brielle10@hotmail.com",
       "password": "VGE2naMbq83jrDC",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -199,8 +199,8 @@
       "isAdmin": false
     },
     {
-      "name": "Marguerite",
-      "surname": "Huel",
+      "firstName": "Marguerite",
+      "lastName": "Huel",
       "email": "Marguerite.Huel21@hotmail.com",
       "password": "y1PurwU47ZKoAOW",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -208,8 +208,8 @@
       "isAdmin": false
     },
     {
-      "name": "Carmine",
-      "surname": "Hauck",
+      "firstName": "Carmine",
+      "lastName": "Hauck",
       "email": "Carmine22@hotmail.com",
       "password": "RoSB3293b_iuoiu",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -217,8 +217,8 @@
       "isAdmin": false
     },
     {
-      "name": "Gladyce",
-      "surname": "Bechtelar",
+      "firstName": "Gladyce",
+      "lastName": "Bechtelar",
       "email": "Gladyce.Bechtelar96@yahoo.com",
       "password": "pAMQHK5tltDEJlU",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -226,8 +226,8 @@
       "isAdmin": false
     },
     {
-      "name": "Jade",
-      "surname": "Swift",
+      "firstName": "Jade",
+      "lastName": "Swift",
       "email": "Jade40@gmail.com",
       "password": "7KcP4J63Sp3P_82",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -235,8 +235,8 @@
       "isAdmin": false
     },
     {
-      "name": "Dariana",
-      "surname": "Kozey",
+      "firstName": "Dariana",
+      "lastName": "Kozey",
       "email": "Dariana_Kozey16@gmail.com",
       "password": "8wFkOUX18hafx_e",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -244,8 +244,8 @@
       "isAdmin": false
     },
     {
-      "name": "Randall",
-      "surname": "Hirthe",
+      "firstName": "Randall",
+      "lastName": "Hirthe",
       "email": "Randall_Hirthe@yahoo.com",
       "password": "xif_1i9ivIPv8M3",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -253,8 +253,8 @@
       "isAdmin": false
     },
     {
-      "name": "Cleve",
-      "surname": "Willms",
+      "firstName": "Cleve",
+      "lastName": "Willms",
       "email": "Cleve.Willms52@yahoo.com",
       "password": "T6cJ67zY2uDyRPl",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -262,8 +262,8 @@
       "isAdmin": false
     },
     {
-      "name": "Stanley",
-      "surname": "Pagac",
+      "firstName": "Stanley",
+      "lastName": "Pagac",
       "email": "Stanley.Pagac@yahoo.com",
       "password": "bkOWE5kiDPMAik6",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -271,8 +271,8 @@
       "isAdmin": false
     },
     {
-      "name": "Brooke",
-      "surname": "Cassin",
+      "firstName": "Brooke",
+      "lastName": "Cassin",
       "email": "Brooke.Cassin@hotmail.com",
       "password": "cH9zOclX47SGt3o",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -280,8 +280,8 @@
       "isAdmin": false
     },
     {
-      "name": "Elva",
-      "surname": "Kuvalis",
+      "firstName": "Elva",
+      "lastName": "Kuvalis",
       "email": "Elva_Kuvalis66@gmail.com",
       "password": "Qn73UYyIe3Y1Uk3",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -289,8 +289,8 @@
       "isAdmin": false
     },
     {
-      "name": "Carrie",
-      "surname": "Breitenberg",
+      "firstName": "Carrie",
+      "lastName": "Breitenberg",
       "email": "Carrie85@gmail.com",
       "password": "es6JFMRnce1etbU",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -298,8 +298,8 @@
       "isAdmin": false
     },
     {
-      "name": "Valentina",
-      "surname": "Feil-Russel",
+      "firstName": "Valentina",
+      "lastName": "Feil-Russel",
       "email": "Valentina.Feil-Russel73@hotmail.com",
       "password": "0BcpQKv3pMxp5Ot",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -307,8 +307,8 @@
       "isAdmin": false
     },
     {
-      "name": "Cary",
-      "surname": "Gleichner",
+      "firstName": "Cary",
+      "lastName": "Gleichner",
       "email": "Cary51@gmail.com",
       "password": "4sDDClta7k4OJZH",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -316,8 +316,8 @@
       "isAdmin": false
     },
     {
-      "name": "Trinity",
-      "surname": "Upton",
+      "firstName": "Trinity",
+      "lastName": "Upton",
       "email": "Trinity33@gmail.com",
       "password": "FWs46XD03ve3Xmc",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -325,8 +325,8 @@
       "isAdmin": false
     },
     {
-      "name": "Estelle",
-      "surname": "Greenfelder",
+      "firstName": "Estelle",
+      "lastName": "Greenfelder",
       "email": "Estelle_Greenfelder26@yahoo.com",
       "password": "AGR8mCOXwc5WPEy",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -334,8 +334,8 @@
       "isAdmin": false
     },
     {
-      "name": "Jamal",
-      "surname": "Donnelly",
+      "firstName": "Jamal",
+      "lastName": "Donnelly",
       "email": "Jamal.Donnelly@yahoo.com",
       "password": "azBxhOi_cb2NctX",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -343,8 +343,8 @@
       "isAdmin": false
     },
     {
-      "name": "Summer",
-      "surname": "Jacobs",
+      "firstName": "Summer",
+      "lastName": "Jacobs",
       "email": "Summer63@hotmail.com",
       "password": "DUez6N_5H8OE5eR",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -352,8 +352,8 @@
       "isAdmin": false
     },
     {
-      "name": "Annabell",
-      "surname": "Shanahan",
+      "firstName": "Annabell",
+      "lastName": "Shanahan",
       "email": "Annabell_Shanahan91@yahoo.com",
       "password": "yc_Qm78FmAkq4k3",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -361,8 +361,8 @@
       "isAdmin": false
     },
     {
-      "name": "Donato",
-      "surname": "Moen",
+      "firstName": "Donato",
+      "lastName": "Moen",
       "email": "Donato_Moen93@gmail.com",
       "password": "63q0v0puinMH1mw",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -370,8 +370,8 @@
       "isAdmin": false
     },
     {
-      "name": "Marcelo",
-      "surname": "Larkin",
+      "firstName": "Marcelo",
+      "lastName": "Larkin",
       "email": "Marcelo99@gmail.com",
       "password": "CXpLVjPqZN7GUKx",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -379,8 +379,8 @@
       "isAdmin": false
     },
     {
-      "name": "Lucius",
-      "surname": "Skiles",
+      "firstName": "Lucius",
+      "lastName": "Skiles",
       "email": "Lucius.Skiles80@hotmail.com",
       "password": "ZhJaoYByzxT4Oiz",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -388,8 +388,8 @@
       "isAdmin": false
     },
     {
-      "name": "Janiya",
-      "surname": "Emard",
+      "firstName": "Janiya",
+      "lastName": "Emard",
       "email": "Janiya24@gmail.com",
       "password": "fbinDDc8K3j_FPS",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -397,8 +397,8 @@
       "isAdmin": false
     },
     {
-      "name": "Caleigh",
-      "surname": "O'Reilly",
+      "firstName": "Caleigh",
+      "lastName": "O'Reilly",
       "email": "Caleigh.OReilly92@yahoo.com",
       "password": "So_zyKEqq_dKpxM",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -406,8 +406,8 @@
       "isAdmin": false
     },
     {
-      "name": "Fausto",
-      "surname": "Wolf",
+      "firstName": "Fausto",
+      "lastName": "Wolf",
       "email": "Fausto57@hotmail.com",
       "password": "ECzBDbjTbZTAIEz",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -415,8 +415,8 @@
       "isAdmin": false
     },
     {
-      "name": "Kacey",
-      "surname": "Nitzsche",
+      "firstName": "Kacey",
+      "lastName": "Nitzsche",
       "email": "Kacey_Nitzsche@hotmail.com",
       "password": "9oBhsKHdwOQ4zx_",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -424,8 +424,8 @@
       "isAdmin": false
     },
     {
-      "name": "Amir",
-      "surname": "Stamm",
+      "firstName": "Amir",
+      "lastName": "Stamm",
       "email": "Amir.Stamm@hotmail.com",
       "password": "W9SbaMNeTRYqIKp",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -433,8 +433,8 @@
       "isAdmin": false
     },
     {
-      "name": "Burnice",
-      "surname": "Wolff",
+      "firstName": "Burnice",
+      "lastName": "Wolff",
       "email": "Burnice_Wolff25@yahoo.com",
       "password": "FVnHLWoWsEh_Ofq",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -442,8 +442,8 @@
       "isAdmin": false
     },
     {
-      "name": "Hallie",
-      "surname": "Zulauf",
+      "firstName": "Hallie",
+      "lastName": "Zulauf",
       "email": "Hallie16@yahoo.com",
       "password": "29po2YLhspcuqYc",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -451,8 +451,8 @@
       "isAdmin": false
     },
     {
-      "name": "Lyla",
-      "surname": "Hauck",
+      "firstName": "Lyla",
+      "lastName": "Hauck",
       "email": "Lyla10@gmail.com",
       "password": "TzeYW8j7p_6DhAA",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -460,8 +460,8 @@
       "isAdmin": false
     },
     {
-      "name": "Erin",
-      "surname": "McCullough",
+      "firstName": "Erin",
+      "lastName": "McCullough",
       "email": "Erin_McCullough@gmail.com",
       "password": "CNb6Ar5ODRjY2rn",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -469,8 +469,8 @@
       "isAdmin": false
     },
     {
-      "name": "Kory",
-      "surname": "Dooley",
+      "firstName": "Kory",
+      "lastName": "Dooley",
       "email": "Kory.Dooley@hotmail.com",
       "password": "ijird41oIYqWLmY",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -478,8 +478,8 @@
       "isAdmin": false
     },
     {
-      "name": "Corene",
-      "surname": "Larkin",
+      "firstName": "Corene",
+      "lastName": "Larkin",
       "email": "Corene.Larkin88@hotmail.com",
       "password": "vUq7KyY1Cf9bCD1",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -487,8 +487,8 @@
       "isAdmin": false
     },
     {
-      "name": "Sierra",
-      "surname": "Champlin",
+      "firstName": "Sierra",
+      "lastName": "Champlin",
       "email": "Sierra90@gmail.com",
       "password": "KELEHQNBPAauD29",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -496,8 +496,8 @@
       "isAdmin": false
     },
     {
-      "name": "Royal",
-      "surname": "Runolfsdottir",
+      "firstName": "Royal",
+      "lastName": "Runolfsdottir",
       "email": "Royal.Runolfsdottir@gmail.com",
       "password": "Bwz7skCZEHIVoK8",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -505,8 +505,8 @@
       "isAdmin": false
     },
     {
-      "name": "Edd",
-      "surname": "Moen",
+      "firstName": "Edd",
+      "lastName": "Moen",
       "email": "Edd55@yahoo.com",
       "password": "7xycVyZVuvs_io1",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -514,8 +514,8 @@
       "isAdmin": false
     },
     {
-      "name": "Javon",
-      "surname": "Kris",
+      "firstName": "Javon",
+      "lastName": "Kris",
       "email": "Javon56@hotmail.com",
       "password": "awxqK_DUnu5iZnC",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -523,8 +523,8 @@
       "isAdmin": false
     },
     {
-      "name": "Earnestine",
-      "surname": "Streich",
+      "firstName": "Earnestine",
+      "lastName": "Streich",
       "email": "Earnestine.Streich@yahoo.com",
       "password": "q05AdmIEL_5Xb9H",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -532,8 +532,8 @@
       "isAdmin": false
     },
     {
-      "name": "Unique",
-      "surname": "Olson",
+      "firstName": "Unique",
+      "lastName": "Olson",
       "email": "Unique43@gmail.com",
       "password": "JZSzy6Tt2i8WdJZ",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -541,8 +541,8 @@
       "isAdmin": false
     },
     {
-      "name": "Dante",
-      "surname": "Smith",
+      "firstName": "Dante",
+      "lastName": "Smith",
       "email": "Dante_Smith86@hotmail.com",
       "password": "0wwTFZHKQsbuwRB",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -550,8 +550,8 @@
       "isAdmin": false
     },
     {
-      "name": "Creola",
-      "surname": "Schulist",
+      "firstName": "Creola",
+      "lastName": "Schulist",
       "email": "Creola_Schulist@yahoo.com",
       "password": "PcyMQRX9QW8B3H0",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -559,8 +559,8 @@
       "isAdmin": false
     },
     {
-      "name": "Zena",
-      "surname": "Lehner",
+      "firstName": "Zena",
+      "lastName": "Lehner",
       "email": "Zena_Lehner@gmail.com",
       "password": "celAbzydAZ0sHZm",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -568,8 +568,8 @@
       "isAdmin": false
     },
     {
-      "name": "Sterling",
-      "surname": "Kozey",
+      "firstName": "Sterling",
+      "lastName": "Kozey",
       "email": "Sterling.Kozey@hotmail.com",
       "password": "iQclFf3ObZpODSl",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -577,8 +577,8 @@
       "isAdmin": false
     },
     {
-      "name": "Danny",
-      "surname": "Welch",
+      "firstName": "Danny",
+      "lastName": "Welch",
       "email": "Danny_Welch@yahoo.com",
       "password": "rnC6bs1t6PSrRft",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -586,8 +586,8 @@
       "isAdmin": false
     },
     {
-      "name": "Mathilde",
-      "surname": "Cormier",
+      "firstName": "Mathilde",
+      "lastName": "Cormier",
       "email": "Mathilde87@gmail.com",
       "password": "FARitCMRTBCcXx4",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -595,8 +595,8 @@
       "isAdmin": false
     },
     {
-      "name": "Garrick",
-      "surname": "Ziemann",
+      "firstName": "Garrick",
+      "lastName": "Ziemann",
       "email": "Garrick57@hotmail.com",
       "password": "Qm8q_N1x2px123s",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -604,8 +604,8 @@
       "isAdmin": false
     },
     {
-      "name": "Broderick",
-      "surname": "Wolff",
+      "firstName": "Broderick",
+      "lastName": "Wolff",
       "email": "Broderick.Wolff29@gmail.com",
       "password": "ku_T_h7SnrUjFA1",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -613,8 +613,8 @@
       "isAdmin": false
     },
     {
-      "name": "Bette",
-      "surname": "Friesen",
+      "firstName": "Bette",
+      "lastName": "Friesen",
       "email": "Bette_Friesen@hotmail.com",
       "password": "baqtcnP78sAkm2t",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -622,8 +622,8 @@
       "isAdmin": false
     },
     {
-      "name": "Noemi",
-      "surname": "Hahn",
+      "firstName": "Noemi",
+      "lastName": "Hahn",
       "email": "Noemi_Hahn23@hotmail.com",
       "password": "X_5bRsd_7QavazX",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -631,8 +631,8 @@
       "isAdmin": false
     },
     {
-      "name": "Zander",
-      "surname": "Bednar",
+      "firstName": "Zander",
+      "lastName": "Bednar",
       "email": "Zander_Bednar13@hotmail.com",
       "password": "FgC0wvfxalVr7IB",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -640,8 +640,8 @@
       "isAdmin": false
     },
     {
-      "name": "Ima",
-      "surname": "Johns",
+      "firstName": "Ima",
+      "lastName": "Johns",
       "email": "Ima43@gmail.com",
       "password": "0tDxogstJZFDmKw",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -649,8 +649,8 @@
       "isAdmin": false
     },
     {
-      "name": "Julie",
-      "surname": "Heidenreich",
+      "firstName": "Julie",
+      "lastName": "Heidenreich",
       "email": "Julie.Heidenreich@hotmail.com",
       "password": "H6le1HuFjXqfB2T",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -658,8 +658,8 @@
       "isAdmin": false
     },
     {
-      "name": "Laurel",
-      "surname": "Jakubowski",
+      "firstName": "Laurel",
+      "lastName": "Jakubowski",
       "email": "Laurel_Jakubowski@yahoo.com",
       "password": "1Waf6QLFhZ6bYJN",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -667,8 +667,8 @@
       "isAdmin": false
     },
     {
-      "name": "Liam",
-      "surname": "Durgan",
+      "firstName": "Liam",
+      "lastName": "Durgan",
       "email": "Liam6@gmail.com",
       "password": "f9Tjx5J4Ta_8Ejk",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -676,8 +676,8 @@
       "isAdmin": false
     },
     {
-      "name": "Phoebe",
-      "surname": "Kub",
+      "firstName": "Phoebe",
+      "lastName": "Kub",
       "email": "Phoebe61@hotmail.com",
       "password": "GFLbYrLgXCvpDg7",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -685,8 +685,8 @@
       "isAdmin": false
     },
     {
-      "name": "Bridgette",
-      "surname": "Kutch",
+      "firstName": "Bridgette",
+      "lastName": "Kutch",
       "email": "Bridgette.Kutch@yahoo.com",
       "password": "FjaFHdXOiwETuf5",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -694,8 +694,8 @@
       "isAdmin": false
     },
     {
-      "name": "Jamarcus",
-      "surname": "Runolfsdottir",
+      "firstName": "Jamarcus",
+      "lastName": "Runolfsdottir",
       "email": "Jamarcus_Runolfsdottir@gmail.com",
       "password": "sDbXasiQlApPhJd",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -703,8 +703,8 @@
       "isAdmin": false
     },
     {
-      "name": "Kristin",
-      "surname": "Schaefer",
+      "firstName": "Kristin",
+      "lastName": "Schaefer",
       "email": "Kristin_Schaefer31@yahoo.com",
       "password": "rdJtBq8RhB2ILgB",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -712,8 +712,8 @@
       "isAdmin": false
     },
     {
-      "name": "Brandon",
-      "surname": "Sporer",
+      "firstName": "Brandon",
+      "lastName": "Sporer",
       "email": "Brandon10@hotmail.com",
       "password": "zxeoo7TsnymJFZS",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -721,8 +721,8 @@
       "isAdmin": false
     },
     {
-      "name": "Israel",
-      "surname": "Willms",
+      "firstName": "Israel",
+      "lastName": "Willms",
       "email": "Israel14@gmail.com",
       "password": "HnJOrEn5GPgTpLq",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -730,8 +730,8 @@
       "isAdmin": false
     },
     {
-      "name": "Vesta",
-      "surname": "Gislason",
+      "firstName": "Vesta",
+      "lastName": "Gislason",
       "email": "Vesta12@gmail.com",
       "password": "XIJEwblrMlmtRBK",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -739,8 +739,8 @@
       "isAdmin": false
     },
     {
-      "name": "Vernie",
-      "surname": "Cassin",
+      "firstName": "Vernie",
+      "lastName": "Cassin",
       "email": "Vernie.Cassin36@hotmail.com",
       "password": "ytuSHwwiYR6oAjN",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -748,8 +748,8 @@
       "isAdmin": false
     },
     {
-      "name": "Alexandro",
-      "surname": "Quitzon",
+      "firstName": "Alexandro",
+      "lastName": "Quitzon",
       "email": "Alexandro_Quitzon23@hotmail.com",
       "password": "BaMQ2HeLiKowwOP",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -757,8 +757,8 @@
       "isAdmin": false
     },
     {
-      "name": "Isabelle",
-      "surname": "Schiller",
+      "firstName": "Isabelle",
+      "lastName": "Schiller",
       "email": "Isabelle47@yahoo.com",
       "password": "mF4wWturbRZ85qv",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -766,8 +766,8 @@
       "isAdmin": false
     },
     {
-      "name": "Citlalli",
-      "surname": "Tromp",
+      "firstName": "Citlalli",
+      "lastName": "Tromp",
       "email": "Citlalli.Tromp80@yahoo.com",
       "password": "25vOndSs8P7CHwW",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -775,8 +775,8 @@
       "isAdmin": false
     },
     {
-      "name": "Warren",
-      "surname": "Tremblay",
+      "firstName": "Warren",
+      "lastName": "Tremblay",
       "email": "Warren_Tremblay@gmail.com",
       "password": "Bo8m7QHs5DCtzl4",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -784,8 +784,8 @@
       "isAdmin": false
     },
     {
-      "name": "Delaney",
-      "surname": "Lindgren",
+      "firstName": "Delaney",
+      "lastName": "Lindgren",
       "email": "Delaney6@gmail.com",
       "password": "w0VZ0iAmG_CzHio",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -793,8 +793,8 @@
       "isAdmin": false
     },
     {
-      "name": "Wilfredo",
-      "surname": "Kshlerin-Becker",
+      "firstName": "Wilfredo",
+      "lastName": "Kshlerin-Becker",
       "email": "Wilfredo_Kshlerin-Becker6@hotmail.com",
       "password": "ibDnTgZYdonL1gQ",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -802,8 +802,8 @@
       "isAdmin": false
     },
     {
-      "name": "Johnny",
-      "surname": "Wehner",
+      "firstName": "Johnny",
+      "lastName": "Wehner",
       "email": "Johnny70@yahoo.com",
       "password": "69F8eliFvL6AU8y",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -811,8 +811,8 @@
       "isAdmin": false
     },
     {
-      "name": "Tavares",
-      "surname": "Hamill",
+      "firstName": "Tavares",
+      "lastName": "Hamill",
       "email": "Tavares23@hotmail.com",
       "password": "PiNi4LnqaSjbNBE",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -820,8 +820,8 @@
       "isAdmin": false
     },
     {
-      "name": "Aiyana",
-      "surname": "Pouros",
+      "firstName": "Aiyana",
+      "lastName": "Pouros",
       "email": "Aiyana.Pouros66@gmail.com",
       "password": "YvH7bK5UHUcp69C",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -829,8 +829,8 @@
       "isAdmin": false
     },
     {
-      "name": "Christiana",
-      "surname": "Sipes",
+      "firstName": "Christiana",
+      "lastName": "Sipes",
       "email": "Christiana17@hotmail.com",
       "password": "UDbUF3zUrV2HtZS",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -838,8 +838,8 @@
       "isAdmin": false
     },
     {
-      "name": "Conrad",
-      "surname": "Wiegand",
+      "firstName": "Conrad",
+      "lastName": "Wiegand",
       "email": "Conrad_Wiegand56@hotmail.com",
       "password": "C2NpRNhq6k5sOHe",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -847,8 +847,8 @@
       "isAdmin": false
     },
     {
-      "name": "Cecil",
-      "surname": "Turner",
+      "firstName": "Cecil",
+      "lastName": "Turner",
       "email": "Cecil.Turner32@hotmail.com",
       "password": "Be_IxGGur45IDtM",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -856,8 +856,8 @@
       "isAdmin": false
     },
     {
-      "name": "Therese",
-      "surname": "Buckridge",
+      "firstName": "Therese",
+      "lastName": "Buckridge",
       "email": "Therese45@hotmail.com",
       "password": "8j12RUWoJUNqymM",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -865,8 +865,8 @@
       "isAdmin": false
     },
     {
-      "name": "Collin",
-      "surname": "Funk",
+      "firstName": "Collin",
+      "lastName": "Funk",
       "email": "Collin20@gmail.com",
       "password": "yja8hQ7rvzWhhhB",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -874,8 +874,8 @@
       "isAdmin": false
     },
     {
-      "name": "Jamey",
-      "surname": "Rodriguez",
+      "firstName": "Jamey",
+      "lastName": "Rodriguez",
       "email": "Jamey61@hotmail.com",
       "password": "XppEOKL265V4W_w",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -883,8 +883,8 @@
       "isAdmin": false
     },
     {
-      "name": "Noble",
-      "surname": "Green",
+      "firstName": "Noble",
+      "lastName": "Green",
       "email": "Noble.Green@gmail.com",
       "password": "qLUzLtIR6A1GIgU",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -892,8 +892,8 @@
       "isAdmin": false
     },
     {
-      "name": "Concepcion",
-      "surname": "Stoltenberg",
+      "firstName": "Concepcion",
+      "lastName": "Stoltenberg",
       "email": "Concepcion28@hotmail.com",
       "password": "7rC9vnikmP2qv33",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -901,8 +901,8 @@
       "isAdmin": false
     },
     {
-      "name": "Ashlynn",
-      "surname": "Raynor",
+      "firstName": "Ashlynn",
+      "lastName": "Raynor",
       "email": "Ashlynn11@gmail.com",
       "password": "l71nPYJgaVqM9o9",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -910,8 +910,8 @@
       "isAdmin": false
     },
     {
-      "name": "Skye",
-      "surname": "Rowe",
+      "firstName": "Skye",
+      "lastName": "Rowe",
       "email": "Skye.Rowe64@gmail.com",
       "password": "G6HjCwwVYEJGuqH",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -919,8 +919,8 @@
       "isAdmin": false
     },
     {
-      "name": "Laverne",
-      "surname": "Kuphal",
+      "firstName": "Laverne",
+      "lastName": "Kuphal",
       "email": "Laverne_Kuphal63@gmail.com",
       "password": "TLQ7HkbS2zVeqKq",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -928,8 +928,8 @@
       "isAdmin": false
     },
     {
-      "name": "Alphonso",
-      "surname": "Murray",
+      "firstName": "Alphonso",
+      "lastName": "Murray",
       "email": "Alphonso48@gmail.com",
       "password": "71r9PiNXe1kKWzd",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -937,8 +937,8 @@
       "isAdmin": false
     },
     {
-      "name": "Erling",
-      "surname": "Bartell",
+      "firstName": "Erling",
+      "lastName": "Bartell",
       "email": "Erling_Bartell@yahoo.com",
       "password": "FHAPqwvU6O26bF2",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -946,8 +946,8 @@
       "isAdmin": false
     },
     {
-      "name": "Quinn",
-      "surname": "Beatty",
+      "firstName": "Quinn",
+      "lastName": "Beatty",
       "email": "Quinn81@gmail.com",
       "password": "aRhok8ATh35zA4n",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -955,8 +955,8 @@
       "isAdmin": false
     },
     {
-      "name": "Peter",
-      "surname": "Pacocha",
+      "firstName": "Peter",
+      "lastName": "Pacocha",
       "email": "Peter_Pacocha98@yahoo.com",
       "password": "fO4wZDv01MQCvdo",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -964,8 +964,8 @@
       "isAdmin": false
     },
     {
-      "name": "Alfred",
-      "surname": "Wolff",
+      "firstName": "Alfred",
+      "lastName": "Wolff",
       "email": "Alfred_Wolff@yahoo.com",
       "password": "Tq5Rxp073MLGrW6",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -973,8 +973,8 @@
       "isAdmin": false
     },
     {
-      "name": "Emmy",
-      "surname": "Hilpert",
+      "firstName": "Emmy",
+      "lastName": "Hilpert",
       "email": "Emmy46@yahoo.com",
       "password": "DSUW9JmRmMHcpAV",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -982,8 +982,8 @@
       "isAdmin": false
     },
     {
-      "name": "Carmela",
-      "surname": "Bauch",
+      "firstName": "Carmela",
+      "lastName": "Bauch",
       "email": "Carmela61@hotmail.com",
       "password": "_9PMo5VJur09or1",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -991,8 +991,8 @@
       "isAdmin": false
     },
     {
-      "name": "Toni",
-      "surname": "Heidenreich",
+      "firstName": "Toni",
+      "lastName": "Heidenreich",
       "email": "Toni.Heidenreich97@gmail.com",
       "password": "Yvh3eBIfA_anurx",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1000,8 +1000,8 @@
       "isAdmin": false
     },
     {
-      "name": "Kayla",
-      "surname": "Erdman",
+      "firstName": "Kayla",
+      "lastName": "Erdman",
       "email": "Kayla19@gmail.com",
       "password": "GBnPFHNohc8BWgr",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1009,8 +1009,8 @@
       "isAdmin": false
     },
     {
-      "name": "Kamren",
-      "surname": "Lubowitz",
+      "firstName": "Kamren",
+      "lastName": "Lubowitz",
       "email": "Kamren67@hotmail.com",
       "password": "QWVrBB0TdlACU8W",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1018,8 +1018,8 @@
       "isAdmin": false
     },
     {
-      "name": "Velva",
-      "surname": "Sporer",
+      "firstName": "Velva",
+      "lastName": "Sporer",
       "email": "Velva.Sporer1@gmail.com",
       "password": "ci41tHeNfa9rLmX",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1027,8 +1027,8 @@
       "isAdmin": false
     },
     {
-      "name": "Marlon",
-      "surname": "Zemlak",
+      "firstName": "Marlon",
+      "lastName": "Zemlak",
       "email": "Marlon_Zemlak6@yahoo.com",
       "password": "_GNw77E0ZdqDvlv",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1036,8 +1036,8 @@
       "isAdmin": false
     },
     {
-      "name": "Maci",
-      "surname": "Corwin",
+      "firstName": "Maci",
+      "lastName": "Corwin",
       "email": "Maci80@yahoo.com",
       "password": "3kQsa_PMjYMGBIm",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1045,8 +1045,8 @@
       "isAdmin": false
     },
     {
-      "name": "Gabriella",
-      "surname": "Conroy",
+      "firstName": "Gabriella",
+      "lastName": "Conroy",
       "email": "Gabriella.Conroy@yahoo.com",
       "password": "JLIfouR1FAQZ9Hj",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1054,8 +1054,8 @@
       "isAdmin": false
     },
     {
-      "name": "Tommie",
-      "surname": "Stamm",
+      "firstName": "Tommie",
+      "lastName": "Stamm",
       "email": "Tommie27@gmail.com",
       "password": "hsqh3Z68KTKMBCB",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1063,8 +1063,8 @@
       "isAdmin": false
     },
     {
-      "name": "Jamel",
-      "surname": "Larkin",
+      "firstName": "Jamel",
+      "lastName": "Larkin",
       "email": "Jamel.Larkin79@gmail.com",
       "password": "gOt38FTyFU0sTxN",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1072,8 +1072,8 @@
       "isAdmin": false
     },
     {
-      "name": "Mertie",
-      "surname": "Farrell",
+      "firstName": "Mertie",
+      "lastName": "Farrell",
       "email": "Mertie61@gmail.com",
       "password": "JXSFQ826aNYCU4i",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1081,8 +1081,8 @@
       "isAdmin": false
     },
     {
-      "name": "Jeanie",
-      "surname": "Hodkiewicz",
+      "firstName": "Jeanie",
+      "lastName": "Hodkiewicz",
       "email": "Jeanie75@gmail.com",
       "password": "BUaDn1fInzB5_RM",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1090,8 +1090,8 @@
       "isAdmin": false
     },
     {
-      "name": "Athena",
-      "surname": "Mohr",
+      "firstName": "Athena",
+      "lastName": "Mohr",
       "email": "Athena.Mohr55@hotmail.com",
       "password": "htOdP5il_iSYd0t",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1099,8 +1099,8 @@
       "isAdmin": false
     },
     {
-      "name": "Francesca",
-      "surname": "Bernier",
+      "firstName": "Francesca",
+      "lastName": "Bernier",
       "email": "Francesca.Bernier55@yahoo.com",
       "password": "NKzs1hGRXkqCwh4",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1108,8 +1108,8 @@
       "isAdmin": false
     },
     {
-      "name": "Wilford",
-      "surname": "Kilback",
+      "firstName": "Wilford",
+      "lastName": "Kilback",
       "email": "Wilford59@yahoo.com",
       "password": "Hd9moHfiY0Eh6s9",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1117,8 +1117,8 @@
       "isAdmin": false
     },
     {
-      "name": "Roel",
-      "surname": "Medhurst",
+      "firstName": "Roel",
+      "lastName": "Medhurst",
       "email": "Roel.Medhurst4@gmail.com",
       "password": "M0_GFAyknA9P6Wu",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1126,8 +1126,8 @@
       "isAdmin": false
     },
     {
-      "name": "Lula",
-      "surname": "Schinner",
+      "firstName": "Lula",
+      "lastName": "Schinner",
       "email": "Lula61@hotmail.com",
       "password": "0BeXrmLGvOhMIMs",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1135,8 +1135,8 @@
       "isAdmin": false
     },
     {
-      "name": "Cade",
-      "surname": "Wehner",
+      "firstName": "Cade",
+      "lastName": "Wehner",
       "email": "Cade.Wehner54@gmail.com",
       "password": "aeBQO6FNmrp0ByC",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1144,8 +1144,8 @@
       "isAdmin": false
     },
     {
-      "name": "Heather",
-      "surname": "Kilback",
+      "firstName": "Heather",
+      "lastName": "Kilback",
       "email": "Heather4@hotmail.com",
       "password": "uFNI4BHkFyZB6Sn",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1153,8 +1153,8 @@
       "isAdmin": false
     },
     {
-      "name": "Zackery",
-      "surname": "Dare",
+      "firstName": "Zackery",
+      "lastName": "Dare",
       "email": "Zackery_Dare@hotmail.com",
       "password": "Xh1FC46GY2l5Hek",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1162,8 +1162,8 @@
       "isAdmin": false
     },
     {
-      "name": "Cody",
-      "surname": "Hoppe",
+      "firstName": "Cody",
+      "lastName": "Hoppe",
       "email": "Cody34@gmail.com",
       "password": "eTJbjEdu6K4prI8",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1171,8 +1171,8 @@
       "isAdmin": false
     },
     {
-      "name": "Bruce",
-      "surname": "Marks",
+      "firstName": "Bruce",
+      "lastName": "Marks",
       "email": "Bruce75@gmail.com",
       "password": "2BGyHnPqobGM_KH",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1180,8 +1180,8 @@
       "isAdmin": false
     },
     {
-      "name": "Emanuel",
-      "surname": "Cormier",
+      "firstName": "Emanuel",
+      "lastName": "Cormier",
       "email": "Emanuel_Cormier42@gmail.com",
       "password": "N0jb5uVXETuopsM",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1189,8 +1189,8 @@
       "isAdmin": false
     },
     {
-      "name": "Albertha",
-      "surname": "Boyer",
+      "firstName": "Albertha",
+      "lastName": "Boyer",
       "email": "Albertha_Boyer@yahoo.com",
       "password": "rLswoQr7Po_s7Fx",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1198,8 +1198,8 @@
       "isAdmin": false
     },
     {
-      "name": "Rachelle",
-      "surname": "Monahan",
+      "firstName": "Rachelle",
+      "lastName": "Monahan",
       "email": "Rachelle78@hotmail.com",
       "password": "U6J_atirOGKtTst",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1207,8 +1207,8 @@
       "isAdmin": false
     },
     {
-      "name": "Zoey",
-      "surname": "Schoen",
+      "firstName": "Zoey",
+      "lastName": "Schoen",
       "email": "Zoey_Schoen@yahoo.com",
       "password": "5sTlTz8WkX6uxFX",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1216,8 +1216,8 @@
       "isAdmin": false
     },
     {
-      "name": "Adan",
-      "surname": "Kling",
+      "firstName": "Adan",
+      "lastName": "Kling",
       "email": "Adan_Kling@hotmail.com",
       "password": "SWQtetUFsO8soS_",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1225,8 +1225,8 @@
       "isAdmin": false
     },
     {
-      "name": "Lester",
-      "surname": "Kulas",
+      "firstName": "Lester",
+      "lastName": "Kulas",
       "email": "Lester21@gmail.com",
       "password": "yJHtfO9162rECCf",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1234,8 +1234,8 @@
       "isAdmin": false
     },
     {
-      "name": "Dominique",
-      "surname": "Schroeder",
+      "firstName": "Dominique",
+      "lastName": "Schroeder",
       "email": "Dominique_Schroeder28@gmail.com",
       "password": "nwkUFCo15z3Elhv",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1243,8 +1243,8 @@
       "isAdmin": false
     },
     {
-      "name": "Rosie",
-      "surname": "Breitenberg",
+      "firstName": "Rosie",
+      "lastName": "Breitenberg",
       "email": "Rosie.Breitenberg38@yahoo.com",
       "password": "L0gf6eUe4GNiaHk",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1252,8 +1252,8 @@
       "isAdmin": false
     },
     {
-      "name": "Abbigail",
-      "surname": "Reichert",
+      "firstName": "Abbigail",
+      "lastName": "Reichert",
       "email": "Abbigail_Reichert@gmail.com",
       "password": "EC2R3J4G9tKXaCh",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1261,8 +1261,8 @@
       "isAdmin": false
     },
     {
-      "name": "Lonnie",
-      "surname": "Koss",
+      "firstName": "Lonnie",
+      "lastName": "Koss",
       "email": "Lonnie23@yahoo.com",
       "password": "xSYY9Fl_jzQgvTV",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1270,8 +1270,8 @@
       "isAdmin": false
     },
     {
-      "name": "Ernestine",
-      "surname": "Von",
+      "firstName": "Ernestine",
+      "lastName": "Von",
       "email": "Ernestine19@yahoo.com",
       "password": "3bLll5dFTQx033_",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1279,8 +1279,8 @@
       "isAdmin": false
     },
     {
-      "name": "Issac",
-      "surname": "Ferry",
+      "firstName": "Issac",
+      "lastName": "Ferry",
       "email": "Issac_Ferry@hotmail.com",
       "password": "M_ymbuqkxwaAqTS",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1288,8 +1288,8 @@
       "isAdmin": false
     },
     {
-      "name": "Dorcas",
-      "surname": "Price",
+      "firstName": "Dorcas",
+      "lastName": "Price",
       "email": "Dorcas15@hotmail.com",
       "password": "GesQpiJxUBZekD6",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1297,8 +1297,8 @@
       "isAdmin": false
     },
     {
-      "name": "Hilbert",
-      "surname": "Koelpin",
+      "firstName": "Hilbert",
+      "lastName": "Koelpin",
       "email": "Hilbert_Koelpin40@yahoo.com",
       "password": "L_LEPDaFW0XAlA0",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1306,8 +1306,8 @@
       "isAdmin": false
     },
     {
-      "name": "Mitchell",
-      "surname": "McClure",
+      "firstName": "Mitchell",
+      "lastName": "McClure",
       "email": "Mitchell_McClure7@gmail.com",
       "password": "W3ycJFHI_M5wmVv",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1315,8 +1315,8 @@
       "isAdmin": false
     },
     {
-      "name": "Rowena",
-      "surname": "Nienow",
+      "firstName": "Rowena",
+      "lastName": "Nienow",
       "email": "Rowena_Nienow45@yahoo.com",
       "password": "ZDQk2ysszI2KmIw",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1324,8 +1324,8 @@
       "isAdmin": false
     },
     {
-      "name": "Alia",
-      "surname": "Lockman",
+      "firstName": "Alia",
+      "lastName": "Lockman",
       "email": "Alia.Lockman94@hotmail.com",
       "password": "CsRVxCkzghXl6mb",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1333,8 +1333,8 @@
       "isAdmin": false
     },
     {
-      "name": "Pansy",
-      "surname": "Altenwerth",
+      "firstName": "Pansy",
+      "lastName": "Altenwerth",
       "email": "Pansy.Altenwerth94@yahoo.com",
       "password": "GaWLrY1ljPFhdpU",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1342,8 +1342,8 @@
       "isAdmin": false
     },
     {
-      "name": "Vince",
-      "surname": "Gutkowski",
+      "firstName": "Vince",
+      "lastName": "Gutkowski",
       "email": "Vince_Gutkowski@hotmail.com",
       "password": "wBeQ6FRoNcAENig",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1351,8 +1351,8 @@
       "isAdmin": false
     },
     {
-      "name": "Darron",
-      "surname": "Larson-Towne",
+      "firstName": "Darron",
+      "lastName": "Larson-Towne",
       "email": "Darron82@hotmail.com",
       "password": "PypgQjdelRybQXA",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1360,8 +1360,8 @@
       "isAdmin": false
     },
     {
-      "name": "Katharina",
-      "surname": "Breitenberg",
+      "firstName": "Katharina",
+      "lastName": "Breitenberg",
       "email": "Katharina75@gmail.com",
       "password": "OPaCjpggCPqcT_m",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1369,8 +1369,8 @@
       "isAdmin": false
     },
     {
-      "name": "Aimee",
-      "surname": "Rippin",
+      "firstName": "Aimee",
+      "lastName": "Rippin",
       "email": "Aimee_Rippin@hotmail.com",
       "password": "XvYUrQHf1oQXIKx",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1378,8 +1378,8 @@
       "isAdmin": false
     },
     {
-      "name": "Ricky",
-      "surname": "Kutch",
+      "firstName": "Ricky",
+      "lastName": "Kutch",
       "email": "Ricky.Kutch@gmail.com",
       "password": "lap4rqNQCp5oGEp",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1387,8 +1387,8 @@
       "isAdmin": false
     },
     {
-      "name": "Ashleigh",
-      "surname": "Bashirian",
+      "firstName": "Ashleigh",
+      "lastName": "Bashirian",
       "email": "Ashleigh.Bashirian41@hotmail.com",
       "password": "QOiO9CpaQjjpIP4",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1396,8 +1396,8 @@
       "isAdmin": false
     },
     {
-      "name": "Marcellus",
-      "surname": "Krajcik",
+      "firstName": "Marcellus",
+      "lastName": "Krajcik",
       "email": "Marcellus84@gmail.com",
       "password": "RT963TPwOqiw6j2",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1405,8 +1405,8 @@
       "isAdmin": false
     },
     {
-      "name": "Tony",
-      "surname": "Hettinger",
+      "firstName": "Tony",
+      "lastName": "Hettinger",
       "email": "Tony_Hettinger32@gmail.com",
       "password": "KmAqZJkNSYRunyi",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1414,8 +1414,8 @@
       "isAdmin": false
     },
     {
-      "name": "Maximo",
-      "surname": "Howell",
+      "firstName": "Maximo",
+      "lastName": "Howell",
       "email": "Maximo.Howell74@hotmail.com",
       "password": "7wJ8YqLU5Pr8ws1",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1423,8 +1423,8 @@
       "isAdmin": false
     },
     {
-      "name": "Karine",
-      "surname": "Gusikowski",
+      "firstName": "Karine",
+      "lastName": "Gusikowski",
       "email": "Karine.Gusikowski@hotmail.com",
       "password": "ZDZVf6NrgrwWZEM",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1432,8 +1432,8 @@
       "isAdmin": false
     },
     {
-      "name": "Manuel",
-      "surname": "Thiel",
+      "firstName": "Manuel",
+      "lastName": "Thiel",
       "email": "Manuel_Thiel@hotmail.com",
       "password": "l1f0qv3C9ANeh1G",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1441,8 +1441,8 @@
       "isAdmin": false
     },
     {
-      "name": "Darrion",
-      "surname": "Runolfsdottir",
+      "firstName": "Darrion",
+      "lastName": "Runolfsdottir",
       "email": "Darrion_Runolfsdottir91@hotmail.com",
       "password": "TRey3cTkW8fVtn7",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1450,8 +1450,8 @@
       "isAdmin": false
     },
     {
-      "name": "Albert",
-      "surname": "Kautzer",
+      "firstName": "Albert",
+      "lastName": "Kautzer",
       "email": "Albert12@yahoo.com",
       "password": "1_N_N8i3xjmsRnH",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1459,8 +1459,8 @@
       "isAdmin": false
     },
     {
-      "name": "Estrella",
-      "surname": "McGlynn",
+      "firstName": "Estrella",
+      "lastName": "McGlynn",
       "email": "Estrella.McGlynn@gmail.com",
       "password": "j94MesEvMWqsab7",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1468,8 +1468,8 @@
       "isAdmin": false
     },
     {
-      "name": "Sylvan",
-      "surname": "Bode",
+      "firstName": "Sylvan",
+      "lastName": "Bode",
       "email": "Sylvan0@gmail.com",
       "password": "B6pIYQyVGGWxV_i",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1477,8 +1477,8 @@
       "isAdmin": false
     },
     {
-      "name": "Ana",
-      "surname": "Klein",
+      "firstName": "Ana",
+      "lastName": "Klein",
       "email": "Ana_Klein76@yahoo.com",
       "password": "Ol7lDNHjiT4yFKf",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1486,8 +1486,8 @@
       "isAdmin": false
     },
     {
-      "name": "Camilla",
-      "surname": "Haag",
+      "firstName": "Camilla",
+      "lastName": "Haag",
       "email": "Camilla95@hotmail.com",
       "password": "HUf1pYeEQVYXE6S",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1495,8 +1495,8 @@
       "isAdmin": false
     },
     {
-      "name": "Rowena",
-      "surname": "Pacocha",
+      "firstName": "Rowena",
+      "lastName": "Pacocha",
       "email": "Rowena52@yahoo.com",
       "password": "YDzD2I5J5KUoJDz",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1504,8 +1504,8 @@
       "isAdmin": false
     },
     {
-      "name": "Amelia",
-      "surname": "Bahringer",
+      "firstName": "Amelia",
+      "lastName": "Bahringer",
       "email": "Amelia0@yahoo.com",
       "password": "NDMdw3otEMIC1Lc",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1513,8 +1513,8 @@
       "isAdmin": false
     },
     {
-      "name": "Antwan",
-      "surname": "Weissnat",
+      "firstName": "Antwan",
+      "lastName": "Weissnat",
       "email": "Antwan65@yahoo.com",
       "password": "RLqxKPraiI8WmWi",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1522,8 +1522,8 @@
       "isAdmin": false
     },
     {
-      "name": "Ally",
-      "surname": "Ullrich",
+      "firstName": "Ally",
+      "lastName": "Ullrich",
       "email": "Ally_Ullrich@yahoo.com",
       "password": "77Ud3o5KeUGoSIT",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1531,8 +1531,8 @@
       "isAdmin": false
     },
     {
-      "name": "Jewel",
-      "surname": "Johnston",
+      "firstName": "Jewel",
+      "lastName": "Johnston",
       "email": "Jewel66@gmail.com",
       "password": "MVnKRtEkuQ4p9Nw",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1540,8 +1540,8 @@
       "isAdmin": false
     },
     {
-      "name": "Dustin",
-      "surname": "Berge",
+      "firstName": "Dustin",
+      "lastName": "Berge",
       "email": "Dustin_Berge@gmail.com",
       "password": "tr24NUlHASBIGf4",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1549,8 +1549,8 @@
       "isAdmin": false
     },
     {
-      "name": "Kristian",
-      "surname": "Effertz",
+      "firstName": "Kristian",
+      "lastName": "Effertz",
       "email": "Kristian_Effertz@gmail.com",
       "password": "ayZPCzopXA45sDW",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1558,8 +1558,8 @@
       "isAdmin": false
     },
     {
-      "name": "Jana",
-      "surname": "Maggio",
+      "firstName": "Jana",
+      "lastName": "Maggio",
       "email": "Jana_Maggio@hotmail.com",
       "password": "rgVymD52laWL0rA",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1567,8 +1567,8 @@
       "isAdmin": false
     },
     {
-      "name": "Americo",
-      "surname": "Nader",
+      "firstName": "Americo",
+      "lastName": "Nader",
       "email": "Americo.Nader@gmail.com",
       "password": "qUqKCHvs8WgRwuZ",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1576,8 +1576,8 @@
       "isAdmin": false
     },
     {
-      "name": "Jennifer",
-      "surname": "Gusikowski",
+      "firstName": "Jennifer",
+      "lastName": "Gusikowski",
       "email": "Jennifer.Gusikowski7@gmail.com",
       "password": "vVrLTzwFaiTHU56",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1585,8 +1585,8 @@
       "isAdmin": false
     },
     {
-      "name": "Raegan",
-      "surname": "Schmitt",
+      "firstName": "Raegan",
+      "lastName": "Schmitt",
       "email": "Raegan.Schmitt@yahoo.com",
       "password": "7ygWO4MszfPgSi7",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1594,8 +1594,8 @@
       "isAdmin": false
     },
     {
-      "name": "Emily",
-      "surname": "Crooks",
+      "firstName": "Emily",
+      "lastName": "Crooks",
       "email": "Emily_Crooks@hotmail.com",
       "password": "rFJbypDkXxK8GEn",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1603,8 +1603,8 @@
       "isAdmin": false
     },
     {
-      "name": "Katlyn",
-      "surname": "O'Hara",
+      "firstName": "Katlyn",
+      "lastName": "O'Hara",
       "email": "Katlyn.OHara@yahoo.com",
       "password": "el3WPVidtzMkYax",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1612,8 +1612,8 @@
       "isAdmin": false
     },
     {
-      "name": "Leone",
-      "surname": "Collier",
+      "firstName": "Leone",
+      "lastName": "Collier",
       "email": "Leone_Collier@hotmail.com",
       "password": "QLpcX35BzPJdhTq",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1621,8 +1621,8 @@
       "isAdmin": false
     },
     {
-      "name": "Vena",
-      "surname": "Brakus",
+      "firstName": "Vena",
+      "lastName": "Brakus",
       "email": "Vena.Brakus80@yahoo.com",
       "password": "onDjHxNRN8nFgdX",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1630,8 +1630,8 @@
       "isAdmin": false
     },
     {
-      "name": "Jayne",
-      "surname": "O'Conner",
+      "firstName": "Jayne",
+      "lastName": "O'Conner",
       "email": "Jayne.OConner8@gmail.com",
       "password": "uuMy2eLw9nvHhWq",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1639,8 +1639,8 @@
       "isAdmin": false
     },
     {
-      "name": "Felix",
-      "surname": "Schowalter",
+      "firstName": "Felix",
+      "lastName": "Schowalter",
       "email": "Felix.Schowalter77@hotmail.com",
       "password": "qm1eUwHzM5TjTzq",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1648,8 +1648,8 @@
       "isAdmin": false
     },
     {
-      "name": "Alfredo",
-      "surname": "Luettgen",
+      "firstName": "Alfredo",
+      "lastName": "Luettgen",
       "email": "Alfredo59@gmail.com",
       "password": "U7lT_FWKxicSiIB",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1657,8 +1657,8 @@
       "isAdmin": false
     },
     {
-      "name": "Kenny",
-      "surname": "Lebsack",
+      "firstName": "Kenny",
+      "lastName": "Lebsack",
       "email": "Kenny_Lebsack85@hotmail.com",
       "password": "2t_ranUBwCggrrN",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1666,8 +1666,8 @@
       "isAdmin": false
     },
     {
-      "name": "Abdiel",
-      "surname": "Ritchie",
+      "firstName": "Abdiel",
+      "lastName": "Ritchie",
       "email": "Abdiel_Ritchie93@hotmail.com",
       "password": "3AkEYtrdnlqhger",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1675,8 +1675,8 @@
       "isAdmin": false
     },
     {
-      "name": "Wendy",
-      "surname": "Haley",
+      "firstName": "Wendy",
+      "lastName": "Haley",
       "email": "Wendy.Haley@gmail.com",
       "password": "leEfY85SCs_44v2",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1684,8 +1684,8 @@
       "isAdmin": false
     },
     {
-      "name": "August",
-      "surname": "Schroeder",
+      "firstName": "August",
+      "lastName": "Schroeder",
       "email": "August.Schroeder48@gmail.com",
       "password": "Ullo7DYcsZ2cldG",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1693,8 +1693,8 @@
       "isAdmin": false
     },
     {
-      "name": "Kaia",
-      "surname": "VonRueden",
+      "firstName": "Kaia",
+      "lastName": "VonRueden",
       "email": "Kaia.VonRueden12@gmail.com",
       "password": "Rnme1VqJluRx1Vq",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1702,8 +1702,8 @@
       "isAdmin": false
     },
     {
-      "name": "Haylie",
-      "surname": "Vandervort",
+      "firstName": "Haylie",
+      "lastName": "Vandervort",
       "email": "Haylie.Vandervort92@gmail.com",
       "password": "Rao_dazoDSucKnr",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1711,8 +1711,8 @@
       "isAdmin": false
     },
     {
-      "name": "Cecil",
-      "surname": "Cruickshank",
+      "firstName": "Cecil",
+      "lastName": "Cruickshank",
       "email": "Cecil.Cruickshank@hotmail.com",
       "password": "H1JaLrPmaIejlyh",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1720,8 +1720,8 @@
       "isAdmin": false
     },
     {
-      "name": "Elmer",
-      "surname": "Rosenbaum",
+      "firstName": "Elmer",
+      "lastName": "Rosenbaum",
       "email": "Elmer38@hotmail.com",
       "password": "vu_LbSYfYpSBQpZ",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1729,8 +1729,8 @@
       "isAdmin": false
     },
     {
-      "name": "Heloise",
-      "surname": "Christiansen",
+      "firstName": "Heloise",
+      "lastName": "Christiansen",
       "email": "Heloise16@gmail.com",
       "password": "cyZmw70QD8wucsa",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1738,8 +1738,8 @@
       "isAdmin": false
     },
     {
-      "name": "Keara",
-      "surname": "Watsica",
+      "firstName": "Keara",
+      "lastName": "Watsica",
       "email": "Keara_Watsica@gmail.com",
       "password": "kBUiRLpOgZDneUb",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1747,8 +1747,8 @@
       "isAdmin": false
     },
     {
-      "name": "Fletcher",
-      "surname": "Zboncak",
+      "firstName": "Fletcher",
+      "lastName": "Zboncak",
       "email": "Fletcher_Zboncak@hotmail.com",
       "password": "XN9W7pcgDytsUC1",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1756,8 +1756,8 @@
       "isAdmin": false
     },
     {
-      "name": "Mafalda",
-      "surname": "Hegmann",
+      "firstName": "Mafalda",
+      "lastName": "Hegmann",
       "email": "Mafalda_Hegmann@hotmail.com",
       "password": "na2CEdYN2H87cbf",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1765,8 +1765,8 @@
       "isAdmin": false
     },
     {
-      "name": "Marcella",
-      "surname": "Friesen",
+      "firstName": "Marcella",
+      "lastName": "Friesen",
       "email": "Marcella14@gmail.com",
       "password": "T7M1QSGpQCdh0V_",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1774,8 +1774,8 @@
       "isAdmin": false
     },
     {
-      "name": "Terrance",
-      "surname": "Ledner",
+      "firstName": "Terrance",
+      "lastName": "Ledner",
       "email": "Terrance36@hotmail.com",
       "password": "uyEH4TZWOWyfsnp",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1783,8 +1783,8 @@
       "isAdmin": false
     },
     {
-      "name": "Dominique",
-      "surname": "Wyman",
+      "firstName": "Dominique",
+      "lastName": "Wyman",
       "email": "Dominique28@hotmail.com",
       "password": "05oNxcabJyiVz7B",
       "startHour": "2023-09-21T06:00:00.000Z",
@@ -1792,8 +1792,8 @@
       "isAdmin": false
     },
     {
-      "name": "Gavin",
-      "surname": "Doyle",
+      "firstName": "Gavin",
+      "lastName": "Doyle",
       "email": "Gavin_Doyle12@gmail.com",
       "password": "nKQecJXhcpFMb62",
       "startHour": "2023-09-21T06:00:00.000Z",
