@@ -70,6 +70,8 @@ model RecurringReservation {
   address                       Address                       @relation(fields: [addressId], references: [id])
   addressId                     Int                          
   services                      RecurringReservationService[]
+  bookerFirstName               String                        @db.VarChar(50)
+  bookerLastName                String                        @db.VarChar(50)
 }
 
 model Address {

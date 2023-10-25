@@ -20,7 +20,9 @@ export const recurringReservationCreationSchema = z.object({
       postCode: z.string().length(6),
       city: z.string().max(40)
     })
-    .or(z.number().int())
+    .or(z.number().int()),
+  bookerFirstName: z.string().max(50),
+  bookerLastName: z.string().max(50)
 });
 
 export type RecurringReservationCreationData = z.infer<

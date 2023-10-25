@@ -78,7 +78,14 @@ export default class RecurringReservationService {
       reservationGroupName // TODO: it can be changed to normal id later because right now, the name will be too long
     );
 
-    const { clientId, endDate, frequency, address } = data;
+    const {
+      clientId,
+      endDate,
+      frequency,
+      address,
+      bookerFirstName,
+      bookerLastName
+    } = data;
 
     try {
       let addressId: number;
@@ -108,7 +115,9 @@ export default class RecurringReservationService {
           name: reservationGroupName,
           frequency,
           endDate,
-          addressId
+          addressId,
+          bookerFirstName,
+          bookerLastName
         }
       });
     } catch (err) {
