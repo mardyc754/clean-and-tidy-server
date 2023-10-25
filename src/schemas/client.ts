@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const userUpdateDataSchema = z
+export const clientUpdateDataSchema = z
   .object({
     name: z.string().max(50),
     lastName: z.string().max(50),
@@ -9,4 +9,12 @@ export const userUpdateDataSchema = z
   .strict()
   .partial();
 
-export type ClientUpdateData = z.infer<typeof userUpdateDataSchema>;
+export type ClientUpdateData = z.infer<typeof clientUpdateDataSchema>;
+
+export const createAnonymousClientSchema = z.object({
+  email: z.string().email()
+});
+
+export type CreateAnonymousClientData = z.infer<
+  typeof createAnonymousClientSchema
+>;

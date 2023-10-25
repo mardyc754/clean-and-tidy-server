@@ -2,19 +2,23 @@ import type { RecurringReservationStatus, Client } from '@prisma/client';
 import type { Request, Response } from 'express';
 import type { Stringified } from 'type-fest';
 
-import { ClientService } from '~/services';
+import { ClientService, EmployeeService } from '~/services';
 
-import { ClientUpdateData } from '~/schemas/client';
+import { ClientUpdateData, CreateAnonymousClientData } from '~/schemas/client';
 
-import { validateClientUpdateData } from '~/middlewares/type-validators/client';
+import {
+  validateClientUpdateData,
+  validateCreateAnonymousClientData
+} from '~/middlewares/type-validators/client';
 import { validateAccessToClientData } from '~/middlewares/auth/authenticate';
 
-import type { DefaultBodyType } from '~/types';
+import type { DefaultBodyType, TypedRequest, DefaultParamsType } from '~/types';
 
 import AbstractController from './AbstractController';
 
 export default class ClientController extends AbstractController {
   private userService = new ClientService();
+  private employeeService = new EmployeeService();
 
   constructor() {
     super('/clients');
@@ -23,6 +27,11 @@ export default class ClientController extends AbstractController {
 
   public createRouters() {
     this.router.get('/', this.getAllClients);
+    this.router.post(
+      '/',
+      validateCreateAnonymousClientData(),
+      this.createAnonymousClient
+    );
     this.router.get('/:id', this.getClientById);
     this.router.get(
       '/:id/reservations',
@@ -46,8 +55,37 @@ export default class ClientController extends AbstractController {
     }
   };
 
+  private createAnonymousClient = async (
+    req: TypedRequest<DefaultParamsType, CreateAnonymousClientData>,
+    res: Response
+  ) => {
+    const { email } = req.body;
+
+    let userExists =
+      Boolean(await this.userService.getClientByEmail(email)) ||
+      Boolean(await this.employeeService.getEmployeeByEmail(email));
+
+    if (userExists) {
+      return res.status(409).send({
+        message: 'The user with given email already exists'
+      });
+    }
+
+    const user = await this.userService.createClient({ email });
+
+    if (user) {
+      res.status(201).send({
+        data: user
+      });
+    } else {
+      res
+        .status(400)
+        .send({ message: 'Error when creating new user', hasError: true });
+    }
+  };
+
   private getClientById = async (
-    req: Request<{ id: string }>,
+    req: TypedRequest<{ id: string }>,
     res: Response
   ) => {
     const user = await this.userService.getClientById(parseInt(req.params.id));

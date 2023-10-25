@@ -1,7 +1,15 @@
-import { userUpdateDataSchema } from '~/schemas/client';
+import {
+  clientUpdateDataSchema,
+  createAnonymousClientSchema
+} from '~/schemas/client';
 import { validateTypes } from './validateTypesOfData';
 
 export const validateClientUpdateData = () =>
   validateTypes({
-    bodyParser: userUpdateDataSchema
+    bodyParser: clientUpdateDataSchema
+  });
+
+export const validateCreateAnonymousClientData = () =>
+  validateTypes({
+    bodyParser: createAnonymousClientSchema
   });

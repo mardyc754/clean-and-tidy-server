@@ -25,4 +25,4 @@ const config = {
   rules: {}
 };
 
-module.exports = config;
+export default config;
