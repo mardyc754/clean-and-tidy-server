@@ -35,6 +35,8 @@ export default class ReservationController extends AbstractController {
       this.createRecurringReservation
     );
     this.router.get('/:id', this.getRecurringReservationById);
+    this.router.get('/:name', this.getRecurringReservationByName);
+
     this.router.get('/:id/reservations', this.getReservations);
     // TODO: The methods below needs to be improved
     // this.router.put(
@@ -77,6 +79,26 @@ export default class ReservationController extends AbstractController {
     } else {
       res.status(404).send({
         message: `Recurring reservation with id=${req.params.id} not found`
+      });
+    }
+  };
+
+  private getRecurringReservationByName = async (
+    req: Request<{ name: string }>,
+    res: Response
+  ) => {
+    const recurringReservation =
+      await this.recurringReservationService.getRecurringReservationByName(
+        req.params.name
+      );
+
+    if (recurringReservation !== null) {
+      res.status(200).send({
+        data: recurringReservation
+      });
+    } else {
+      res.status(404).send({
+        message: `Recurring reservation with name=${req.params.name} not found`
       });
     }
   };

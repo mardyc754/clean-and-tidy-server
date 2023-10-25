@@ -5,7 +5,6 @@ import {
   RecurringReservationStatus,
   ReservationStatus
 } from '@prisma/client';
-import { v4 as uuidv4 } from 'uuid';
 import short from 'short-uuid';
 
 import { prisma } from '~/db';
@@ -19,6 +18,8 @@ import {
 import { extractWeekDayFromDate } from '~/utils/dateUtils';
 
 import type { RecurringReservationCreationData } from '~/schemas/recurringReservation';
+
+import { executeDatabaseOperation } from './utils';
 
 export default class RecurringReservationService {
   public async getAllRecurringReservations() {
@@ -38,20 +39,27 @@ export default class RecurringReservationService {
   }
 
   public async getRecurringReservationById(id: RecurringReservation['id']) {
-    let recurringReservation: RecurringReservation | null = null;
-
-    try {
-      recurringReservation = await prisma.recurringReservation.findUnique({
+    return await executeDatabaseOperation(
+      prisma.recurringReservation.findUnique({
         where: { id },
         include: {
           reservations: true
         }
-      });
-    } catch (err) {
-      console.error(err);
-    }
+      })
+    );
+  }
 
-    return recurringReservation;
+  public async getRecurringReservationByName(
+    name: RecurringReservation['name']
+  ) {
+    return await executeDatabaseOperation(
+      prisma.recurringReservation.findUnique({
+        where: { name },
+        include: {
+          reservations: true
+        }
+      })
+    );
   }
 
   public async getReservations(id: RecurringReservation['id']) {
@@ -85,7 +93,8 @@ export default class RecurringReservationService {
       frequency,
       address,
       bookerFirstName,
-      bookerLastName
+      bookerLastName,
+      services
     } = data;
 
     try {
@@ -124,6 +133,14 @@ export default class RecurringReservationService {
     } catch (err) {
       console.error(err);
     }
+
+    // create entries in the recurringReservationService table
+    // in order to have an access to the services ordered within reservation
+    await executeDatabaseOperation(
+      prisma.recurringReservationService.createMany({
+        data: services
+      })
+    );
 
     return recurringReservation;
   }

@@ -59,7 +59,7 @@ model Reservation {
 
 model RecurringReservation {
   id                            Int                           @id @default(autoincrement())
-  name                          String                        @db.VarChar(50)
+  name                          String                        @db.VarChar(50) @unique
   frequency                     Frequency
   endDate                       DateTime  // not sure if this field is needed
   weekDay                       Int                           @db.SmallInt

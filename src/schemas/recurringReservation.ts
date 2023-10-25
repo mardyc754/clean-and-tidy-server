@@ -8,6 +8,15 @@ import { reservationCreationDataSchema } from './reservation';
 
 const FrequencySchema = z.nativeEnum(Frequency);
 
+// schemas
+
+export const recurringReservationServiceSchema = z.object({
+  serviceId: z.number().int(),
+  recurringReservationId: z.number().int(),
+  isMainServiceForReservation: z.boolean(),
+  numberOfUnits: z.number().int()
+});
+
 export const recurringReservationCreationSchema = z.object({
   frequency: FrequencySchema,
   clientId: z.number().int(), // it can be an client email as well
@@ -22,18 +31,21 @@ export const recurringReservationCreationSchema = z.object({
     })
     .or(z.number().int()),
   bookerFirstName: z.string().max(50),
-  bookerLastName: z.string().max(50)
+  bookerLastName: z.string().max(50),
+  services: z.array(recurringReservationServiceSchema).refine(
+    (val) => {
+      return (
+        val.filter((service) => service.isMainServiceForReservation).length ===
+        1
+      );
+    },
+    { message: 'There must be exactly one main service for reservation' }
+  )
 });
-
-export type RecurringReservationCreationData = z.infer<
-  typeof recurringReservationCreationSchema
->;
 
 export const FrequencyChangeSchema = z.object({
   frequency: FrequencySchema
 });
-
-export type FrequencyChangeData = z.infer<typeof FrequencyChangeSchema>;
 
 export const weekDaySchema = z
   .object({
@@ -41,12 +53,24 @@ export const weekDaySchema = z
   })
   .merge(FrequencyChangeSchema);
 
-export type WeekDayChangeData = z.infer<typeof weekDaySchema>;
-
 export const recurringReservationStatusChangeSchema = z.object({
   recurringReservationStatus: z.nativeEnum(RecurringReservationStatus),
   reservationStatus: z.nativeEnum(ReservationStatus)
 });
+
+// types
+
+export type RecurringReservationService = z.infer<
+  typeof recurringReservationServiceSchema
+>;
+
+export type RecurringReservationCreationData = z.infer<
+  typeof recurringReservationCreationSchema
+>;
+
+export type FrequencyChangeData = z.infer<typeof FrequencyChangeSchema>;
+
+export type WeekDayChangeData = z.infer<typeof weekDaySchema>;
 
 export type RecurringReservationStatusChangeData = z.infer<
   typeof recurringReservationStatusChangeSchema
