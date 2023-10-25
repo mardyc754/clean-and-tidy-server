@@ -6,6 +6,7 @@ import {
   ReservationStatus
 } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
+import short from 'short-uuid';
 
 import { prisma } from '~/db';
 import {
@@ -70,7 +71,7 @@ export default class RecurringReservationService {
   public async createRecurringReservation(
     data: RecurringReservationCreationData
   ) {
-    const reservationGroupName = `reservationGroup-${uuidv4()}`;
+    const reservationGroupName = `reservationGroup-${short.generate()}`;
     let recurringReservation: RecurringReservation | null = null;
 
     const reservations = createReservations(
