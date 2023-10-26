@@ -92,8 +92,7 @@ export default class RecurringReservationService {
       endDate,
       frequency,
       address,
-      bookerFirstName,
-      bookerLastName,
+      contactDetails: { firstName: bookerFirstName, lastName: bookerLastName },
       services
     } = data;
 

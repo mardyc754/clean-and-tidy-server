@@ -8,7 +8,20 @@ import { reservationCreationDataSchema } from './reservation';
 
 const FrequencySchema = z.nativeEnum(Frequency);
 
+export const address = z.object({
+  street: z.string().max(40),
+  houseNumber: z.string().max(6),
+  postCode: z.string().length(6),
+  city: z.string().max(40)
+});
+
 // schemas
+export const contactDetails = z.object({
+  firstName: z.string().max(50),
+  lastName: z.string().max(50),
+  phone: z.string().max(15),
+  email: z.string().email()
+});
 
 export const recurringReservationServiceSchema = z.object({
   serviceId: z.number().int(),
@@ -22,16 +35,8 @@ export const recurringReservationCreationSchema = z.object({
   clientId: z.number().int(), // it can be an client email as well
   endDate: z.string().datetime(),
   reservationData: reservationCreationDataSchema,
-  address: z
-    .object({
-      street: z.string().max(40),
-      houseNumber: z.string().max(6),
-      postCode: z.string().length(6),
-      city: z.string().max(40)
-    })
-    .or(z.number().int()),
-  bookerFirstName: z.string().max(50),
-  bookerLastName: z.string().max(50),
+  address: address.or(z.number().int()),
+  contactDetails,
   services: z.array(recurringReservationServiceSchema).refine(
     (val) => {
       return (

@@ -1,5 +1,6 @@
 import {
   z,
+  ZodError,
   type ZodObject,
   type ZodRawShape,
   type ZodString,
@@ -130,9 +131,17 @@ export function validateTypes<
       queryParser && queryParser.parse(req.body);
     } catch (err) {
       console.error(err);
-      return res
-        .status(400)
-        .send({ message: 'Error when parsing data type', hasError: true });
+      let errors;
+
+      if (err instanceof ZodError) {
+        errors = err.errors;
+      }
+
+      return res.status(400).send({
+        message: 'Error when parsing data type',
+        data: errors,
+        hasError: true
+      });
     }
 
     return next();
