@@ -132,7 +132,7 @@ export default class ReservationController extends AbstractController {
       );
 
     if (recurringReservation) {
-      res.status(200).send({ ...recurringReservation });
+      res.status(201).send({ ...recurringReservation });
     } else {
       res
         .status(400)

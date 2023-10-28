@@ -36,6 +36,18 @@ export function numberOfWeeksBetween(endDate: string, startDate: string) {
   return dayjs(endDate).diff(dayjs(startDate), 'week');
 }
 
+export function numberOfMonthsBetween(endDate: string, startDate: string) {
+  return dayjs(endDate).diff(dayjs(startDate), 'month');
+}
+
 export function advanceDateByWeeks(date: string, weeks: number) {
   return dayjs(date).add(weeks, 'week').toISOString();
+}
+
+export function advanceDateByMonths(date: string, months: number) {
+  return dayjs(date).add(months, 'month').toISOString();
+}
+
+export function displayDateWithHours(date: Date | string) {
+  return dayjs(date).format('DD.MM.YYYY HH:mm');
 }

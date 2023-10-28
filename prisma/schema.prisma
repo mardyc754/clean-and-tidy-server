@@ -47,8 +47,8 @@ model Client {
 model Reservation {
   id                            Int                          @id @default(autoincrement()) // maybe it should be UUID
   name                          String                       @db.VarChar(100) @unique
-  startDate                     DateTime                     @db.Date
-  endDate                       DateTime                     @db.Date
+  startDate                     DateTime
+  endDate                       DateTime
   includeDetergents             Boolean 
   cost                          Decimal                      @db.Money
   recurringReservation          RecurringReservation         @relation(fields: [recurringReservationId], references: [id], onDelete: Cascade)

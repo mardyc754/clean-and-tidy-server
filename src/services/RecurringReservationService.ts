@@ -17,6 +17,7 @@ import {
 } from '~/utils/reservations';
 import {
   advanceDateByOneYear,
+  displayDateWithHours,
   extractWeekDayFromDate
 } from '~/utils/dateUtils';
 
@@ -82,7 +83,7 @@ export default class RecurringReservationService {
   public async createRecurringReservation(
     data: RecurringReservationCreationData
   ) {
-    const reservationGroupName = `reservationGroup-${short.generate()}`;
+    const reservationGroupName = `reservation-${short.generate()}`;
     let recurringReservation: RecurringReservation | null = null;
 
     const {
