@@ -27,3 +27,15 @@ export function hourToISOString(hourString: string) {
 export function extractWeekDayFromDate(date: string) {
   return dayjs(date).day();
 }
+
+export function advanceDateByOneYear(date: string) {
+  return dayjs(date).add(1, 'year').toISOString();
+}
+
+export function numberOfWeeksBetween(endDate: string, startDate: string) {
+  return dayjs(endDate).diff(dayjs(startDate), 'week');
+}
+
+export function advanceDateByWeeks(date: string, weeks: number) {
+  return dayjs(date).add(weeks, 'week').toISOString();
+}

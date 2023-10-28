@@ -7,29 +7,32 @@ import {
 
 import { dayjs } from '~/lib';
 
-import type { RecurringReservationCreationData } from '~/schemas/recurringReservation';
-
-import { now } from './dateUtils';
+import { advanceDateByWeeks, now, numberOfWeeksBetween } from './dateUtils';
+import { ReservationCreationData } from '~/schemas/reservation';
 
 export function createReservations(
-  data: RecurringReservationCreationData,
-  reservationGroupName: string
+  reservationGroupName: string,
+  firstReservationData: ReservationCreationData,
+  frequency: RecurringReservation['frequency'],
+  endDate: string
 ) {
-  const { frequency, endDate, reservationData } = data;
-
   const {
     startDate: firstReservationStartDate,
     endDate: firstReservationEndDate,
     includeDetergents,
     cost
-  } = reservationData;
+  } = firstReservationData;
 
   let weekNumbers: number[];
 
-  const numberOfWeeks = dayjs(endDate).diff(firstReservationStartDate, 'week');
   // by using dayjs(date1).diif(date2, 'week'),
   // we can count number of the weeks ocurring between start and end date
   // and we do not have to use magic numbers in that case
+  const numberOfWeeks = numberOfWeeksBetween(
+    endDate,
+    firstReservationStartDate
+  );
+
   switch (frequency) {
     case Frequency.ONCE_A_WEEK:
       weekNumbers = [...Array<unknown>(numberOfWeeks)].map((_, i) => i);
@@ -47,8 +50,8 @@ export function createReservations(
   return weekNumbers.map((week, i) => ({
     cost,
     includeDetergents,
-    startDate: dayjs(firstReservationStartDate).add(week, 'w').toDate(),
-    endDate: dayjs(firstReservationEndDate).add(week, 'w').toDate(),
+    startDate: advanceDateByWeeks(firstReservationStartDate, week),
+    endDate: advanceDateByWeeks(firstReservationEndDate, week),
     status: ReservationStatus.TO_BE_CONFIRMED,
     name: `${reservationGroupName}-${i + 1}`
   }));

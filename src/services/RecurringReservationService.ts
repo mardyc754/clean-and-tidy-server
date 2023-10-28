@@ -15,7 +15,10 @@ import {
   changeWeekDay,
   createReservations
 } from '~/utils/reservations';
-import { extractWeekDayFromDate } from '~/utils/dateUtils';
+import {
+  advanceDateByOneYear,
+  extractWeekDayFromDate
+} from '~/utils/dateUtils';
 
 import type { RecurringReservationCreationData } from '~/schemas/recurringReservation';
 
@@ -82,19 +85,26 @@ export default class RecurringReservationService {
     const reservationGroupName = `reservationGroup-${short.generate()}`;
     let recurringReservation: RecurringReservation | null = null;
 
-    const reservations = createReservations(
-      data,
-      reservationGroupName // TODO: it can be changed to normal id later because right now, the name will be too long
-    );
-
     const {
       clientId,
-      endDate,
       frequency,
       address,
       contactDetails: { firstName: bookerFirstName, lastName: bookerLastName },
-      services
+      services,
+      reservationData
     } = data;
+
+    const endDate =
+      frequency !== Frequency.ONCE
+        ? advanceDateByOneYear(reservationData.endDate)
+        : reservationData.endDate;
+
+    const reservations = createReservations(
+      reservationGroupName, // TODO: it can be changed to normal id later because right now, the name will be too long
+      reservationData,
+      frequency,
+      endDate
+    );
 
     try {
       let addressId: number;
@@ -123,7 +133,8 @@ export default class RecurringReservationService {
           },
           name: reservationGroupName,
           frequency,
-          endDate,
+          endDate, // not sure if end date should be set on the
+          // frontend or on the backend side
           addressId,
           bookerFirstName,
           bookerLastName
@@ -131,15 +142,21 @@ export default class RecurringReservationService {
       });
     } catch (err) {
       console.error(err);
+      recurringReservation = null;
     }
 
-    // create entries in the recurringReservationService table
-    // in order to have an access to the services ordered within reservation
-    await executeDatabaseOperation(
-      prisma.recurringReservationService.createMany({
-        data: services
-      })
-    );
+    if (recurringReservation) {
+      // create entries in the recurringReservationService table
+      // in order to have an access to the services ordered within reservation
+      await executeDatabaseOperation(
+        prisma.recurringReservationService.createMany({
+          data: services.map((service) => ({
+            ...service,
+            recurringReservationId: recurringReservation!.id
+          }))
+        })
+      );
+    }
 
     return recurringReservation;
   }

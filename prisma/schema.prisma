@@ -45,8 +45,8 @@ model Client {
 }
 
 model Reservation {
-  id                            Int                          @id @default(autoincrement())
-  name                          String                       @db.VarChar(30)
+  id                            Int                          @id @default(autoincrement()) // maybe it should be UUID
+  name                          String                       @db.VarChar(100) @unique
   startDate                     DateTime                     @db.Date
   endDate                       DateTime                     @db.Date
   includeDetergents             Boolean 
@@ -58,8 +58,8 @@ model Reservation {
 }
 
 model RecurringReservation {
-  id                            Int                           @id @default(autoincrement())
-  name                          String                        @db.VarChar(50) @unique
+  id                            Int                           @id @default(autoincrement()) // maybe it should be UUID
+  name                          String                        @db.VarChar(100) @unique
   frequency                     Frequency
   endDate                       DateTime  // not sure if this field is needed
   weekDay                       Int                           @db.SmallInt
