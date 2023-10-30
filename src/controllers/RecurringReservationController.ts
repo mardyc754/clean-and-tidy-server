@@ -122,11 +122,12 @@ export default class ReservationController extends AbstractController {
 
     if (recurringReservation !== null) {
       res.status(200).send({
-        data: recurringReservation
+        ...recurringReservation
       });
     } else {
       res.status(404).send({
-        message: `Recurring reservation with name=${req.params.name} not found`
+        message: `Recurring reservation with name=${req.params.name} not found`,
+        hasError: true
       });
     }
   };
@@ -160,11 +161,12 @@ export default class ReservationController extends AbstractController {
       );
 
     if (recurringReservation) {
-      res.status(201).send({ ...recurringReservation });
+      res.status(201).send(recurringReservation);
     } else {
-      res
-        .status(400)
-        .send({ message: 'Error when creating recurring reservation' });
+      res.status(400).send({
+        message: 'Error when creating recurring reservation',
+        hasError: true
+      });
     }
   };
 

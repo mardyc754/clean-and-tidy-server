@@ -17,13 +17,16 @@ import {
 } from '~/utils/reservations';
 import {
   advanceDateByOneYear,
-  displayDateWithHours,
   extractWeekDayFromDate
 } from '~/utils/dateUtils';
 
 import type { RecurringReservationCreationData } from '~/schemas/recurringReservation';
 
-import { executeDatabaseOperation, includeIfTrue } from './utils';
+import {
+  executeDatabaseOperation,
+  includeIfTrue,
+  includeWithOtherDataIfTrue
+} from './utils';
 
 type RecurringReservationQueryOptions = {
   includeReservations: boolean;
@@ -56,7 +59,11 @@ export default class RecurringReservationService {
       prisma.recurringReservation.findUnique({
         where: { id },
         include: {
-          ...includeIfTrue('reservations', options?.includeReservations)
+          ...includeWithOtherDataIfTrue(
+            'reservations',
+            'employees',
+            options?.includeReservations
+          )
         }
       })
     );
@@ -70,7 +77,19 @@ export default class RecurringReservationService {
       prisma.recurringReservation.findUnique({
         where: { name },
         include: {
-          ...includeIfTrue('reservations', options?.includeReservations)
+          ...includeWithOtherDataIfTrue(
+            'reservations',
+            'employees',
+            options?.includeReservations
+          )
+          // // in order to include service data associated with reservation
+          // services: {
+          //   include: {
+          //     service: true
+          //   }
+          // }
+          // // get the address associated with the reservation
+          // address: true
         }
       })
     );
@@ -138,35 +157,28 @@ export default class RecurringReservationService {
           status: RecurringReservationStatus.TO_BE_CONFIRMED,
           weekDay: extractWeekDayFromDate(endDate),
           reservations: {
-            createMany: {
-              data: reservations
-            }
+            create: reservations.map((reservation) => ({
+              ...reservation,
+              employees: {
+                connect: reservationData.employeeIds.map((id) => ({ id }))
+              }
+            }))
+          },
+          services: {
+            create: services
           },
           name: reservationGroupName,
           frequency,
           endDate, // not sure if end date should be set on the
           // frontend or on the backend side
-          addressId,
           bookerFirstName,
-          bookerLastName
+          bookerLastName,
+          addressId
         }
       });
     } catch (err) {
       console.error(err);
       recurringReservation = null;
-    }
-
-    if (recurringReservation) {
-      // create entries in the recurringReservationService table
-      // in order to have an access to the services ordered within reservation
-      await executeDatabaseOperation(
-        prisma.recurringReservationService.createMany({
-          data: services.map((service) => ({
-            ...service,
-            recurringReservationId: recurringReservation!.id
-          }))
-        })
-      );
     }
 
     return recurringReservation;
