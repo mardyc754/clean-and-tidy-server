@@ -23,16 +23,22 @@ import {
 
 import type { RecurringReservationCreationData } from '~/schemas/recurringReservation';
 
-import { executeDatabaseOperation } from './utils';
+import { executeDatabaseOperation, includeIfTrue } from './utils';
+
+type RecurringReservationQueryOptions = {
+  includeReservations: boolean;
+};
 
 export default class RecurringReservationService {
-  public async getAllRecurringReservations() {
+  public async getAllRecurringReservations(
+    options?: RecurringReservationQueryOptions
+  ) {
     let recurringReservations: RecurringReservation[] | null = null;
 
     try {
       recurringReservations = await prisma.recurringReservation.findMany({
         include: {
-          reservations: true
+          ...includeIfTrue('reservations', options?.includeReservations)
         }
       });
     } catch (err) {
@@ -42,25 +48,29 @@ export default class RecurringReservationService {
     return recurringReservations;
   }
 
-  public async getRecurringReservationById(id: RecurringReservation['id']) {
+  public async getRecurringReservationById(
+    id: RecurringReservation['id'],
+    options?: RecurringReservationQueryOptions
+  ) {
     return await executeDatabaseOperation(
       prisma.recurringReservation.findUnique({
         where: { id },
         include: {
-          reservations: true
+          ...includeIfTrue('reservations', options?.includeReservations)
         }
       })
     );
   }
 
   public async getRecurringReservationByName(
-    name: RecurringReservation['name']
+    name: RecurringReservation['name'],
+    options?: RecurringReservationQueryOptions
   ) {
     return await executeDatabaseOperation(
       prisma.recurringReservation.findUnique({
         where: { name },
         include: {
-          reservations: true
+          ...includeIfTrue('reservations', options?.includeReservations)
         }
       })
     );
