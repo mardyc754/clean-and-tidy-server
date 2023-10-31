@@ -1,4 +1,4 @@
-import type { RecurringReservationStatus, Client } from '@prisma/client';
+import type { ReservationStatus, Client } from '@prisma/client';
 import type { Request, Response } from 'express';
 import type { Stringified } from 'type-fest';
 
@@ -105,13 +105,13 @@ export default class ClientController extends AbstractController {
     req: Request<
       Stringified<Pick<Client, 'id'>>,
       DefaultBodyType,
-      { status?: RecurringReservationStatus }
+      { status?: ReservationStatus }
     >,
     res: Response
   ) => {
     const reservations = await this.userService.getClientReservations(
       parseInt(req.params.id),
-      req.query.status as RecurringReservationStatus | undefined
+      req.query.status as ReservationStatus | undefined
     );
 
     if (reservations !== null) {

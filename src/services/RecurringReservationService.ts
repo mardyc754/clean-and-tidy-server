@@ -2,7 +2,6 @@ import {
   type RecurringReservation,
   type Reservation,
   Frequency,
-  RecurringReservationStatus,
   ReservationStatus
 } from '@prisma/client';
 import short from 'short-uuid';
@@ -154,7 +153,7 @@ export default class RecurringReservationService {
       recurringReservation = await prisma.recurringReservation.create({
         data: {
           clientId,
-          status: RecurringReservationStatus.TO_BE_CONFIRMED,
+          status: ReservationStatus.TO_BE_CONFIRMED,
           weekDay: extractWeekDayFromDate(endDate),
           reservations: {
             create: reservations.map((reservation) => ({
@@ -217,7 +216,7 @@ export default class RecurringReservationService {
           where: { id },
           data: {
             frequency,
-            status: RecurringReservationStatus.TO_BE_CONFIRMED,
+            status: ReservationStatus.TO_BE_CONFIRMED,
             reservations: {
               createMany: {
                 // updateMany may not work because that function updates already existing records only
@@ -262,7 +261,7 @@ export default class RecurringReservationService {
       recurringReservation = await prisma.recurringReservation.update({
         where: { id },
         data: {
-          status: RecurringReservationStatus.TO_BE_CONFIRMED,
+          status: ReservationStatus.TO_BE_CONFIRMED,
           reservations: {
             updateMany: {
               where: { recurringReservationId: id },
@@ -296,7 +295,7 @@ export default class RecurringReservationService {
       recurringReservation = await prisma.recurringReservation.update({
         where: { id },
         data: {
-          status: RecurringReservationStatus.TO_BE_CANCELLED,
+          status: ReservationStatus.TO_BE_CANCELLED,
           reservations: {
             updateMany: {
               where: { recurringReservationId: id },
@@ -314,7 +313,6 @@ export default class RecurringReservationService {
 
   public async changeReservationStatus(
     id: RecurringReservation['id'],
-    newRecurringReservationStatus: RecurringReservationStatus,
     newReservationStatus: ReservationStatus
   ) {
     let recurringReservation: RecurringReservation | null = null;
@@ -333,7 +331,7 @@ export default class RecurringReservationService {
       recurringReservation = await prisma.recurringReservation.update({
         where: { id },
         data: {
-          status: newRecurringReservationStatus,
+          status: newReservationStatus,
           reservations: {
             updateMany: {
               where: { recurringReservationId: id },
@@ -369,7 +367,7 @@ export default class RecurringReservationService {
         reservationToClose = await prisma.recurringReservation.update({
           where: { id },
           data: {
-            status: RecurringReservationStatus.CLOSED
+            status: ReservationStatus.CLOSED
           }
         });
       } catch (err) {

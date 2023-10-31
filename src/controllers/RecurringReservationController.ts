@@ -5,7 +5,7 @@ import { RecurringReservationService } from '~/services';
 import {
   FrequencyChangeData,
   RecurringReservationCreationData,
-  RecurringReservationStatusChangeData,
+  ReservationStatusChangeData,
   WeekDayChangeData
 } from '~/schemas/recurringReservation';
 import type { DefaultBodyType, DefaultParamsType, TypedRequest } from '~/types';
@@ -215,15 +215,14 @@ export default class ReservationController extends AbstractController {
   };
 
   private changeStatus = async (
-    req: TypedRequest<{ id: string }, RecurringReservationStatusChangeData>,
+    req: TypedRequest<{ id: string }, ReservationStatusChangeData>,
     res: Response
   ) => {
-    const { recurringReservationStatus, reservationStatus } = req.body;
+    const { ReservationStatus, reservationStatus } = req.body;
 
     const recurringReservation =
       await this.recurringReservationService.changeReservationStatus(
         parseInt(req.params.id),
-        recurringReservationStatus,
         reservationStatus
       );
 

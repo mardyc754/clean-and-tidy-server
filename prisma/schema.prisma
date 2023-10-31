@@ -19,13 +19,6 @@ enum ReservationStatus {
   CANCELLED
 }
 
-enum RecurringReservationStatus {
-  TO_BE_CONFIRMED
-  CLOSED
-  TO_BE_CANCELLED
-  CANCELLED
-}
-
 enum Frequency {
   ONCE
   ONCE_A_WEEK
@@ -63,7 +56,7 @@ model RecurringReservation {
   frequency                     Frequency
   endDate                       DateTime  // not sure if this field is needed
   weekDay                       Int                           @db.SmallInt
-  status                        RecurringReservationStatus
+  status                        ReservationStatus
   client                        Client                        @relation(fields: [clientId], references: [id])
   clientId                      Int                          
   reservations                  Reservation[]
