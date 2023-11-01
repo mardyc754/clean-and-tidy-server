@@ -1,6 +1,8 @@
 import type { Request, Response } from 'express';
+import { Stringified } from 'type-fest';
 
 import { RecurringReservationService } from '~/services';
+import type { RecurringReservationQueryOptions } from '~/services/RecurringReservationService';
 
 import {
   FrequencyChangeData,
@@ -8,9 +10,6 @@ import {
   ReservationStatusChangeData,
   WeekDayChangeData
 } from '~/schemas/recurringReservation';
-import type { DefaultBodyType, DefaultParamsType, TypedRequest } from '~/types';
-
-import AbstractController from './AbstractController';
 import {
   // validateFrequency,
   // validateWeekDay,
@@ -18,6 +17,10 @@ import {
   validateStatusChange
 } from '~/middlewares/type-validators/recurringReservation';
 import { queryParamToBoolean } from '~/utils/general';
+
+import type { DefaultBodyType, DefaultParamsType, TypedRequest } from '~/types';
+
+import AbstractController from './AbstractController';
 
 export default class ReservationController extends AbstractController {
   private readonly recurringReservationService =
@@ -53,7 +56,7 @@ export default class ReservationController extends AbstractController {
     req: TypedRequest<
       DefaultParamsType,
       DefaultBodyType,
-      { includeReservations?: string }
+      Stringified<RecurringReservationQueryOptions>
     >,
     res: Response
   ) => {
@@ -106,7 +109,7 @@ export default class ReservationController extends AbstractController {
     req: TypedRequest<
       { name: string },
       DefaultBodyType,
-      { includeReservations?: string }
+      Stringified<RecurringReservationQueryOptions>
     >,
     res: Response
   ) => {
@@ -116,7 +119,9 @@ export default class ReservationController extends AbstractController {
         {
           includeReservations: queryParamToBoolean(
             req.query.includeReservations
-          )
+          ),
+          includeServices: queryParamToBoolean(req.query.includeServices),
+          includeAddress: queryParamToBoolean(req.query.includeAddress)
         }
       );
 

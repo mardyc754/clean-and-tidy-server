@@ -5,6 +5,7 @@ import {
   ReservationStatus
 } from '@prisma/client';
 import short from 'short-uuid';
+import type { RequireAtLeastOne } from 'type-fest';
 
 import { prisma } from '~/db';
 import {
@@ -27,9 +28,11 @@ import {
   includeWithOtherDataIfTrue
 } from './utils';
 
-type RecurringReservationQueryOptions = {
+export type RecurringReservationQueryOptions = RequireAtLeastOne<{
   includeReservations: boolean;
-};
+  includeServices: boolean;
+  includeAddress: boolean;
+}>;
 
 export default class RecurringReservationService {
   public async getAllRecurringReservations(
@@ -80,15 +83,15 @@ export default class RecurringReservationService {
             'reservations',
             'employees',
             options?.includeReservations
-          )
-          // // in order to include service data associated with reservation
-          // services: {
-          //   include: {
-          //     service: true
-          //   }
-          // }
-          // // get the address associated with the reservation
-          // address: true
+          ),
+          // in order to include service data associated with reservation
+          ...includeWithOtherDataIfTrue(
+            'services',
+            'service',
+            options?.includeServices
+          ),
+          // get the address associated with the reservation
+          ...includeIfTrue('address', options?.includeAddress)
         }
       })
     );

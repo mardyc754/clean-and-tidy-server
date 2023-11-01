@@ -42,7 +42,8 @@ export default class AuthController extends AbstractController {
     if (userExists) {
       return res.status(409).send({
         message: 'User with given username already exists',
-        affectedField: 'username'
+        affectedField: 'username',
+        hasError: true
       });
     }
 
@@ -57,7 +58,8 @@ export default class AuthController extends AbstractController {
     if (userExists) {
       return res.status(409).send({
         message: 'User with given email already exists',
-        affectedField: 'email'
+        affectedField: 'email',
+        hasError: true
       });
     }
 
@@ -73,7 +75,7 @@ export default class AuthController extends AbstractController {
         id: user.id,
         username: user.username,
         email: user.email,
-        message: 'User created succesfully'
+        message: 'Client created succesfully'
       });
     } else {
       res
