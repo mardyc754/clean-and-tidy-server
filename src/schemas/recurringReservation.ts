@@ -34,7 +34,7 @@ export const recurringReservationServiceSchema = z
 export const recurringReservationCreationSchema = z
   .object({
     frequency: FrequencySchema,
-    clientId: z.number().int(), // it can be an client email as well
+    bookerEmail: z.string().email(),
     // endDate: z.string().datetime(),
     reservationData: reservationCreationDataSchema,
     address: address.or(z.number().int()),

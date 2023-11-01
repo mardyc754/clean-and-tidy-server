@@ -118,7 +118,7 @@ export default class RecurringReservationService {
     let recurringReservation: RecurringReservation | null = null;
 
     const {
-      clientId,
+      bookerEmail,
       frequency,
       address,
       contactDetails: { firstName: bookerFirstName, lastName: bookerLastName },
@@ -155,7 +155,6 @@ export default class RecurringReservationService {
 
       recurringReservation = await prisma.recurringReservation.create({
         data: {
-          clientId,
           status: ReservationStatus.TO_BE_CONFIRMED,
           weekDay: extractWeekDayFromDate(endDate),
           reservations: {
@@ -175,7 +174,21 @@ export default class RecurringReservationService {
           // frontend or on the backend side
           bookerFirstName,
           bookerLastName,
-          addressId
+          address: {
+            connect: {
+              id: addressId
+            }
+          },
+          client: {
+            connectOrCreate: {
+              where: {
+                email: bookerEmail
+              },
+              create: {
+                email: bookerEmail
+              }
+            }
+          }
         }
       });
     } catch (err) {
