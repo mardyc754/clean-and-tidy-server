@@ -9,7 +9,7 @@ enum ReservationStatus {
   CANCELLED
 }
 
-enum RecurringReservationStatus {
+enum ReservationStatus {
   TO_BE_CONFIRMED
   CLOSED
   TO_BE_CANCELLED
@@ -33,7 +33,7 @@ Table Address {
 Table Client {
   id integer [primary key]
   name varchar(50)
-  surname varchar(50)
+  lastName varchar(50)
   username varchar(30) [not null, unique]
   email varchar(50) [not null, unique]
   password varchar(60) [not null]
@@ -57,7 +57,7 @@ Table RecurringReservation {
   name varchar(50) [not null]
   frequency Frequency [not null]
   endDate timestamp [not null]
-  status RecurringReservationStatus [not null]
+  status ReservationStatus [not null]
   weekDay integer [not null]
   clientId integer [not null, ref: > Client.id]
   addressId integer [not null, ref: > Address.id]
@@ -67,7 +67,7 @@ Table RecurringReservation {
 Table Employee {
   id integer [primary key]
   name varchar(50) [not null]
-  surname varchar(50) [not null]
+  lastName varchar(50) [not null]
   email varchar(40) [not null, unique]
   password varchar(60) [not null]
   startHour timestamp [not null]

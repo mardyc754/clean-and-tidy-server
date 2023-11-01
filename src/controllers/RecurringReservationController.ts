@@ -1,22 +1,26 @@
 import type { Request, Response } from 'express';
+import { Stringified } from 'type-fest';
 
 import { RecurringReservationService } from '~/services';
+import type { RecurringReservationQueryOptions } from '~/services/RecurringReservationService';
 
 import {
   FrequencyChangeData,
   RecurringReservationCreationData,
-  RecurringReservationStatusChangeData,
+  ReservationStatusChangeData,
   WeekDayChangeData
 } from '~/schemas/recurringReservation';
-import type { DefaultParamsType, TypedRequest } from '~/types';
-
-import AbstractController from './AbstractController';
 import {
   // validateFrequency,
   // validateWeekDay,
   validateRecurringReservationCreationData,
   validateStatusChange
 } from '~/middlewares/type-validators/recurringReservation';
+import { queryParamToBoolean } from '~/utils/general';
+
+import type { DefaultBodyType, DefaultParamsType, TypedRequest } from '~/types';
+
+import AbstractController from './AbstractController';
 
 export default class ReservationController extends AbstractController {
   private readonly recurringReservationService =
@@ -34,7 +38,9 @@ export default class ReservationController extends AbstractController {
       validateRecurringReservationCreationData(),
       this.createRecurringReservation
     );
-    this.router.get('/:id', this.getRecurringReservationById);
+    // this.router.get('/:id', this.getRecurringReservationById);
+    this.router.get('/:name', this.getRecurringReservationByName);
+
     this.router.get('/:id/reservations', this.getReservations);
     // TODO: The methods below needs to be improved
     // this.router.put(
@@ -46,9 +52,18 @@ export default class ReservationController extends AbstractController {
     this.router.put('/:id/status', validateStatusChange(), this.changeStatus);
   }
 
-  private getAllRecurringReservations = async (req: Request, res: Response) => {
+  private getAllRecurringReservations = async (
+    req: TypedRequest<
+      DefaultParamsType,
+      DefaultBodyType,
+      Stringified<RecurringReservationQueryOptions>
+    >,
+    res: Response
+  ) => {
     const recurringReservations =
-      await this.recurringReservationService.getAllRecurringReservations();
+      await this.recurringReservationService.getAllRecurringReservations({
+        includeReservations: queryParamToBoolean(req.query.includeReservations)
+      });
 
     if (recurringReservations !== null) {
       res.status(200).send({
@@ -62,12 +77,21 @@ export default class ReservationController extends AbstractController {
   };
 
   private getRecurringReservationById = async (
-    req: Request<{ id: string }>,
+    req: TypedRequest<
+      { id: string },
+      DefaultBodyType,
+      { includeReservations?: string }
+    >,
     res: Response
   ) => {
     const recurringReservation =
       await this.recurringReservationService.getRecurringReservationById(
-        parseInt(req.params.id)
+        parseInt(req.params.id),
+        {
+          includeReservations: queryParamToBoolean(
+            req.query.includeReservations
+          )
+        }
       );
 
     if (recurringReservation !== null) {
@@ -77,6 +101,38 @@ export default class ReservationController extends AbstractController {
     } else {
       res.status(404).send({
         message: `Recurring reservation with id=${req.params.id} not found`
+      });
+    }
+  };
+
+  private getRecurringReservationByName = async (
+    req: TypedRequest<
+      { name: string },
+      DefaultBodyType,
+      Stringified<RecurringReservationQueryOptions>
+    >,
+    res: Response
+  ) => {
+    const recurringReservation =
+      await this.recurringReservationService.getRecurringReservationByName(
+        req.params.name,
+        {
+          includeReservations: queryParamToBoolean(
+            req.query.includeReservations
+          ),
+          includeServices: queryParamToBoolean(req.query.includeServices),
+          includeAddress: queryParamToBoolean(req.query.includeAddress)
+        }
+      );
+
+    if (recurringReservation !== null) {
+      res.status(200).send({
+        ...recurringReservation
+      });
+    } else {
+      res.status(404).send({
+        message: `Recurring reservation with name=${req.params.name} not found`,
+        hasError: true
       });
     }
   };
@@ -110,13 +166,12 @@ export default class ReservationController extends AbstractController {
       );
 
     if (recurringReservation) {
-      res.status(200).send({
-        data: recurringReservation
-      });
+      res.status(201).send(recurringReservation);
     } else {
-      res
-        .status(400)
-        .send({ message: 'Error when creating recurring reservation' });
+      res.status(400).send({
+        message: 'Error when creating recurring reservation',
+        hasError: true
+      });
     }
   };
 
@@ -165,15 +220,14 @@ export default class ReservationController extends AbstractController {
   };
 
   private changeStatus = async (
-    req: TypedRequest<{ id: string }, RecurringReservationStatusChangeData>,
+    req: TypedRequest<{ id: string }, ReservationStatusChangeData>,
     res: Response
   ) => {
-    const { recurringReservationStatus, reservationStatus } = req.body;
+    const { ReservationStatus, reservationStatus } = req.body;
 
     const recurringReservation =
       await this.recurringReservationService.changeReservationStatus(
         parseInt(req.params.id),
-        recurringReservationStatus,
         reservationStatus
       );
 

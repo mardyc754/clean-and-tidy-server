@@ -8,29 +8,26 @@ import type { RequireAtLeastOne } from 'type-fest';
 
 import { prisma } from '~/db';
 
-export default class ClientService {
-  public async createClient(
-    username: Client['username'],
-    email: Client['email'],
-    password: Client['password']
-  ) {
-    let user: Client | null = null;
+import { executeDatabaseOperation } from './utils';
 
-    try {
-      user = await prisma.client.create({
-        data: {
-          email,
-          username,
-          password
-        }
-      });
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
+type ClientCreationData = Pick<Client, 'email'> & {
+  username?: Client['username'];
+  password?: Client['password'];
+};
+
+export default class ClientService {
+  public async createClient(data: ClientCreationData) {
+    {
+      return await executeDatabaseOperation(
+        prisma.client.create({
+          data
+        })
+      );
     }
-    return user;
   }
 
   public async getClientByUsername(username: Client['username']) {
+    if (!username) return null;
     let user: Client | null = null;
 
     try {
@@ -140,7 +137,7 @@ export default class ClientService {
 
   public async changeClientData(
     userData: Pick<Client, 'id'> &
-      RequireAtLeastOne<Client, 'name' | 'surname' | 'phone'>
+      RequireAtLeastOne<Client, 'firstName' | 'lastName' | 'phone'>
   ) {
     const { id, ...rest } = userData;
     let newClientData: Client | null = null;

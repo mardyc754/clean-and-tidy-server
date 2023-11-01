@@ -7,51 +7,125 @@ import {
 
 import { dayjs } from '~/lib';
 
-import type { RecurringReservationCreationData } from '~/schemas/recurringReservation';
+import {
+  advanceDateByMonths,
+  advanceDateByWeeks,
+  displayDateWithHours,
+  now,
+  numberOfMonthsBetween,
+  numberOfWeeksBetween
+} from './dateUtils';
+import { ReservationCreationData } from '~/schemas/reservation';
 
-import { now } from './dateUtils';
-
-export function createReservations(
-  data: RecurringReservationCreationData,
-  reservationGroupName: string
+function createWeeklyReservations(
+  reservationGroupName: string,
+  firstReservationData: ReservationCreationData,
+  endDate: string,
+  weekSpan: number
 ) {
-  const { frequency, endDate, reservationData } = data;
-
   const {
     startDate: firstReservationStartDate,
     endDate: firstReservationEndDate,
     includeDetergents,
     cost
-  } = reservationData;
+  } = firstReservationData;
 
-  let weekNumbers: number[];
+  const numberOfWeeks =
+    numberOfWeeksBetween(endDate, firstReservationStartDate) + 1;
 
-  const numberOfWeeks = dayjs(endDate).diff(firstReservationStartDate, 'week');
-  // by using dayjs(date1).diif(date2, 'week'),
-  // we can count number of the weeks ocurring between start and end date
-  // and we do not have to use magic numbers in that case
-  switch (frequency) {
-    case Frequency.ONCE_A_WEEK:
-      weekNumbers = [...Array<unknown>(numberOfWeeks)].map((_, i) => i);
-      break;
-    case Frequency.EVERY_TWO_WEEKS:
-      weekNumbers = [...Array<unknown>(Math.ceil(numberOfWeeks / 2))].map(
-        (_, i) => 2 * i
-      );
-      break;
-    case Frequency.ONCE:
-    default:
-      weekNumbers = [0];
-  }
+  const weekNumbers = [
+    ...Array<unknown>(Math.ceil(numberOfWeeks / weekSpan))
+  ].map((_, i) => i * weekSpan);
 
   return weekNumbers.map((week, i) => ({
     cost,
     includeDetergents,
-    startDate: dayjs(firstReservationStartDate).add(week, 'w').toDate(),
-    endDate: dayjs(firstReservationEndDate).add(week, 'w').toDate(),
+    startDate: advanceDateByWeeks(firstReservationStartDate, week),
+    endDate: advanceDateByWeeks(firstReservationEndDate, week),
     status: ReservationStatus.TO_BE_CONFIRMED,
     name: `${reservationGroupName}-${i + 1}`
   }));
+}
+
+function createMonthlyReservations(
+  reservationGroupName: string,
+  firstReservationData: ReservationCreationData,
+  endDate: string
+) {
+  const {
+    startDate: firstReservationStartDate,
+    endDate: firstReservationEndDate,
+    includeDetergents,
+    cost
+  } = firstReservationData;
+
+  const numberOfMonths =
+    numberOfMonthsBetween(endDate, firstReservationStartDate) + 1;
+
+  const monthNumbers = [...Array<unknown>(numberOfMonths)].map((_, i) => i);
+
+  return monthNumbers.map((week, i) => ({
+    cost,
+    includeDetergents,
+    startDate: advanceDateByMonths(firstReservationStartDate, week),
+    endDate: advanceDateByMonths(firstReservationEndDate, week),
+    status: ReservationStatus.TO_BE_CONFIRMED,
+    name: `${reservationGroupName}-${i + 1}`
+  }));
+}
+
+export function createReservations(
+  reservationGroupName: string,
+  firstReservationData: ReservationCreationData,
+  frequency: RecurringReservation['frequency'],
+  endDate: string
+) {
+  const {
+    startDate: firstReservationStartDate,
+    endDate: firstReservationEndDate,
+    includeDetergents,
+    cost
+  } = firstReservationData;
+
+  switch (frequency) {
+    case Frequency.ONCE_A_WEEK:
+      return createWeeklyReservations(
+        reservationGroupName,
+        firstReservationData,
+        endDate,
+        1
+      );
+    case Frequency.EVERY_TWO_WEEKS:
+      return createWeeklyReservations(
+        reservationGroupName,
+        firstReservationData,
+        endDate,
+        2
+      );
+    case Frequency.ONCE_A_MONTH:
+      // TODO: wonder if the monthly reservation should be created on the same day of the month
+      // or on the same day of the week but every 4 or 5 weeks
+      // because sometimes it could happen that the day of the month doesn't exist
+      // or the day of the month is on a weekend
+      // here the proper week day handling should be implemented
+      return createMonthlyReservations(
+        reservationGroupName,
+        firstReservationData,
+        endDate
+      );
+    case Frequency.ONCE:
+    default:
+      return [
+        {
+          cost,
+          includeDetergents,
+          startDate: firstReservationStartDate,
+          endDate: firstReservationEndDate,
+          status: ReservationStatus.TO_BE_CONFIRMED,
+          name: `${reservationGroupName}-1`
+        }
+      ];
+  }
 }
 
 export function shouldChangeReservationFrequency(

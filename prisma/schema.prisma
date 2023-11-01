@@ -19,13 +19,6 @@ enum ReservationStatus {
   CANCELLED
 }
 
-enum RecurringReservationStatus {
-  TO_BE_CONFIRMED
-  CLOSED
-  TO_BE_CANCELLED
-  CANCELLED
-}
-
 enum Frequency {
   ONCE
   ONCE_A_WEEK
@@ -35,20 +28,20 @@ enum Frequency {
 
 model Client {
   id                            Int                          @id @default(autoincrement())
-  name                          String?                      @db.VarChar(50)
-  surname                       String?                      @db.VarChar(50)
-  username                      String                       @unique @db.VarChar(30)
+  firstName                     String?                      @db.VarChar(50)
+  lastName                      String?                      @db.VarChar(50)
+  username                      String?                      @unique @db.VarChar(30)
   email                         String                       @unique @db.VarChar(40)
-  password                      String                       @db.VarChar(60)
+  password                      String?                      @db.VarChar(60)
   phone                         String?                      @db.VarChar(15)
   recurringReservations         RecurringReservation[]
 }
 
 model Reservation {
-  id                            Int                          @id @default(autoincrement())
-  name                          String                       @db.VarChar(30)
-  startDate                     DateTime                     @db.Date
-  endDate                       DateTime                     @db.Date
+  id                            Int                          @id @default(autoincrement()) // maybe it should be UUID
+  name                          String                       @db.VarChar(100) @unique
+  startDate                     DateTime
+  endDate                       DateTime
   includeDetergents             Boolean 
   cost                          Decimal                      @db.Money
   recurringReservation          RecurringReservation         @relation(fields: [recurringReservationId], references: [id], onDelete: Cascade)
@@ -58,18 +51,20 @@ model Reservation {
 }
 
 model RecurringReservation {
-  id                            Int                           @id @default(autoincrement())
-  name                          String                        @db.VarChar(50)
+  id                            Int                           @id @default(autoincrement()) // maybe it should be UUID
+  name                          String                        @db.VarChar(100) @unique
   frequency                     Frequency
   endDate                       DateTime  // not sure if this field is needed
   weekDay                       Int                           @db.SmallInt
-  status                        RecurringReservationStatus
-  client                        Client                        @relation(fields: [clientId], references: [id])
-  clientId                      Int                          
+  status                        ReservationStatus
+  client                        Client                        @relation(fields: [bookerEmail], references: [email])
+  bookerEmail                   String                          
   reservations                  Reservation[]
   address                       Address                       @relation(fields: [addressId], references: [id])
   addressId                     Int                          
   services                      RecurringReservationService[]
+  bookerFirstName               String                        @db.VarChar(50)
+  bookerLastName                String                        @db.VarChar(50)
 }
 
 model Address {
@@ -84,8 +79,8 @@ model Address {
 
 model Employee {
   id                            Int                           @id @default(autoincrement())
-  name                          String                        @db.VarChar(50)
-  surname                       String                        @db.VarChar(50)
+  firstName                     String                        @db.VarChar(50)
+  lastName                      String                        @db.VarChar(50)
   email                         String                        @unique  @db.VarChar(40)
   password                      String                        @db.VarChar(60)
   startHour                     DateTime                      @db.Time

@@ -42,7 +42,8 @@ export default class AuthController extends AbstractController {
     if (userExists) {
       return res.status(409).send({
         message: 'User with given username already exists',
-        affectedField: 'username'
+        affectedField: 'username',
+        hasError: true
       });
     }
 
@@ -57,23 +58,24 @@ export default class AuthController extends AbstractController {
     if (userExists) {
       return res.status(409).send({
         message: 'User with given email already exists',
-        affectedField: 'email'
+        affectedField: 'email',
+        hasError: true
       });
     }
 
     const hashedPassword = await bcrypt.hash(password, 8);
-    const user = await this.clientService.createClient(
+    const user = await this.clientService.createClient({
       username,
       email,
-      hashedPassword
-    );
+      password: hashedPassword
+    });
 
     if (user) {
       res.status(201).send({
         id: user.id,
         username: user.username,
         email: user.email,
-        message: 'User created succesfully'
+        message: 'Client created succesfully'
       });
     } else {
       res
@@ -97,13 +99,11 @@ export default class AuthController extends AbstractController {
       user = await this.clientService.getClientByEmail(email);
     }
 
-    if (!user) {
-      return res
-        .status(404)
-        .send({
-          message: 'User with given email does not exist',
-          hasError: true
-        });
+    if (!user || !user.password) {
+      return res.status(user ? 400 : 404).send({
+        message: 'User with given email does not exist',
+        hasError: true
+      });
     }
 
     const passwordsMatch = await bcrypt.compare(password, user.password);

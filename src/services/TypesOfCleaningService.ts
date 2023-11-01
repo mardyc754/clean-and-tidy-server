@@ -6,7 +6,7 @@ import {
   CreateServiceData,
   PrimarySecondaryIds
 } from '~/schemas/typesOfCleaning';
-import { executeDatabaseOperation } from './utils';
+import { executeDatabaseOperation, includeWithOtherDataIfTrue } from './utils';
 import { getResponseServiceData } from '~/utils/services';
 
 type AllServicesQueryOptions = {
@@ -19,17 +19,6 @@ type ServiceQueryOptions = {
   includeCleaningFrequencies: boolean;
 };
 
-const includeIfTrue = (name: string, option: boolean | undefined) =>
-  option
-    ? {
-        [name]: {
-          include: {
-            unit: true
-          }
-        }
-      }
-    : undefined;
-
 export default class TypesOfCleaningService {
   public async getServiceById(
     id: Service['id'],
@@ -39,9 +28,14 @@ export default class TypesOfCleaningService {
       prisma.service.findUnique({
         where: { id },
         include: {
-          ...includeIfTrue('primaryServices', options?.includePrimaryServices),
-          ...includeIfTrue(
+          ...includeWithOtherDataIfTrue(
+            'primaryServices',
+            'unit',
+            options?.includePrimaryServices
+          ),
+          ...includeWithOtherDataIfTrue(
             'secondaryServices',
+            'unit',
             options?.includeSecondaryServices
           ),
           cleaningFrequencies: options?.includeCleaningFrequencies

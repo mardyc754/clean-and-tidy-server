@@ -2,10 +2,10 @@ import {
   type RecurringReservation,
   type Reservation,
   Frequency,
-  RecurringReservationStatus,
   ReservationStatus
 } from '@prisma/client';
-import { v4 as uuidv4 } from 'uuid';
+import short from 'short-uuid';
+import type { RequireAtLeastOne } from 'type-fest';
 
 import { prisma } from '~/db';
 import {
@@ -15,18 +15,35 @@ import {
   changeWeekDay,
   createReservations
 } from '~/utils/reservations';
-import { extractWeekDayFromDate } from '~/utils/dateUtils';
+import {
+  advanceDateByOneYear,
+  extractWeekDayFromDate
+} from '~/utils/dateUtils';
 
 import type { RecurringReservationCreationData } from '~/schemas/recurringReservation';
 
+import {
+  executeDatabaseOperation,
+  includeIfTrue,
+  includeWithOtherDataIfTrue
+} from './utils';
+
+export type RecurringReservationQueryOptions = RequireAtLeastOne<{
+  includeReservations: boolean;
+  includeServices: boolean;
+  includeAddress: boolean;
+}>;
+
 export default class RecurringReservationService {
-  public async getAllRecurringReservations() {
+  public async getAllRecurringReservations(
+    options?: RecurringReservationQueryOptions
+  ) {
     let recurringReservations: RecurringReservation[] | null = null;
 
     try {
       recurringReservations = await prisma.recurringReservation.findMany({
         include: {
-          reservations: true
+          ...includeIfTrue('reservations', options?.includeReservations)
         }
       });
     } catch (err) {
@@ -36,21 +53,48 @@ export default class RecurringReservationService {
     return recurringReservations;
   }
 
-  public async getRecurringReservationById(id: RecurringReservation['id']) {
-    let recurringReservation: RecurringReservation | null = null;
-
-    try {
-      recurringReservation = await prisma.recurringReservation.findUnique({
+  public async getRecurringReservationById(
+    id: RecurringReservation['id'],
+    options?: RecurringReservationQueryOptions
+  ) {
+    return await executeDatabaseOperation(
+      prisma.recurringReservation.findUnique({
         where: { id },
         include: {
-          reservations: true
+          ...includeWithOtherDataIfTrue(
+            'reservations',
+            'employees',
+            options?.includeReservations
+          )
         }
-      });
-    } catch (err) {
-      console.error(err);
-    }
+      })
+    );
+  }
 
-    return recurringReservation;
+  public async getRecurringReservationByName(
+    name: RecurringReservation['name'],
+    options?: RecurringReservationQueryOptions
+  ) {
+    return await executeDatabaseOperation(
+      prisma.recurringReservation.findUnique({
+        where: { name },
+        include: {
+          ...includeWithOtherDataIfTrue(
+            'reservations',
+            'employees',
+            options?.includeReservations
+          ),
+          // in order to include service data associated with reservation
+          ...includeWithOtherDataIfTrue(
+            'services',
+            'service',
+            options?.includeServices
+          ),
+          // get the address associated with the reservation
+          ...includeIfTrue('address', options?.includeAddress)
+        }
+      })
+    );
   }
 
   public async getReservations(id: RecurringReservation['id']) {
@@ -70,15 +114,29 @@ export default class RecurringReservationService {
   public async createRecurringReservation(
     data: RecurringReservationCreationData
   ) {
-    const reservationGroupName = `reservationGroup-${uuidv4()}`;
+    const reservationGroupName = `reservation-${short.generate()}`;
     let recurringReservation: RecurringReservation | null = null;
 
-    const reservations = createReservations(
-      data,
-      reservationGroupName // TODO: it can be changed to normal id later because right now, the name will be too long
-    );
+    const {
+      bookerEmail,
+      frequency,
+      address,
+      contactDetails: { firstName: bookerFirstName, lastName: bookerLastName },
+      services,
+      reservationData
+    } = data;
 
-    const { clientId, endDate, frequency, address } = data;
+    const endDate =
+      frequency !== Frequency.ONCE
+        ? advanceDateByOneYear(reservationData.endDate)
+        : reservationData.endDate;
+
+    const reservations = createReservations(
+      reservationGroupName, // TODO: it can be changed to normal id later because right now, the name will be too long
+      reservationData,
+      frequency,
+      endDate
+    );
 
     try {
       let addressId: number;
@@ -97,22 +155,45 @@ export default class RecurringReservationService {
 
       recurringReservation = await prisma.recurringReservation.create({
         data: {
-          clientId,
-          status: RecurringReservationStatus.TO_BE_CONFIRMED,
+          status: ReservationStatus.TO_BE_CONFIRMED,
           weekDay: extractWeekDayFromDate(endDate),
           reservations: {
-            createMany: {
-              data: reservations
-            }
+            create: reservations.map((reservation) => ({
+              ...reservation,
+              employees: {
+                connect: reservationData.employeeIds.map((id) => ({ id }))
+              }
+            }))
+          },
+          services: {
+            create: services
           },
           name: reservationGroupName,
           frequency,
-          endDate,
-          addressId
+          endDate, // not sure if end date should be set on the
+          // frontend or on the backend side
+          bookerFirstName,
+          bookerLastName,
+          address: {
+            connect: {
+              id: addressId
+            }
+          },
+          client: {
+            connectOrCreate: {
+              where: {
+                email: bookerEmail
+              },
+              create: {
+                email: bookerEmail
+              }
+            }
+          }
         }
       });
     } catch (err) {
       console.error(err);
+      recurringReservation = null;
     }
 
     return recurringReservation;
@@ -151,7 +232,7 @@ export default class RecurringReservationService {
           where: { id },
           data: {
             frequency,
-            status: RecurringReservationStatus.TO_BE_CONFIRMED,
+            status: ReservationStatus.TO_BE_CONFIRMED,
             reservations: {
               createMany: {
                 // updateMany may not work because that function updates already existing records only
@@ -196,7 +277,7 @@ export default class RecurringReservationService {
       recurringReservation = await prisma.recurringReservation.update({
         where: { id },
         data: {
-          status: RecurringReservationStatus.TO_BE_CONFIRMED,
+          status: ReservationStatus.TO_BE_CONFIRMED,
           reservations: {
             updateMany: {
               where: { recurringReservationId: id },
@@ -230,7 +311,7 @@ export default class RecurringReservationService {
       recurringReservation = await prisma.recurringReservation.update({
         where: { id },
         data: {
-          status: RecurringReservationStatus.TO_BE_CANCELLED,
+          status: ReservationStatus.TO_BE_CANCELLED,
           reservations: {
             updateMany: {
               where: { recurringReservationId: id },
@@ -248,7 +329,6 @@ export default class RecurringReservationService {
 
   public async changeReservationStatus(
     id: RecurringReservation['id'],
-    newRecurringReservationStatus: RecurringReservationStatus,
     newReservationStatus: ReservationStatus
   ) {
     let recurringReservation: RecurringReservation | null = null;
@@ -267,7 +347,7 @@ export default class RecurringReservationService {
       recurringReservation = await prisma.recurringReservation.update({
         where: { id },
         data: {
-          status: newRecurringReservationStatus,
+          status: newReservationStatus,
           reservations: {
             updateMany: {
               where: { recurringReservationId: id },
@@ -303,7 +383,7 @@ export default class RecurringReservationService {
         reservationToClose = await prisma.recurringReservation.update({
           where: { id },
           data: {
-            status: RecurringReservationStatus.CLOSED
+            status: ReservationStatus.CLOSED
           }
         });
       } catch (err) {
