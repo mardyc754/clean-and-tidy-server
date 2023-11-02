@@ -25,9 +25,9 @@ export default class EmployeeController extends AbstractController {
     this.router.post('/', validateEmployeeCreationData(), this.createEmployee);
     this.router.get('/:id', this.getEmployeeById);
     this.router.get(
-      '/:id/reservations',
+      '/:id/visits',
       validateIsEmployee(),
-      this.getEmployeeReservations
+      this.getEmployeeVisits
     );
     this.router.get('/:id/services', this.getEmployeeServices);
 
@@ -69,16 +69,16 @@ export default class EmployeeController extends AbstractController {
     }
   };
 
-  private getEmployeeReservations = async (
+  private getEmployeeVisits = async (
     req: TypedRequest<{ id: string }>,
     res: Response
   ) => {
-    const reservations = await this.employeeService.getEmployeeReservations(
+    const visits = await this.employeeService.getEmployeeVisits(
       parseInt(req.params.id)
     );
 
-    if (reservations !== null) {
-      res.status(200).send({ data: reservations });
+    if (visits !== null) {
+      res.status(200).send({ data: visits });
     } else {
       res
         .status(404)

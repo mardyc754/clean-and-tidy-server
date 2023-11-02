@@ -1,19 +1,22 @@
 import {
-  singleReservationCreationDataSchema,
-  changeReservationDateSchema,
-  changeReservationStatusSchema
+  FrequencyChangeSchema,
+  reservationCreationSchema,
+  weekDaySchema
 } from '~/schemas/reservation';
-
 import { validateTypes } from './validateTypesOfData';
 
-export function validateSingleReservationCreationData() {
-  return validateTypes({ bodyParser: singleReservationCreationDataSchema });
+export function validateReservationCreationData() {
+  return validateTypes({ bodyParser: reservationCreationSchema });
 }
 
-export function validateReservationDate() {
-  return validateTypes({ bodyParser: changeReservationDateSchema });
+export function validateFrequency() {
+  return validateTypes({ bodyParser: FrequencyChangeSchema });
 }
 
-export function validateReservationStatus() {
-  return validateTypes({ bodyParser: changeReservationStatusSchema });
+export function validateWeekDay() {
+  return validateTypes({ bodyParser: weekDaySchema });
+}
+
+export function validateStatusChange() {
+  return validateTypes({ bodyParser: reservationCreationSchema });
 }

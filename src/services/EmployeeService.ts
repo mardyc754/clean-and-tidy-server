@@ -1,8 +1,8 @@
 import {
-  type Reservation,
+  type Visit,
   type Employee,
   type Service,
-  ReservationStatus
+  Status
 } from '@prisma/client';
 
 import { prisma } from '~/db';
@@ -46,27 +46,27 @@ export default class EmployeeService {
     return employees;
   }
 
-  public async getEmployeeReservations(
+  public async getEmployeeVisits(
     employeeId: Employee['id'],
-    status?: Reservation['status']
+    status?: Visit['status']
   ) {
-    let reservations: Reservation[] | null = null;
+    let visits: Visit[] | null = null;
 
     const reservationStatusFilter = status ? { where: { status } } : true;
 
     try {
-      const employeeWithReservations = await prisma.employee.findUnique({
+      const employeeWithVisits = await prisma.employee.findUnique({
         where: { id: employeeId },
         include: {
-          reservations: reservationStatusFilter
+          visits: reservationStatusFilter
         }
       });
 
-      reservations = employeeWithReservations?.reservations ?? [];
+      visits = employeeWithVisits?.visits ?? [];
     } catch (err) {
       console.error(`Something went wrong: ${err}`);
     }
-    return reservations;
+    return visits;
   }
 
   public async getEmployeeServices(employeeId: Employee['id']) {
@@ -131,19 +131,16 @@ export default class EmployeeService {
     return newEmployeeData;
   }
 
-  // delete employee account when the employee does not have any reservations
+  // delete employee account when the employee does not have any visits
   public async deleteEmployee(employeeId: Employee['id']) {
     let deleteEmployee: Employee | null = null;
 
-    const employeeActiveReservations = await this.getEmployeeReservations(
+    const employeeActiveVisits = await this.getEmployeeVisits(
       employeeId,
-      ReservationStatus.ACTIVE
+      Status.ACTIVE
     );
 
-    if (
-      !employeeActiveReservations ||
-      employeeActiveReservations.length === 0
-    ) {
+    if (!employeeActiveVisits || employeeActiveVisits.length === 0) {
       try {
         deleteEmployee = await prisma.employee.delete({
           where: { id: employeeId }

@@ -1,9 +1,4 @@
-import {
-  Reservation,
-  Address,
-  Client,
-  ReservationStatus
-} from '@prisma/client';
+import { Visit, Address, Client, Status } from '@prisma/client';
 import type { RequireAtLeastOne } from 'type-fest';
 
 import { prisma } from '~/db';
@@ -77,47 +72,42 @@ export default class ClientService {
     return users;
   }
 
-  public async getClientReservations(
-    clientId: Client['id'],
-    status?: ReservationStatus
-  ) {
-    let reservations: Reservation[] | null = null;
+  public async getClientVisits(clientId: Client['id'], status?: Status) {
+    let visits: Visit[] | null = null;
 
     const reservationStatusFilter = status ? { where: { status } } : true;
 
-    // let userWithReservations;
+    // let userWithVisits;
     try {
-      const userWithReservations = await prisma.client.findUnique({
+      const userWithVisits = await prisma.client.findUnique({
         where: { id: clientId },
         include: {
-          recurringReservations: {
+          reservations: {
             include: {
-              reservations: reservationStatusFilter
+              visits: reservationStatusFilter
             }
           }
         }
       });
 
-      reservations =
-        userWithReservations?.recurringReservations.flatMap(
-          (group) => group.reservations
-        ) ?? null;
+      visits =
+        userWithVisits?.reservations.flatMap((group) => group.visits) ?? null;
     } catch (err) {
       console.error(`Something went wrong: ${err}`);
     }
 
-    return reservations;
-    // return userWithReservations;
+    return visits;
+    // return userWithVisits;
   }
 
   public async getClientAddresses(clientId: Client['id']) {
     let addresses: Address[] | null = null;
 
     try {
-      const userWithReservations = await prisma.client.findUnique({
+      const userWithVisits = await prisma.client.findUnique({
         where: { id: clientId },
         include: {
-          recurringReservations: {
+          reservations: {
             include: {
               address: true
             }
@@ -126,9 +116,7 @@ export default class ClientService {
       });
 
       addresses =
-        userWithReservations?.recurringReservations.flatMap(
-          (group) => group.address
-        ) ?? null;
+        userWithVisits?.reservations.flatMap((group) => group.address) ?? null;
     } catch (err) {
       console.error(`Something went wrong: ${err}`);
     }
@@ -160,12 +148,12 @@ export default class ClientService {
   public async deleteClient(clientId: Client['id']) {
     let deleteClient: Client | null = null;
 
-    const userActiveReservations = await this.getClientReservations(
+    const userActiveVisits = await this.getClientVisits(
       clientId,
-      ReservationStatus.ACTIVE
+      Status.ACTIVE
     );
 
-    if (!userActiveReservations || userActiveReservations.length === 0) {
+    if (!userActiveVisits || userActiveVisits.length === 0) {
       try {
         deleteClient = await prisma.client.delete({
           where: { id: clientId }
