@@ -3,8 +3,8 @@ import {
   ClientController,
   TypesOfCleaningController,
   EmployeeController,
-  RecurringReservationController,
   ReservationController,
+  VisitController,
   AddressController
 } from '~/controllers';
 import App from './App';
@@ -17,8 +17,8 @@ const app = new App(
     new ClientController(),
     new TypesOfCleaningController(),
     new EmployeeController(),
+    new VisitController(),
     new ReservationController(),
-    new RecurringReservationController(),
     new AddressController()
   ],
   port

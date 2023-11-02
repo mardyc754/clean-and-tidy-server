@@ -1,4 +1,4 @@
-import type { ReservationStatus, Client } from '@prisma/client';
+import type { Status, Client } from '@prisma/client';
 import type { Request, Response } from 'express';
 import type { Stringified } from 'type-fest';
 
@@ -34,9 +34,9 @@ export default class ClientController extends AbstractController {
     );
     this.router.get('/:id', this.getClientById);
     this.router.get(
-      '/:id/reservations',
+      '/:id/visits',
       validateAccessToClientData(),
-      this.getClientReservations
+      this.getClientVisits
     );
     this.router.get('/:id/addresses', this.getClientAddresses);
     this.router.put('/:id', validateClientUpdateData(), this.changeClientData);
@@ -101,17 +101,17 @@ export default class ClientController extends AbstractController {
     }
   };
 
-  private getClientReservations = async (
+  private getClientVisits = async (
     req: Request<
       Stringified<Pick<Client, 'id'>>,
       DefaultBodyType,
-      { status?: ReservationStatus }
+      { status?: Status }
     >,
     res: Response
   ) => {
-    const reservations = await this.userService.getClientReservations(
+    const reservations = await this.userService.getClientVisits(
       parseInt(req.params.id),
-      req.query.status as ReservationStatus | undefined
+      req.query.status as Status | undefined
     );
 
     if (reservations !== null) {
