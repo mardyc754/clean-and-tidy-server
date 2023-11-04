@@ -1,14 +1,16 @@
 import { dayjs } from '~/lib';
 
+type ValidDayjsDate = dayjs.Dayjs | Date | string | number | null | undefined;
+
 export function now() {
   return dayjs(Date.now()); // for safety, it'd be better to change the date to UTC
 }
 
 export function areStartEndDateValid(
-  startDate: string,
-  endDate: string,
-  oldStartDate: Date,
-  oldEndDate: Date
+  startDate: ValidDayjsDate,
+  endDate: ValidDayjsDate,
+  oldStartDate: ValidDayjsDate,
+  oldEndDate: ValidDayjsDate
 ) {
   return (
     dayjs(startDate).diff(now(), 'day') > 2 &&
@@ -20,34 +22,44 @@ export function areStartEndDateValid(
   );
 }
 
-export function hourToISOString(hourString: string) {
+export function hourToISOString(hourString: ValidDayjsDate) {
   return dayjs(hourString, 'HH:mm').toISOString();
 }
 
-export function extractWeekDayFromDate(date: string) {
+export function extractWeekDayFromDate(date: ValidDayjsDate) {
   return dayjs(date).day();
 }
 
-export function advanceDateByOneYear(date: string) {
+export function advanceDateByOneYear(date: ValidDayjsDate) {
   return dayjs(date).add(1, 'year').toISOString();
 }
 
-export function numberOfWeeksBetween(endDate: string, startDate: string) {
+export function numberOfWeeksBetween(
+  endDate: ValidDayjsDate,
+  startDate: ValidDayjsDate
+) {
   return dayjs(endDate).diff(dayjs(startDate), 'week');
 }
 
-export function numberOfMonthsBetween(endDate: string, startDate: string) {
+export function numberOfMonthsBetween(
+  endDate: ValidDayjsDate,
+  startDate: ValidDayjsDate
+) {
   return dayjs(endDate).diff(dayjs(startDate), 'month');
 }
 
-export function advanceDateByWeeks(date: string, weeks: number) {
+export function advanceDateByWeeks(date: ValidDayjsDate, weeks: number) {
   return dayjs(date).add(weeks, 'week').toISOString();
 }
 
-export function advanceDateByMonths(date: string, months: number) {
+export function advanceDateByMonths(date: ValidDayjsDate, months: number) {
   return dayjs(date).add(months, 'month').toISOString();
 }
 
-export function displayDateWithHours(date: Date | string) {
+export function displayDateWithHours(date: ValidDayjsDate) {
   return dayjs(date).format('DD.MM.YYYY HH:mm');
+}
+
+export function advanceDateByHours(date: ValidDayjsDate, hours: number) {
+  return dayjs(date).add(hours, 'hour');
 }

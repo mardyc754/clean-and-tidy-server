@@ -5,13 +5,10 @@ import { JWT_SECRET, UserRole } from '~/constants';
 
 type AuthenticationData = { acceptableRoles: UserRole[] };
 
-function authenticate(data?: AuthenticationData) {
+function checkRole(data?: AuthenticationData) {
   return (req: Request, res: Response, next: NextFunction) => {
-    console.log({ cookies: req.cookies });
     if (!req.cookies.authToken) {
-      return res
-        .status(401)
-        .send({ message: 'Credentials were not provided', hasError: true });
+      return res.status(401).send({ message: 'Credentials were not provided' });
     }
 
     try {
@@ -25,8 +22,7 @@ function authenticate(data?: AuthenticationData) {
         !data.acceptableRoles.includes(decoded.role)
       ) {
         return res.status(403).send({
-          message: 'Cannot access resource with given permissions',
-          hasError: true
+          message: 'Cannot access resource with given permissions'
         });
       }
 
@@ -39,14 +35,14 @@ function authenticate(data?: AuthenticationData) {
   };
 }
 
-export function validateAccessToClientData() {
-  return authenticate({ acceptableRoles: [UserRole.CLIENT, UserRole.ADMIN] });
+export function checkAccessToClientData() {
+  return checkRole({ acceptableRoles: [UserRole.CLIENT, UserRole.ADMIN] });
 }
 
-export function validateIsEmployee() {
-  return authenticate({ acceptableRoles: [UserRole.EMPLOYEE, UserRole.ADMIN] });
+export function checkIsEmployee() {
+  return checkRole({ acceptableRoles: [UserRole.EMPLOYEE, UserRole.ADMIN] });
 }
 
-export function validateIsAdmin() {
-  return authenticate({ acceptableRoles: [UserRole.ADMIN] });
+export function checkIsAdmin() {
+  return checkRole({ acceptableRoles: [UserRole.ADMIN] });
 }

@@ -1,10 +1,14 @@
 import { validateTypes } from './validateTypesOfData';
-import { loginSchema, registerSchema } from '~/schemas/auth';
+import { currentUserSchema, loginSchema, registerSchema } from '~/schemas/auth';
 
-export const validateLoginData = () => {
+export const checkLoginData = () => {
   return validateTypes({ bodyParser: loginSchema });
 };
 
-export const validateRegisterData = () => {
+export const checkRegisterData = () => {
   return validateTypes({ bodyParser: registerSchema });
+};
+
+export const checkCurrentUserData = () => {
+  return validateTypes({ bodyParser: currentUserSchema });
 };

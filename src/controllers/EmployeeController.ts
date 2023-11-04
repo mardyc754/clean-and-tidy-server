@@ -3,7 +3,7 @@ import type { Request, Response } from 'express';
 
 import type { EmployeeCreationData } from '~/schemas/employee';
 
-import { validateIsEmployee } from '~/middlewares/auth/authenticate';
+import { checkIsEmployee } from '~/middlewares/auth/checkRole';
 import { validateEmployeeCreationData } from '~/middlewares/type-validators/employee';
 
 import { EmployeeService } from '~/services';
@@ -24,11 +24,7 @@ export default class EmployeeController extends AbstractController {
     this.router.get('/', this.getAllEmployees);
     this.router.post('/', validateEmployeeCreationData(), this.createEmployee);
     this.router.get('/:id', this.getEmployeeById);
-    this.router.get(
-      '/:id/visits',
-      validateIsEmployee(),
-      this.getEmployeeVisits
-    );
+    this.router.get('/:id/visits', checkIsEmployee(), this.getEmployeeVisits);
     this.router.get('/:id/services', this.getEmployeeServices);
 
     this.router.post(

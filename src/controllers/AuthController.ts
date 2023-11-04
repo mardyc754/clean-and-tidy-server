@@ -1,16 +1,22 @@
 import jwt from 'jsonwebtoken';
 import * as bcrypt from 'bcrypt';
+import { omit } from 'lodash';
 import type { Request, Response } from 'express';
 import type { Employee, Client } from '@prisma/client';
 
 import { JWT_SECRET, UserRole } from '~/constants';
-import { ClientService, EmployeeService } from '~/services';
+
 import { LoginData } from '~/schemas/auth';
 import {
-  validateLoginData,
-  validateRegisterData
+  checkLoginData,
+  checkRegisterData
 } from '~/middlewares/type-validators/auth';
+
+import { advanceDateByHours } from '~/utils/dateUtils';
+
 import type { DefaultParamsType, TypedRequest } from '~/types';
+
+import { ClientService, EmployeeService } from '~/services';
 
 import AbstractController from './AbstractController';
 
@@ -27,9 +33,10 @@ export default class AuthController extends AbstractController {
   }
 
   public createRouters() {
-    this.router.post('/register', validateRegisterData(), this.register);
-    this.router.post('/login', validateLoginData(), this.login);
+    this.router.post('/register', checkRegisterData(), this.register);
+    this.router.post('/login', checkLoginData(), this.login);
     this.router.post('/logout', this.logout);
+    this.router.get('/user', this.getCurrentUser);
   }
 
   private register = async (req: Request, res: Response) => {
@@ -102,7 +109,7 @@ export default class AuthController extends AbstractController {
     if (!user || !user.password) {
       return res.status(user ? 400 : 404).send({
         message: 'User with given email does not exist',
-        hasError: true
+        affectedField: 'email'
       });
     }
 
@@ -111,7 +118,7 @@ export default class AuthController extends AbstractController {
     if (!passwordsMatch) {
       return res
         .status(400)
-        .send({ message: 'Invalid password', hasError: true });
+        .send({ message: 'Invalid password', affectedField: 'password' });
     }
 
     if ('isAdmin' in user) {
@@ -122,7 +129,7 @@ export default class AuthController extends AbstractController {
 
     const token = jwt.sign(
       {
-        id: user.id,
+        userId: user.id,
         email: user.email,
         role
       },
@@ -130,13 +137,17 @@ export default class AuthController extends AbstractController {
     );
 
     res.cookie('authToken', token, {
-      expires: new Date(Date.now() + 8 * 3600000), // cookie for 8 hours
+      expires: advanceDateByHours(Date.now(), 8).toDate(), // cookie for 8 hours
       httpOnly: true
     });
 
-    res
-      .status(200)
-      .send({ message: 'Logged in successfully', isAuthenticated: true, role });
+    res.status(200).send({
+      message: 'Logged in successfully',
+      isAuthenticated: true,
+      role,
+      userId: user.id,
+      email: user.email
+    });
   };
 
   private logout = (_: Request, res: Response) => {
@@ -144,5 +155,41 @@ export default class AuthController extends AbstractController {
     res
       .status(200)
       .send({ message: 'Logged out successfully', isAuthenticated: false });
+  };
+
+  private getCurrentUser = async (req: TypedRequest, res: Response) => {
+    if (!req.cookies.authToken) {
+      return res.status(401).send({ message: 'Credentials were not provided' });
+    }
+
+    try {
+      const decoded = jwt.verify(
+        req.cookies.authToken,
+        JWT_SECRET
+      ) as jwt.JwtPayload;
+
+      const { id, role } = decoded;
+
+      let user: Client | Employee | null = null;
+
+      if (role === UserRole.CLIENT) {
+        user = await this.clientService.getClientById(id);
+      } else if (role === UserRole.EMPLOYEE || role === UserRole.ADMIN) {
+        user = await this.employeeService.getEmployeeById(id);
+      }
+
+      if (!user) {
+        return res.status(404).send({
+          message: 'User with given data does not exist'
+        });
+      }
+
+      return res.status(200).send({
+        ...omit(user, ['password', 'isAdmin']),
+        role
+      });
+    } catch (err) {
+      res.status(403).send({ message: 'Invalid token' });
+    }
   };
 }

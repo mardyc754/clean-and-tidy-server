@@ -10,7 +10,7 @@ import {
   validateClientUpdateData,
   validateCreateAnonymousClientData
 } from '~/middlewares/type-validators/client';
-import { validateAccessToClientData } from '~/middlewares/auth/authenticate';
+import { checkAccessToClientData } from '~/middlewares/auth/checkRole';
 
 import type { DefaultBodyType, TypedRequest, DefaultParamsType } from '~/types';
 
@@ -35,7 +35,7 @@ export default class ClientController extends AbstractController {
     this.router.get('/:id', this.getClientById);
     this.router.get(
       '/:id/visits',
-      validateAccessToClientData(),
+      checkAccessToClientData(),
       this.getClientVisits
     );
     this.router.get('/:id/addresses', this.getClientAddresses);
