@@ -158,29 +158,25 @@ export default class AuthController extends AbstractController {
   };
 
   private getCurrentUser = async (req: TypedRequest, res: Response) => {
-    if (!req.cookies.authToken) {
-      return res.status(401).send({ message: 'Credentials were not provided' });
-    }
-
     try {
       const decoded = jwt.verify(
         req.cookies.authToken,
         JWT_SECRET
       ) as jwt.JwtPayload;
 
-      const { id, role } = decoded;
+      const { userId, role } = decoded;
 
       let user: Client | Employee | null = null;
 
       if (role === UserRole.CLIENT) {
-        user = await this.clientService.getClientById(id);
+        user = await this.clientService.getClientById(userId);
       } else if (role === UserRole.EMPLOYEE || role === UserRole.ADMIN) {
-        user = await this.employeeService.getEmployeeById(id);
+        user = await this.employeeService.getEmployeeById(userId);
       }
 
       if (!user) {
         return res.status(404).send({
-          message: 'User with given data does not exist'
+          message: `User with id=${userId} and role=${role} does not exist`
         });
       }
 
@@ -189,7 +185,7 @@ export default class AuthController extends AbstractController {
         role
       });
     } catch (err) {
-      res.status(403).send({ message: 'Invalid token' });
+      res.status(200).send({});
     }
   };
 }
