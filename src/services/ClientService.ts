@@ -1,4 +1,4 @@
-import { Visit, Address, Client, Status } from '@prisma/client';
+import { Visit, Address, Client, Status, Reservation } from '@prisma/client';
 import type { RequireAtLeastOne } from 'type-fest';
 
 import { prisma } from '~/db';
@@ -72,32 +72,25 @@ export default class ClientService {
     return users;
   }
 
-  public async getClientVisits(clientId: Client['id'], status?: Status) {
-    let visits: Visit[] | null = null;
-
+  public async getClientReservations(clientId: Client['id'], status?: Status) {
     const reservationStatusFilter = status ? { where: { status } } : true;
-
-    // let userWithVisits;
-    try {
-      const userWithVisits = await prisma.client.findUnique({
+    return await executeDatabaseOperation(
+      prisma.client.findUnique({
         where: { id: clientId },
         include: {
           reservations: {
             include: {
-              visits: reservationStatusFilter
+              visits: reservationStatusFilter,
+              services: {
+                include: {
+                  service: true
+                }
+              }
             }
           }
         }
-      });
-
-      visits =
-        userWithVisits?.reservations.flatMap((group) => group.visits) ?? null;
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
-    }
-
-    return visits;
-    // return userWithVisits;
+      })
+    );
   }
 
   public async getClientAddresses(clientId: Client['id']) {
@@ -148,20 +141,20 @@ export default class ClientService {
   public async deleteClient(clientId: Client['id']) {
     let deleteClient: Client | null = null;
 
-    const userActiveVisits = await this.getClientVisits(
+    const userActiveVisits = await this.getClientReservations(
       clientId,
       Status.ACTIVE
     );
 
-    if (!userActiveVisits || userActiveVisits.length === 0) {
-      try {
-        deleteClient = await prisma.client.delete({
-          where: { id: clientId }
-        });
-      } catch (err) {
-        console.error(`Something went wrong: ${err}`);
-      }
-    }
+    // if (!userActiveVisits || userActiveVisits.visits.length === 0) {
+    //   try {
+    //     deleteClient = await prisma.client.delete({
+    //       where: { id: clientId }
+    //     });
+    //   } catch (err) {
+    //     console.error(`Something went wrong: ${err}`);
+    //   }
+    // }
 
     return deleteClient;
   }

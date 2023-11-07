@@ -1,3 +1,4 @@
+import { omit } from 'lodash';
 import type { Status, Client } from '@prisma/client';
 import type { Request, Response } from 'express';
 import type { Stringified } from 'type-fest';
@@ -34,9 +35,9 @@ export default class ClientController extends AbstractController {
     );
     this.router.get('/:id', this.getClientById);
     this.router.get(
-      '/:id/visits',
-      checkAccessToClientData(),
-      this.getClientVisits
+      '/:id/reservations',
+      // checkAccessToClientData(),
+      this.getClientReservations
     );
     this.router.get('/:id/addresses', this.getClientAddresses);
     this.router.put('/:id', validateClientUpdateData(), this.changeClientData);
@@ -101,7 +102,7 @@ export default class ClientController extends AbstractController {
     }
   };
 
-  private getClientVisits = async (
+  private getClientReservations = async (
     req: Request<
       Stringified<Pick<Client, 'id'>>,
       DefaultBodyType,
@@ -109,13 +110,13 @@ export default class ClientController extends AbstractController {
     >,
     res: Response
   ) => {
-    const reservations = await this.userService.getClientVisits(
+    const clientData = await this.userService.getClientReservations(
       parseInt(req.params.id),
       req.query.status as Status | undefined
     );
 
-    if (reservations !== null) {
-      res.status(200).send({ data: reservations });
+    if (clientData !== null) {
+      res.status(200).send(omit(clientData, ['password']));
     } else {
       res
         .status(404)
