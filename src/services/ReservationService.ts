@@ -2,7 +2,8 @@ import {
   type Reservation,
   type Visit,
   Frequency,
-  Status
+  Status,
+  type Client
 } from '@prisma/client';
 import short from 'short-uuid';
 import type { RequireAtLeastOne } from 'type-fest';
@@ -32,23 +33,24 @@ export type ReservationQueryOptions = RequireAtLeastOne<{
   includeVisits: boolean;
   includeServices: boolean;
   includeAddress: boolean;
+  bookerEmail: Client['email'];
+  employeeId: number;
 }>;
 
 export default class ReservationService {
   public async getAllReservations(options?: ReservationQueryOptions) {
-    let reservations: Reservation[] | null = null;
+    const bookerEmail = options?.bookerEmail;
 
-    try {
-      reservations = await prisma.reservation.findMany({
+    const bookerFilter = bookerEmail ? { where: { bookerEmail } } : undefined;
+
+    return await executeDatabaseOperation(
+      prisma.reservation.findMany({
+        ...bookerFilter,
         include: {
           ...includeIfTrue('reservations', options?.includeVisits)
         }
-      });
-    } catch (err) {
-      console.error(err);
-    }
-
-    return reservations;
+      })
+    );
   }
 
   public async getReservationById(
@@ -90,6 +92,26 @@ export default class ReservationService {
           ),
           // get the address associated with the reservation
           ...includeIfTrue('address', options?.includeAddress)
+        }
+      })
+    );
+  }
+
+  public async getClientReservations(
+    clientEmail: Client['email'],
+    status?: Status
+  ) {
+    const reservationStatusFilter = status ? { where: { status } } : true;
+    return await executeDatabaseOperation(
+      prisma.reservation.findMany({
+        where: { bookerEmail: clientEmail },
+        include: {
+          visits: reservationStatusFilter,
+          services: {
+            include: {
+              service: true
+            }
+          }
         }
       })
     );

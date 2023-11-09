@@ -60,13 +60,12 @@ export default class ReservationController extends AbstractController {
     res: Response
   ) => {
     const reservations = await this.reservationService.getAllReservations({
-      includeVisits: queryParamToBoolean(req.query.includeVisits)
+      includeVisits: queryParamToBoolean(req.query.includeVisits),
+      bookerEmail: req.query.bookerEmail
     });
 
     if (reservations !== null) {
-      res.status(200).send({
-        data: reservations
-      });
+      res.status(200).send(reservations);
     } else {
       res
         .status(400)
@@ -74,31 +73,31 @@ export default class ReservationController extends AbstractController {
     }
   };
 
-  private getReservationById = async (
-    req: TypedRequest<
-      { id: string },
-      DefaultBodyType,
-      { includeVisits?: string }
-    >,
-    res: Response
-  ) => {
-    const reservation = await this.reservationService.getReservationById(
-      parseInt(req.params.id),
-      {
-        includeVisits: queryParamToBoolean(req.query.includeVisits)
-      }
-    );
+  // private getReservationById = async (
+  //   req: TypedRequest<
+  //     { id: string },
+  //     DefaultBodyType,
+  //     { includeVisits?: string }
+  //   >,
+  //   res: Response
+  // ) => {
+  //   const reservation = await this.reservationService.getReservationById(
+  //     parseInt(req.params.id),
+  //     {
+  //       includeVisits: queryParamToBoolean(req.query.includeVisits)
+  //     }
+  //   );
 
-    if (reservation !== null) {
-      res.status(200).send({
-        data: reservation
-      });
-    } else {
-      res.status(404).send({
-        message: `Recurring reservation with id=${req.params.id} not found`
-      });
-    }
-  };
+  //   if (reservation !== null) {
+  //     res.status(200).send({
+  //       data: reservation
+  //     });
+  //   } else {
+  //     res.status(404).send({
+  //       message: `Recurring reservation with id=${req.params.id} not found`
+  //     });
+  //   }
+  // };
 
   private getReservationByName = async (
     req: TypedRequest<
@@ -195,7 +194,7 @@ export default class ReservationController extends AbstractController {
 
     if (reservation) {
       res.status(200).send({
-        data: reservation
+        ...reservation
       });
     } else {
       res.status(404).send({
