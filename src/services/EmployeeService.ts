@@ -58,7 +58,16 @@ export default class EmployeeService {
       const employeeWithVisits = await prisma.employee.findUnique({
         where: { id: employeeId },
         include: {
-          visits: reservationStatusFilter
+          visits: true
+          // {
+          //   include: {
+          //     reservation: {
+          //       include: {
+          //         services: true
+          //       }
+          //     }
+          //   }
+          // }
         }
       });
 

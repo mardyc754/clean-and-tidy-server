@@ -74,7 +74,7 @@ export default class ClientService {
 
   public async getClientReservations(clientId: Client['id'], status?: Status) {
     const reservationStatusFilter = status ? { where: { status } } : true;
-    return await executeDatabaseOperation(
+    const clientData = await executeDatabaseOperation(
       prisma.client.findUnique({
         where: { id: clientId },
         include: {
@@ -91,6 +91,8 @@ export default class ClientService {
         }
       })
     );
+
+    return clientData?.reservations ?? null;
   }
 
   public async getClientAddresses(clientId: Client['id']) {

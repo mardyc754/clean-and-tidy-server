@@ -74,7 +74,7 @@ export default class EmployeeController extends AbstractController {
     );
 
     if (visits !== null) {
-      res.status(200).send({ data: visits });
+      res.status(200).send(visits);
     } else {
       res
         .status(404)
