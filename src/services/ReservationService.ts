@@ -33,19 +33,13 @@ export type ReservationQueryOptions = RequireAtLeastOne<{
   includeVisits: boolean;
   includeServices: boolean;
   includeAddress: boolean;
-  bookerEmail: Client['email'];
   employeeId: number;
 }>;
 
 export default class ReservationService {
   public async getAllReservations(options?: ReservationQueryOptions) {
-    const bookerEmail = options?.bookerEmail;
-
-    const bookerFilter = bookerEmail ? { where: { bookerEmail } } : undefined;
-
     return await executeDatabaseOperation(
       prisma.reservation.findMany({
-        ...bookerFilter,
         include: {
           ...includeIfTrue('reservations', options?.includeVisits)
         }

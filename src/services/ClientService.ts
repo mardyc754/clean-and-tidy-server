@@ -77,7 +77,7 @@ export default class ClientService {
     const clientData = await executeDatabaseOperation(
       prisma.client.findUnique({
         where: { id: clientId },
-        include: {
+        select: {
           reservations: {
             include: {
               visits: reservationStatusFilter,

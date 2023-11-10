@@ -60,8 +60,7 @@ export default class ReservationController extends AbstractController {
     res: Response
   ) => {
     const reservations = await this.reservationService.getAllReservations({
-      includeVisits: queryParamToBoolean(req.query.includeVisits),
-      bookerEmail: req.query.bookerEmail
+      includeVisits: queryParamToBoolean(req.query.includeVisits)
     });
 
     if (reservations !== null) {
