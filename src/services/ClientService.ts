@@ -3,7 +3,7 @@ import type { RequireAtLeastOne } from 'type-fest';
 
 import { prisma } from '~/db';
 
-import { executeDatabaseOperation } from './utils';
+import { executeDatabaseOperation } from '../utils/queryUtils';
 
 type ClientCreationData = Pick<Client, 'email'> & {
   username?: Client['username'];

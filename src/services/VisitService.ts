@@ -3,7 +3,7 @@ import { Status, type Visit } from '@prisma/client';
 import { prisma } from '~/db';
 import { ChangeVisitDateData, SingleVisitCreationData } from '~/schemas/visit';
 import { areStartEndDateValid, now } from '~/utils/dateUtils';
-import { executeDatabaseOperation } from './utils';
+import { executeDatabaseOperation } from '../utils/queryUtils';
 
 export default class VisitService {
   public async getAllVisits() {

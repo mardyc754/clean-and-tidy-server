@@ -6,7 +6,10 @@ import {
   CreateServiceData,
   PrimarySecondaryIds
 } from '~/schemas/typesOfCleaning';
-import { executeDatabaseOperation, includeWithOtherDataIfTrue } from './utils';
+import {
+  executeDatabaseOperation,
+  includeWithOtherDataIfTrue
+} from '../utils/queryUtils';
 import { getResponseServiceData } from '~/utils/services';
 
 type AllServicesQueryOptions = {

@@ -9,6 +9,11 @@ import short from 'short-uuid';
 import type { RequireAtLeastOne } from 'type-fest';
 
 import { prisma } from '~/db';
+
+import { prismaExclude } from '~/lib/prisma';
+
+import type { ReservationCreationData } from '~/schemas/reservation';
+
 import {
   cancelVisits,
   changeMultipleVisitsStatus,
@@ -20,14 +25,11 @@ import {
   advanceDateByOneYear,
   extractWeekDayFromDate
 } from '~/utils/dateUtils';
-
-import type { ReservationCreationData } from '~/schemas/reservation';
-
 import {
   executeDatabaseOperation,
   includeIfTrue,
   includeWithOtherDataIfTrue
-} from './utils';
+} from '~/utils/queryUtils';
 
 export type ReservationQueryOptions = RequireAtLeastOne<{
   includeVisits: boolean;
@@ -76,7 +78,8 @@ export default class ReservationService {
           ...includeWithOtherDataIfTrue(
             'visits',
             'employees',
-            options?.includeVisits
+            options?.includeVisits,
+            prismaExclude('Employee', ['password'])
           ),
           // in order to include service data associated with reservation
           ...includeWithOtherDataIfTrue(
