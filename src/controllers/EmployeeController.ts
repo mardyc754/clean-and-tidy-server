@@ -1,4 +1,5 @@
 import * as bcrypt from 'bcrypt';
+import { Status } from '@prisma/client';
 import type { Request, Response } from 'express';
 
 import type { EmployeeCreationData } from '~/schemas/employee';
@@ -8,7 +9,7 @@ import { validateEmployeeCreationData } from '~/middlewares/type-validators/empl
 
 import { EmployeeService } from '~/services';
 
-import type { DefaultParamsType, TypedRequest } from '~/types';
+import type { DefaultBodyType, DefaultParamsType, TypedRequest } from '~/types';
 
 import AbstractController from './AbstractController';
 
@@ -25,6 +26,11 @@ export default class EmployeeController extends AbstractController {
     this.router.post('/', validateEmployeeCreationData(), this.createEmployee);
     this.router.get('/:id', this.getEmployeeById);
     this.router.get('/:id/visits', checkIsEmployee(), this.getEmployeeVisits);
+    this.router.get(
+      '/:id/reservations',
+      checkIsEmployee(),
+      this.getEmployeeReservations
+    );
     this.router.get('/:id/services', this.getEmployeeServices);
 
     this.router.post(
@@ -79,6 +85,27 @@ export default class EmployeeController extends AbstractController {
       res
         .status(404)
         .send({ message: `Employee with id=${req.params.id} not found` });
+    }
+  };
+
+  private getEmployeeReservations = async (
+    req: TypedRequest<{ id: string }, DefaultBodyType, { status: Status }>,
+    res: Response
+  ) => {
+    const reservations =
+      await this.employeeService.getReservationsAssignedToEmployee(
+        parseInt(req.params.id),
+        {
+          status: req.query.status
+        }
+      );
+
+    if (reservations !== null) {
+      res.status(200).send(reservations);
+    } else {
+      res.status(404).send({
+        message: `Employee with id=${req.params.id} not found`
+      });
     }
   };
 

@@ -7,6 +7,11 @@ import {
 
 import { prisma } from '~/db';
 import type { EmployeeCreationData } from '~/schemas/employee';
+import { executeDatabaseOperation } from '~/utils/queryUtils';
+
+type EmployeeReservationQueryOptions = {
+  status: Status;
+};
 
 export default class EmployeeService {
   public async getEmployeeById(id: Employee['id']) {
@@ -58,16 +63,21 @@ export default class EmployeeService {
       const employeeWithVisits = await prisma.employee.findUnique({
         where: { id: employeeId },
         include: {
-          visits: true
-          // {
-          //   include: {
-          //     reservation: {
-          //       include: {
-          //         services: true
-          //       }
-          //     }
-          //   }
-          // }
+          visits:
+            // true
+            {
+              include: {
+                reservation: {
+                  include: {
+                    services: {
+                      include: {
+                        service: true
+                      }
+                    }
+                  }
+                }
+              }
+            }
         }
       });
 
@@ -76,6 +86,30 @@ export default class EmployeeService {
       console.error(`Something went wrong: ${err}`);
     }
     return visits;
+  }
+
+  public async getReservationsAssignedToEmployee(
+    id: Employee['id'],
+    options?: EmployeeReservationQueryOptions
+  ) {
+    return await executeDatabaseOperation(
+      prisma.reservation.findMany({
+        where: {
+          visits: { some: { employees: { some: { id } } } },
+          status: options?.status
+        },
+        include: {
+          services: {
+            include: {
+              service: true
+            }
+          },
+          visits: {
+            where: { employees: { some: { id } } }
+          }
+        }
+      })
+    );
   }
 
   public async getEmployeeServices(employeeId: Employee['id']) {

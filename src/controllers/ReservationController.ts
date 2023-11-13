@@ -39,8 +39,8 @@ export default class ReservationController extends AbstractController {
     );
     // this.router.get('/:id', this.getReservationById);
     this.router.get('/:name', this.getReservationByName);
-
     this.router.get('/:id/visits', this.getVisits);
+
     // TODO: The methods below needs to be improved
     // this.router.put(
     //   '/:id/frequency',
@@ -76,24 +76,36 @@ export default class ReservationController extends AbstractController {
   //   req: TypedRequest<
   //     { id: string },
   //     DefaultBodyType,
-  //     { includeVisits?: string }
+  //     Stringified<ReservationQueryOptions>
   //   >,
   //   res: Response
   // ) => {
-  //   const reservation = await this.reservationService.getReservationById(
-  //     parseInt(req.params.id),
-  //     {
-  //       includeVisits: queryParamToBoolean(req.query.includeVisits)
-  //     }
-  //   );
+  //   const parsedId = parseInt(req.params.id);
+
+  //   const parsedQueryParams = {
+  //     includeVisits: queryParamToBoolean(req.query.includeVisits),
+  //     includeServices: queryParamToBoolean(req.query.includeServices),
+  //     includeAddress: queryParamToBoolean(req.query.includeAddress)
+  //   };
+
+  //   const reservation = isNaN(parsedId)
+  //     ? await this.reservationService.getReservationByName(
+  //         req.params.id,
+  //         parsedQueryParams
+  //       )
+  //     : await this.reservationService.getReservationById(
+  //         parsedId,
+  //         parsedQueryParams
+  //       );
 
   //   if (reservation !== null) {
   //     res.status(200).send({
-  //       data: reservation
+  //       ...reservation
   //     });
   //   } else {
   //     res.status(404).send({
-  //       message: `Recurring reservation with id=${req.params.id} not found`
+  //       message: `Reservation with id=${req.params.id} not found`,
+  //       hasError: true
   //     });
   //   }
   // };
