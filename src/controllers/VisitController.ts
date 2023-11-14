@@ -2,7 +2,7 @@ import type { Request, Response } from 'express';
 
 import { VisitService } from '~/services';
 
-import { DefaultParamsType, TypedRequest } from '~/types';
+import { DefaultBodyType, DefaultParamsType, TypedRequest } from '~/types';
 import {
   ChangeVisitDateData,
   ChangeVisitStatusData,
@@ -15,6 +15,9 @@ import {
 } from '~/middlewares/type-validators/visit';
 
 import AbstractController from './AbstractController';
+import { Stringified } from 'type-fest';
+import { VisitQueryOptions } from '~/services/VisitService';
+import { queryParamToBoolean } from '~/utils/general';
 
 export default class VisitController extends AbstractController {
   private readonly visitService = new VisitService();
@@ -37,24 +40,27 @@ export default class VisitController extends AbstractController {
     const visits = await this.visitService.getAllVisits();
 
     if (visits !== null) {
-      res.status(200).send({
-        data: visits
-      });
+      res.status(200).send(visits);
     } else {
       res.status(400).send({ message: 'Error when receiving all visits' });
     }
   };
 
   private getVisitById = async (
-    req: Request<{ id: string }>,
+    req: TypedRequest<
+      { id: string },
+      DefaultBodyType,
+      Stringified<VisitQueryOptions>
+    >,
     res: Response
   ) => {
-    const visit = await this.visitService.getVisitById(parseInt(req.params.id));
+    const visit = await this.visitService.getVisitById(
+      parseInt(req.params.id),
+      { includeEmployees: queryParamToBoolean(req.query.includeEmployees) }
+    );
 
     if (visit) {
-      res.status(200).send({
-        data: visit
-      });
+      res.status(200).send(visit);
     } else {
       res.status(404).send({ message: 'Visit not found' });
     }
@@ -114,6 +120,7 @@ export default class VisitController extends AbstractController {
   ) => {
     const visit = await this.visitService.changeVisitStatus(
       parseInt(req.params.id),
+      req.body.employeeId,
       req.body.status
     );
 

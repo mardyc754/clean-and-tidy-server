@@ -110,13 +110,13 @@ export default class ClientController extends AbstractController {
     >,
     res: Response
   ) => {
-    const clientData = await this.userService.getClientReservations(
+    const reservations = await this.userService.getClientReservations(
       parseInt(req.params.id),
       req.query.status as Status | undefined
     );
 
-    if (clientData !== null) {
-      res.status(200).send(omit(clientData, ['password']));
+    if (reservations !== null) {
+      res.status(200).send(reservations);
     } else {
       res
         .status(404)

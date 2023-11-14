@@ -31,7 +31,8 @@ export const changeVisitDateSchema = z.object({
 export type ChangeVisitDateData = z.infer<typeof changeVisitDateSchema>;
 
 export const changeVisitStatusSchema = z.object({
-  status: z.nativeEnum(Status)
+  status: z.nativeEnum(Status),
+  employeeId: z.number()
 });
 
 export type ChangeVisitStatusData = z.infer<typeof changeVisitStatusSchema>;

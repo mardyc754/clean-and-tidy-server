@@ -16,17 +16,21 @@ export async function executeDatabaseOperation<T>(
 export const includeWithOtherDataIfTrue = (
   name: string,
   optionToInclude: string,
-  option: boolean | undefined
-) =>
-  option
+  option: boolean | undefined,
+  filters?: Record<string, unknown>
+) => {
+  const filterQuery = filters ? { select: filters } : true;
+
+  return option
     ? {
         [name]: {
           include: {
-            [optionToInclude]: true
+            [optionToInclude]: filterQuery
           }
         }
       }
     : undefined;
+};
 
 export const includeIfTrue = (name: string, option: boolean | undefined) =>
   option
