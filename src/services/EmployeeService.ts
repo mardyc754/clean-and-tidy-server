@@ -2,7 +2,8 @@ import {
   type Visit,
   type Employee,
   type Service,
-  Status
+  Status,
+  VisitEmployee
 } from '@prisma/client';
 
 import { prisma } from '~/db';
@@ -53,9 +54,9 @@ export default class EmployeeService {
 
   public async getEmployeeVisits(
     employeeId: Employee['id'],
-    status?: Visit['status']
+    status?: VisitEmployee['status']
   ) {
-    let visits: Visit[] | null = null;
+    let visits: VisitEmployee[] | null = null;
 
     const reservationStatusFilter = status ? { where: { status } } : true;
 
@@ -63,21 +64,24 @@ export default class EmployeeService {
       const employeeWithVisits = await prisma.employee.findUnique({
         where: { id: employeeId },
         include: {
-          visits:
-            // true
-            {
-              include: {
-                reservation: {
-                  include: {
-                    services: {
-                      include: {
-                        service: true
+          visits: {
+            where: { employeeId },
+            include: {
+              visit: {
+                include: {
+                  reservation: {
+                    include: {
+                      services: {
+                        include: {
+                          service: true
+                        }
                       }
                     }
                   }
                 }
               }
             }
+          }
         }
       });
 
@@ -95,7 +99,7 @@ export default class EmployeeService {
     return await executeDatabaseOperation(
       prisma.reservation.findMany({
         where: {
-          visits: { some: { employees: { some: { id } } } },
+          visits: { some: { employees: { some: { employee: { id } } } } },
           status: options?.status
         },
         include: {
@@ -105,7 +109,7 @@ export default class EmployeeService {
             }
           },
           visits: {
-            where: { employees: { some: { id } } }
+            where: { employees: { some: { employee: { id } } } }
           }
         }
       })
@@ -183,15 +187,15 @@ export default class EmployeeService {
       Status.ACTIVE
     );
 
-    if (!employeeActiveVisits || employeeActiveVisits.length === 0) {
-      try {
-        deleteEmployee = await prisma.employee.delete({
-          where: { id: employeeId }
-        });
-      } catch (err) {
-        console.error(`Something went wrong: ${err}`);
-      }
-    }
+    // if (!employeeActiveVisits || employeeActiveVisits.length === 0) {
+    //   try {
+    //     deleteEmployee = await prisma.employee.delete({
+    //       where: { id: employeeId }
+    //     });
+    //   } catch (err) {
+    //     console.error(`Something went wrong: ${err}`);
+    //   }
+    // }
 
     return deleteEmployee;
   }

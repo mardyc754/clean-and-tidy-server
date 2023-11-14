@@ -16,11 +16,14 @@ import {
   validateReservationCreationData,
   validateStatusChange
 } from '~/middlewares/type-validators/reservation';
+import { validateEmployeeId } from '~/middlewares/type-validators/employee';
 import { queryParamToBoolean } from '~/utils/general';
 
 import type { DefaultBodyType, DefaultParamsType, TypedRequest } from '~/types';
 
 import AbstractController from './AbstractController';
+import { EmployeeIdData } from '~/schemas/employee';
+import { checkIsEmployee } from '~/middlewares/auth/checkRole';
 
 export default class ReservationController extends AbstractController {
   private readonly reservationService = new ReservationService();
@@ -49,6 +52,12 @@ export default class ReservationController extends AbstractController {
     // );
     // this.router.put('/:id/weekDay', validateWeekDay(), this.changeWeekDay);
     this.router.put('/:id/status', validateStatusChange(), this.changeStatus);
+    this.router.put(
+      '/:name/confirm',
+      checkIsEmployee(),
+      validateEmployeeId(),
+      this.confirmReservation
+    );
   }
 
   private getAllReservations = async (
@@ -150,7 +159,7 @@ export default class ReservationController extends AbstractController {
       });
     } else {
       res.status(404).send({
-        message: `Recurring reservation with id=${req.params.id} not found`
+        message: `Reservation with id=${req.params.id} not found`
       });
     }
   };
@@ -188,7 +197,7 @@ export default class ReservationController extends AbstractController {
       });
     } else {
       res.status(404).send({
-        message: `Recurring reservation with id=${req.params.id} not found`
+        message: `Reservation with id=${req.params.id} not found`
       });
     }
   };
@@ -209,7 +218,7 @@ export default class ReservationController extends AbstractController {
       });
     } else {
       res.status(404).send({
-        message: `Recurring reservation with id=${req.params.id} not found`
+        message: `Reservation with id=${req.params.id} not found`
       });
     }
   };
@@ -218,20 +227,39 @@ export default class ReservationController extends AbstractController {
     req: TypedRequest<{ id: string }, StatusChangeData>,
     res: Response
   ) => {
-    const { status } = req.body;
+    const { status, employeeId } = req.body;
 
     const reservation = await this.reservationService.changeStatus(
       parseInt(req.params.id),
+      employeeId,
       status
     );
 
     if (reservation !== null) {
-      res.status(200).send({
-        data: reservation
-      });
+      res.status(200).send(reservation);
     } else {
       res.status(404).send({
-        message: `Recurring reservation with id=${req.params.id} not found`
+        message: `Reservation with id=${req.params.id} not found`
+      });
+    }
+  };
+
+  private confirmReservation = async (
+    req: TypedRequest<{ name: string }, EmployeeIdData>,
+    res: Response
+  ) => {
+    const { employeeId } = req.body;
+
+    const reservation = await this.reservationService.confirmReservation(
+      req.params.name,
+      employeeId
+    );
+
+    if (reservation !== null) {
+      res.status(200).send(reservation);
+    } else {
+      res.status(404).send({
+        message: `Reservation with name=${req.params.name} not found`
       });
     }
   };

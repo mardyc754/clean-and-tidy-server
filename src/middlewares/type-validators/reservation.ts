@@ -1,5 +1,6 @@
 import {
   FrequencyChangeSchema,
+  StatusChangeSchema,
   reservationCreationSchema,
   weekDaySchema
 } from '~/schemas/reservation';
@@ -18,5 +19,5 @@ export function validateWeekDay() {
 }
 
 export function validateStatusChange() {
-  return validateTypes({ bodyParser: reservationCreationSchema });
+  return validateTypes({ bodyParser: StatusChangeSchema });
 }

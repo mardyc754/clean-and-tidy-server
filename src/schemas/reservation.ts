@@ -63,7 +63,8 @@ export const weekDaySchema = z
   .merge(FrequencyChangeSchema);
 
 export const StatusChangeSchema = z.object({
-  status: z.nativeEnum(Status)
+  status: z.nativeEnum(Status),
+  employeeId: z.number().int()
 });
 
 // types

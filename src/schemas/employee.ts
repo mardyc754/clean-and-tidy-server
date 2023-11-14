@@ -13,3 +13,9 @@ export const employeeCreationSchema = z
   .strict();
 
 export type EmployeeCreationData = z.infer<typeof employeeCreationSchema>;
+
+export const employeeIdSchema = z.object({
+  employeeId: z.number().int()
+});
+
+export type EmployeeIdData = z.infer<typeof employeeIdSchema>;

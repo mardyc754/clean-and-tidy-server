@@ -73,7 +73,9 @@ export default class ClientService {
   }
 
   public async getClientReservations(clientId: Client['id'], status?: Status) {
-    const reservationStatusFilter = status ? { where: { status } } : true;
+    const reservationStatusFilter = status
+      ? { include: { employees: { where: { status } } } }
+      : true;
     const clientData = await executeDatabaseOperation(
       prisma.client.findUnique({
         where: { id: clientId },

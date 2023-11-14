@@ -1,9 +1,14 @@
-import { Status, type Visit } from '@prisma/client';
+import { Status, VisitEmployee, type Visit } from '@prisma/client';
+import type { RequireAtLeastOne } from 'type-fest';
 
 import { prisma } from '~/db';
 import { ChangeVisitDateData, SingleVisitCreationData } from '~/schemas/visit';
 import { areStartEndDateValid, now } from '~/utils/dateUtils';
 import { executeDatabaseOperation } from '../utils/queryUtils';
+
+export type VisitQueryOptions = RequireAtLeastOne<{
+  includeEmployees: boolean;
+}>;
 
 export default class VisitService {
   public async getAllVisits() {
@@ -18,12 +23,15 @@ export default class VisitService {
     return visits;
   }
 
-  public async getVisitById(id: Visit['id']) {
+  public async getVisitById(id: Visit['id'], options?: VisitQueryOptions) {
     let visit: Visit | null = null;
 
     try {
       visit = await prisma.visit.findFirst({
-        where: { id }
+        where: { id },
+        include: options?.includeEmployees
+          ? { employees: { include: { employee: true } } }
+          : undefined
       });
     } catch (err) {
       console.error(`Something went wrong: ${err}`);
@@ -40,9 +48,13 @@ export default class VisitService {
         data: {
           ...otherData,
           name: `${data.reservationId}`, // visit name should contain the visit number
-          status: Status.TO_BE_CONFIRMED,
           employees: {
-            connect: employeeIds.map((id) => ({ id }))
+            createMany: {
+              data: employeeIds.map((id) => ({
+                employeeId: id,
+                status: Status.TO_BE_CONFIRMED
+              }))
+            }
           }
         }
       })
@@ -69,7 +81,12 @@ export default class VisitService {
           data: {
             startDate,
             endDate,
-            status: Status.TO_BE_CONFIRMED
+            employees: {
+              updateMany: {
+                where: { visitId: id },
+                data: { status: Status.TO_BE_CONFIRMED }
+              }
+            }
           }
         });
       } catch (err) {
@@ -94,30 +111,39 @@ export default class VisitService {
     return deletedVisit;
   }
 
-  public async changeVisitStatus(id: Visit['id'], newStatus: Visit['status']) {
-    let updatedVisit: Visit | null = null;
-
-    try {
-      updatedVisit = await prisma.visit.update({
-        where: { id },
+  public async changeVisitStatus(
+    visitId: Visit['id'],
+    employeeId: VisitEmployee['employeeId'],
+    newStatus: VisitEmployee['status']
+  ) {
+    const visitStatus = await executeDatabaseOperation(
+      prisma.visitEmployee.update({
+        where: { visitId_employeeId: { visitId, employeeId } },
         data: { status: newStatus }
-      });
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
+      })
+    );
+
+    if (!visitStatus) {
+      return null;
     }
 
-    return updatedVisit;
+    const visit = await this.getVisitById(visitId);
+
+    return visit;
   }
 
-  public async autoCloseVisit(data: Pick<Visit, 'id' | 'endDate'>) {
-    let visitToClose: Visit | null = null;
+  // public async autoCloseVisit(id: Visit['id'], endDate: Visit['endDate']) {
+  //   let visitToClose: VisitEmployee[] | null = null;
 
-    const { id, endDate } = data;
+  //   if (now().isAfter(endDate)) {
+  //     await executeDatabaseOperation(
+  //       prisma.visitEmployee.updateMany({
+  //         where: { visitId: id },
+  //         data: { status: Status.CLOSED }
+  //       })
+  //     );
+  //   }
 
-    if (now().isAfter(endDate)) {
-      visitToClose = await this.changeVisitStatus(id, Status.CLOSED);
-    }
-
-    return visitToClose;
-  }
+  //   return visitToClose;
+  // }
 }
