@@ -1,21 +1,4 @@
 import dayjs from 'dayjs';
-
-// most important dayjs plugins
-// most of them are likely to be removed
-
-// plugin to change dayjs object into normal js object:
-// dayjs().toObject();
-// {
-//    "date":21,
-//    "hours":10,
-//    "milliseconds":521,
-//    "minutes":53,
-//    "months":11,
-//    "seconds":13,
-//    "years":2021
-// }
-import toObject from 'dayjs/plugin/toObject';
-
 // // plugin to enable custom formats.
 // // it can be used, for example, to extract hour from the date
 // // example - current hour: dayjs(new Date()).format('HH:mm').toString()
@@ -42,8 +25,23 @@ import toObject from 'dayjs/plugin/toObject';
 // // humanizez input given by duration - can be useful in generating
 // // how long ago particular comment was added (e.g. 4 years ago, 5 minutes ago)
 // import relativeTime from 'dayjs/plugin/relativeTime';
+import 'dayjs/locale/pl';
+// most important dayjs plugins
+// most of them are likely to be removed
+// plugin to change dayjs object into normal js object:
+// dayjs().toObject();
+// {
+//    "date":21,
+//    "hours":10,
+//    "milliseconds":521,
+//    "minutes":53,
+//    "months":11,
+//    "seconds":13,
+//    "years":2021
+// }
+import toObject from 'dayjs/plugin/toObject';
 
-import 'dayjs/locale/pl'; // import locale
+// import locale
 
 dayjs.extend(toObject);
 // dayjs.extend(isLeapYear);

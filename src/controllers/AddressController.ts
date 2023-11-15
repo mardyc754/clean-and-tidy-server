@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 
 import { AddressService } from '~/services';
+
 import type { TypedRequest } from '~/types';
 
 import AbstractController from './AbstractController';

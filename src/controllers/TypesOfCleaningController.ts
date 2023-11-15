@@ -1,13 +1,17 @@
 import type { Response } from 'express';
 
-import { TypesOfCleaningService } from '~/services';
-import { validateServiceCreationData } from '~/middlewares/type-validators/typesOfCleaning';
-import { queryParamToBoolean } from '~/utils/general';
-import type { DefaultBodyType, DefaultParamsType, TypedRequest } from '~/types';
 import type {
   ChangeServicePriceData,
   CreateServiceData
 } from '~/schemas/typesOfCleaning';
+
+import { validateServiceCreationData } from '~/middlewares/type-validators/typesOfCleaning';
+
+import { TypesOfCleaningService } from '~/services';
+
+import { queryParamToBoolean } from '~/utils/general';
+
+import type { DefaultBodyType, DefaultParamsType, TypedRequest } from '~/types';
 
 import AbstractController from './AbstractController';
 

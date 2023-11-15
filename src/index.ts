@@ -1,12 +1,13 @@
 import {
+  AddressController,
   AuthController,
   ClientController,
-  TypesOfCleaningController,
   EmployeeController,
   ReservationController,
-  VisitController,
-  AddressController
+  TypesOfCleaningController,
+  VisitController
 } from '~/controllers';
+
 import App from './App';
 
 const port = process.env.PORT || 8080;

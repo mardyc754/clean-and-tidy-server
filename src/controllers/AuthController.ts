@@ -1,22 +1,23 @@
-import jwt from 'jsonwebtoken';
+import type { Client, Employee } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { omit } from 'lodash';
 import type { Request, Response } from 'express';
-import type { Employee, Client } from '@prisma/client';
+import jwt from 'jsonwebtoken';
+import { omit } from 'lodash';
 
 import { JWT_SECRET, UserRole } from '~/constants';
 
 import { LoginData } from '~/schemas/auth';
+
 import {
   checkLoginData,
   checkRegisterData
 } from '~/middlewares/type-validators/auth';
 
+import { ClientService, EmployeeService } from '~/services';
+
 import { advanceDateByHours } from '~/utils/dateUtils';
 
 import type { DefaultParamsType, TypedRequest } from '~/types';
-
-import { ClientService, EmployeeService } from '~/services';
 
 import AbstractController from './AbstractController';
 

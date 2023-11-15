@@ -1,9 +1,12 @@
-import { Status, VisitEmployee, type Visit } from '@prisma/client';
+import { Status, type Visit, VisitEmployee } from '@prisma/client';
 import type { RequireAtLeastOne } from 'type-fest';
 
 import { prisma } from '~/db';
+
 import { ChangeVisitDateData, SingleVisitCreationData } from '~/schemas/visit';
+
 import { areStartEndDateValid, now } from '~/utils/dateUtils';
+
 import { executeDatabaseOperation } from '../utils/queryUtils';
 
 export type VisitQueryOptions = RequireAtLeastOne<{

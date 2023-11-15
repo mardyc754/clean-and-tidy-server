@@ -1,11 +1,13 @@
 import {
   Frequency,
-  Status,
   type Reservation,
+  Status,
   type Visit
 } from '@prisma/client';
 
 import { dayjs } from '~/lib';
+
+import { VisitCreationData } from '~/schemas/visit';
 
 import {
   advanceDateByMonths,
@@ -15,7 +17,6 @@ import {
   numberOfMonthsBetween,
   numberOfWeeksBetween
 } from './dateUtils';
-import { VisitCreationData } from '~/schemas/visit';
 
 function createWeeklyVisits(
   reservationName: string,

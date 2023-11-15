@@ -1,7 +1,7 @@
 import {
-  singleVisitCreationDataSchema,
   changeVisitDateSchema,
-  changeVisitStatusSchema
+  changeVisitStatusSchema,
+  singleVisitCreationDataSchema
 } from '~/schemas/visit';
 
 import { validateTypes } from './validateTypesOfData';

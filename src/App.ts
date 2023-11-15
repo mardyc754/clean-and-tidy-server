@@ -1,7 +1,7 @@
-import 'dotenv/config';
-import express, { Express } from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import 'dotenv/config';
+import express, { Express } from 'express';
 
 import type { AbstractController } from '~/controllers';
 

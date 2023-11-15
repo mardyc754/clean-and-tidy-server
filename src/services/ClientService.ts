@@ -1,4 +1,4 @@
-import { Visit, Address, Client, Status, Reservation } from '@prisma/client';
+import { Address, Client, Reservation, Status, Visit } from '@prisma/client';
 import type { RequireAtLeastOne } from 'type-fest';
 
 import { prisma } from '~/db';

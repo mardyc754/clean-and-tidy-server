@@ -1,0 +1,28 @@
+{
+  "plugins": ["@trivago/prettier-plugin-sort-imports"],
+  "trailingComma": "none",
+  "singleQuote": true,
+  "importOrder": [
+    "^~/db$",
+    "^~/db/(.*)$",
+    "^~/constants$",
+    "^~/constants/(.*)$",
+    "^~/lib$",
+    "^~/lib/(.*)$",
+    "^~/schemas$",
+    "^~/schemas/(.*)$",
+    "^~/middlewares$",
+    "^~/middlewares/(.*)$",
+    "^~/controllers$",
+    "^~/controllers/(.*)$",
+    "^~/services$",
+    "^~/services/(.*)$",
+    "^~/utils$",
+    "^~/utils/(.*)$",
+    "^~/types$",
+    "^~/types/(.*)$",
+    "^[./]"
+  ],
+  "importOrderSeparation": true,
+  "importOrderSortSpecifiers": true
+}

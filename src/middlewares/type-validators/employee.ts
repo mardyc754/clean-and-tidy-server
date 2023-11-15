@@ -1,5 +1,6 @@
-import { validateTypes } from './validateTypesOfData';
 import { employeeCreationSchema, employeeIdSchema } from '~/schemas/employee';
+
+import { validateTypes } from './validateTypesOfData';
 
 export const validateEmployeeCreationData = () => {
   return validateTypes({

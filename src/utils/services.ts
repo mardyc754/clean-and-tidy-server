@@ -1,7 +1,7 @@
 import {
-  type ServiceUnit,
+  type CleaningFrequency,
   type Service,
-  type CleaningFrequency
+  type ServiceUnit
 } from '@prisma/client';
 
 type ServiceWithUnit = Service & {

@@ -1,13 +1,15 @@
 import {
-  type Visit,
   type Employee,
   type Service,
   Status,
+  type Visit,
   VisitEmployee
 } from '@prisma/client';
 
 import { prisma } from '~/db';
+
 import type { EmployeeCreationData } from '~/schemas/employee';
+
 import { executeDatabaseOperation } from '~/utils/queryUtils';
 
 type EmployeeReservationQueryOptions = {

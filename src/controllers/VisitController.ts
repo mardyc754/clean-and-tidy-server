@@ -1,23 +1,27 @@
 import type { Request, Response } from 'express';
+import { Stringified } from 'type-fest';
 
-import { VisitService } from '~/services';
-
-import { DefaultBodyType, DefaultParamsType, TypedRequest } from '~/types';
 import {
   ChangeVisitDateData,
   ChangeVisitStatusData,
   SingleVisitCreationData
 } from '~/schemas/visit';
+
 import {
+  validateVisitCreationData,
   validateVisitDate,
-  validateVisitStatus,
-  validateVisitCreationData
+  validateVisitStatus
 } from '~/middlewares/type-validators/visit';
 
-import AbstractController from './AbstractController';
-import { Stringified } from 'type-fest';
+import { VisitService } from '~/services';
+
 import { VisitQueryOptions } from '~/services/VisitService';
+
 import { queryParamToBoolean } from '~/utils/general';
+
+import { DefaultBodyType, DefaultParamsType, TypedRequest } from '~/types';
+
+import AbstractController from './AbstractController';
 
 export default class VisitController extends AbstractController {
   private readonly visitService = new VisitService();

@@ -1,19 +1,19 @@
-import { omit } from 'lodash';
-import type { Status, Client } from '@prisma/client';
+import type { Client, Status } from '@prisma/client';
 import type { Request, Response } from 'express';
+import { omit } from 'lodash';
 import type { Stringified } from 'type-fest';
-
-import { ClientService, EmployeeService } from '~/services';
 
 import { ClientUpdateData, CreateAnonymousClientData } from '~/schemas/client';
 
+import { checkAccessToClientData } from '~/middlewares/auth/checkRole';
 import {
   validateClientUpdateData,
   validateCreateAnonymousClientData
 } from '~/middlewares/type-validators/client';
-import { checkAccessToClientData } from '~/middlewares/auth/checkRole';
 
-import type { DefaultBodyType, TypedRequest, DefaultParamsType } from '~/types';
+import { ClientService, EmployeeService } from '~/services';
+
+import type { DefaultBodyType, DefaultParamsType, TypedRequest } from '~/types';
 
 import AbstractController from './AbstractController';
 

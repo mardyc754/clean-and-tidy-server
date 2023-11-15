@@ -1,5 +1,5 @@
-import type { Query, ParamsDictionary } from 'express-serve-static-core';
 import type { Request } from 'express';
+import type { ParamsDictionary, Query } from 'express-serve-static-core';
 
 export type DefaultParamsType = ParamsDictionary;
 export type DefaultBodyType = Record<string, unknown>;

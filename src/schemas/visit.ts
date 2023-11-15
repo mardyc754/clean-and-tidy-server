@@ -1,6 +1,7 @@
-import { z } from 'zod';
-import { ISOString } from './common';
 import { Status } from '@prisma/client';
+import { z } from 'zod';
+
+import { ISOString } from './common';
 
 export const visitCreationDataSchema = z.object({
   endDate: ISOString,

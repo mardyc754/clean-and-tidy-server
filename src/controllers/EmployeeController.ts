@@ -1,5 +1,5 @@
-import * as bcrypt from 'bcrypt';
 import { Status } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 import type { Request, Response } from 'express';
 
 import type { EmployeeCreationData } from '~/schemas/employee';

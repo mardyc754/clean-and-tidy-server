@@ -1,26 +1,21 @@
-import { omit, difference } from 'lodash';
 import {
-  type Reservation,
-  type Visit,
-  Frequency,
-  Status,
   type Client,
-  Employee
+  Employee,
+  Frequency,
+  type Reservation,
+  Status,
+  type Visit
 } from '@prisma/client';
+import { omit } from 'lodash';
 import short from 'short-uuid';
 import type { RequireAtLeastOne } from 'type-fest';
 
 import { prisma } from '~/db';
 
+import { prismaExclude } from '~/lib/prisma';
+
 import type { ReservationCreationData } from '~/schemas/reservation';
 
-import {
-  cancelVisits,
-  changeMultipleVisitsStatus,
-  changeVisitFrequency,
-  changeWeekDay,
-  createVisits
-} from '~/utils/reservations';
 import {
   advanceDateByOneYear,
   extractWeekDayFromDate
@@ -30,7 +25,13 @@ import {
   includeIfTrue,
   includeWithOtherDataIfTrue
 } from '~/utils/queryUtils';
-import { prismaExclude } from '~/lib/prisma';
+import {
+  cancelVisits,
+  changeMultipleVisitsStatus,
+  changeVisitFrequency,
+  changeWeekDay,
+  createVisits
+} from '~/utils/reservations';
 
 export type ReservationQueryOptions = RequireAtLeastOne<{
   includeVisits: boolean;

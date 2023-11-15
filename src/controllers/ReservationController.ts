@@ -1,29 +1,32 @@
 import type { Request, Response } from 'express';
 import { Stringified } from 'type-fest';
 
-import { ReservationService } from '~/services';
-import type { ReservationQueryOptions } from '~/services/ReservationService';
-
+import { EmployeeIdData } from '~/schemas/employee';
 import {
   FrequencyChangeData,
   ReservationCreationData,
   StatusChangeData,
   WeekDayChangeData
 } from '~/schemas/reservation';
+
+import { checkIsEmployee } from '~/middlewares/auth/checkRole';
+import { validateEmployeeId } from '~/middlewares/type-validators/employee';
 import {
   // validateFrequency,
   // validateWeekDay,
   validateReservationCreationData,
   validateStatusChange
 } from '~/middlewares/type-validators/reservation';
-import { validateEmployeeId } from '~/middlewares/type-validators/employee';
+
+import { ReservationService } from '~/services';
+
+import type { ReservationQueryOptions } from '~/services/ReservationService';
+
 import { queryParamToBoolean } from '~/utils/general';
 
 import type { DefaultBodyType, DefaultParamsType, TypedRequest } from '~/types';
 
 import AbstractController from './AbstractController';
-import { EmployeeIdData } from '~/schemas/employee';
-import { checkIsEmployee } from '~/middlewares/auth/checkRole';
 
 export default class ReservationController extends AbstractController {
   private readonly reservationService = new ReservationService();
