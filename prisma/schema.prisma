@@ -85,7 +85,6 @@ model Employee {
   startHour                     DateTime                      @db.Time
   endHour                       DateTime                      @db.Time      
   visits                        VisitEmployee[]
-  // services                   EmployeeService[]
   services                      Service[]
   isAdmin                       Boolean                       @default(false)
 }
@@ -93,18 +92,19 @@ model Employee {
 model Service {
   id                            Int                           @id @default(autoincrement())
   name                          String                        @db.VarChar(100)
-  unit                          ServiceUnit?                  @relation(fields: [unitId], references: [id])
+  unit                          Unit?                         @relation(fields: [unitId], references: [id], onDelete: Cascade)
   unitId                        Int?                          @unique
   isPrimary                     Boolean                       @default(false)
-  // employees                  EmployeeService[]
   employees                     Employee[]
   primaryServices               Service[]                     @relation("PrimarySecondaryService")
   secondaryServices             Service[]                     @relation("PrimarySecondaryService")
   cleaningFrequencies           CleaningFrequency[]
-  reservations                  ReservationService[]        
+  reservations                  ReservationService[] 
+  minNumberOfUnitsIfPrimary     Int?
+  minCostIfPrimary              Decimal?                      @db.Money        
 }
 
-model ServiceUnit {
+model Unit {
   id                            Int                           @id @default(autoincrement())
   name                          String                        @db.VarChar(40)
   price                         Decimal                       @db.Money
@@ -139,14 +139,3 @@ model VisitEmployee {
   @@id([visitId, employeeId])
 
 }
-// model may be needed 
-// if there would be a distinctive information about employee's service
-// 
-// model EmployeeService {
-//   service                   Service                      @relation(fields: [serviceId], references: [id])
-//   serviceId                 Int
-//   employee                  Employee                     @relation(fields: [employeeId], references: [id])
-//   employeeId                Int
-  
-//   @@id([serviceId, employeeId])
-// }

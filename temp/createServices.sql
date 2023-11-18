@@ -1,4 +1,4 @@
-INSERT INTO "public"."ServiceUnit" ("name", "price", "duration") VALUES
+INSERT INTO "public"."Unit" ("name", "price", "duration") VALUES
   ('m2', 5.00, 6),
   ('m2', 6.15,6),
   ('m2', 10.00, 12),
@@ -21,29 +21,29 @@ INSERT INTO "public"."ServiceUnit" ("name", "price", "duration") VALUES
   ('chair', 20.00, 20),
   ('hour', 40.00, 60);
 
-INSERT INTO "public"."Service" ("name", "isPrimary", "unitId") VALUES
-  ('Home Cleaning', true, 1),
-  ('Office Cleaning', true, 2),
-  ('Cleaning after renovation', true, 3),
-  ('Cleaning after moving', true, 4),
-  ('Furniture cleaning', true, NULL),
-  ('Window cleaning', true, 5),
-  ('Ironing', true, 6),
-  ('Oven cleaning', false, 7),
-  ('Dishwashing', false, 8),
-  ('Fridge cleaning', false, 9),
-  ('Microwave oven cleaning', false, 10),
-  ('Clothes/bedding/towels washing', false, 11),
-  ('Balcony cleaning', false, 12),
-  ('Window blinds cleaning', false, 13),
-  ('Interior of the wardrobe cleaning', false, 14),
-  ('Interior of the kitchen cabinets cleaning', false, 15),
-  ('Couch washing', false, 16),
-  ('Corner sofa washing', false, 17),
-  ('Carpet washing', false, 18),
-  ('Armchair washing', false, 19),
-  ('Chair/office chair/stool washing', false, 20),
-  ('Paint/glue from floor cleaning', false, 21);
+INSERT INTO "public"."Service" ("name", "isPrimary", "unitId", "minNumberOfUnitsIfPrimary", "minCostIfPrimary") VALUES
+  ('Home Cleaning', true, 1, 30, NULL),
+  ('Office Cleaning', true, 2, 30, NULL),
+  ('Cleaning after renovation', true, 3, 30, NULL),
+  ('Cleaning after moving', true, 4, 30, NULL),
+  ('Furniture cleaning', true, NULL, NULL, 120),
+  ('Window cleaning', true, 5, 5, NULL),
+  ('Ironing', true, 6, 1, NULL),
+  ('Oven cleaning', false, 7, 1, NULL),
+  ('Dishwashing', false, 8, 1, NULL),
+  ('Fridge cleaning', false, 9, 1, NULL),
+  ('Microwave oven cleaning', false, 10, 1, NULL),
+  ('Clothes/bedding/towels washing', false, 11, 1, NULL),
+  ('Balcony cleaning', false, 12, 1, NULL),
+  ('Window blinds cleaning', false, 13, 1, NULL),
+  ('Interior of the wardrobe cleaning', false, 14, 1, NULL),
+  ('Interior of the kitchen cabinets cleaning', false, 15, 1, NULL),
+  ('Couch washing', false, 16, 1, NULL),
+  ('Corner sofa washing', false, 17, 1, NULL),
+  ('Carpet washing', false, 18, 1, NULL),
+  ('Armchair washing', false, 19, 1, NULL),
+  ('Chair/office chair/stool washing', false, 20, 1, NULL),
+  ('Paint/glue from floor cleaning', false, 21, 1, NULL);
 
 INSERT INTO "public"."_PrimarySecondaryService" VALUES
   -- home cleaning
