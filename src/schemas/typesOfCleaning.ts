@@ -12,7 +12,8 @@ export const createServiceSchema = z.object({
   isPrimary: z.boolean().optional(),
   unit: z
     .object({
-      name: z.string().max(40),
+      shortName: z.string().max(40),
+      fullName: z.string().max(40),
       price: z.number().max(300),
       duration: z.number().max(480)
     })

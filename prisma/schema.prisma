@@ -106,7 +106,8 @@ model Service {
 
 model Unit {
   id                            Int                           @id @default(autoincrement())
-  name                          String                        @db.VarChar(40)
+  shortName                     String                        @db.VarChar(40)
+  fullName                      String                        @db.VarChar(60)
   price                         Decimal                       @db.Money
   duration                      Int                           // duration of the service unit in minutes
   service                       Service?                     

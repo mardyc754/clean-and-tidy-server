@@ -3,6 +3,7 @@ import {
   type Service,
   type Unit
 } from '@prisma/client';
+import { omit } from 'lodash';
 
 type ServiceWithUnit = Service & {
   unit: Unit | null;
@@ -17,9 +18,7 @@ function getSimplifiedServiceData(data: ServiceWithUnit) {
   return {
     id,
     name,
-    unit: unit
-      ? { name: unit.name, price: unit.price, duration: unit.duration }
-      : null
+    unit: unit ? omit(unit, ['id']) : null
   };
 }
 

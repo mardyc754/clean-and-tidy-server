@@ -96,7 +96,11 @@ export default class ReservationService {
           services: options?.includeServices
             ? {
                 include: {
-                  service: true
+                  service: {
+                    include: {
+                      unit: true
+                    }
+                  }
                 }
               }
             : undefined,
