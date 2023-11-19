@@ -64,6 +64,7 @@ model Reservation {
   services                      ReservationService[]
   bookerFirstName               String                        @db.VarChar(50)
   bookerLastName                String                        @db.VarChar(50)
+  extraInfo                     String?                       @db.VarChar(500)
 }
 
 model Address {

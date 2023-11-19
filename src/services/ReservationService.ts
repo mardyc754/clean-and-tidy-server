@@ -27,7 +27,6 @@ import {
 } from '~/utils/queryUtils';
 import {
   cancelVisits,
-  changeMultipleVisitsStatus,
   changeVisitFrequency,
   changeWeekDay,
   createVisits
@@ -161,7 +160,8 @@ export default class ReservationService {
       address,
       contactDetails: { firstName: bookerFirstName, lastName: bookerLastName },
       services,
-      visitData
+      visitData,
+      extraInfo
     } = data;
 
     const endDate =
@@ -231,7 +231,8 @@ export default class ReservationService {
                 email: bookerEmail
               }
             }
-          }
+          },
+          extraInfo: extraInfo ?? null
         }
       });
     } catch (err) {
@@ -392,7 +393,7 @@ export default class ReservationService {
     reservationName: Reservation['name'],
     employeeId: Employee['id']
   ) {
-    let reservation = await this.getReservationByName(reservationName);
+    const reservation = await this.getReservationByName(reservationName);
 
     if (!reservation) {
       return null;
