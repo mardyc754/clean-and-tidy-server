@@ -49,7 +49,7 @@ export const reservationCreationSchema = z
       },
       { message: 'There must be exactly one main service for reservation' }
     ),
-    extraInfo: z.string().max(500).optional()
+    extraInfo: z.string().max(500).nullish()
   })
   .strict();
 

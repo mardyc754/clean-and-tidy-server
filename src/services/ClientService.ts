@@ -85,7 +85,11 @@ export default class ClientService {
               visits: reservationStatusFilter,
               services: {
                 include: {
-                  service: true
+                  service: {
+                    include: {
+                      unit: true
+                    }
+                  }
                 }
               }
             }

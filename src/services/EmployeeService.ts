@@ -75,7 +75,11 @@ export default class EmployeeService {
                     include: {
                       services: {
                         include: {
-                          service: true
+                          service: {
+                            include: {
+                              unit: true
+                            }
+                          }
                         }
                       }
                     }
@@ -107,7 +111,11 @@ export default class EmployeeService {
         include: {
           services: {
             include: {
-              service: true
+              service: {
+                include: {
+                  unit: true
+                }
+              }
             }
           },
           visits: {
