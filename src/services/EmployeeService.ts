@@ -2,11 +2,12 @@ import {
   type Employee,
   type Service,
   Status,
-  type Visit,
   VisitEmployee
 } from '@prisma/client';
 
 import { prisma } from '~/db';
+
+import { prismaExclude } from '~/lib/prisma';
 
 import type { EmployeeCreationData } from '~/schemas/employee';
 
@@ -44,14 +45,11 @@ export default class EmployeeService {
   }
 
   public async getAllEmployees() {
-    let employees: Employee[] | null = null;
-
-    try {
-      employees = await prisma.employee.findMany();
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
-    }
-    return employees;
+    return await executeDatabaseOperation(
+      prisma.employee.findMany({
+        select: prismaExclude('Employee', ['password'])
+      })
+    );
   }
 
   public async getEmployeeVisits(
@@ -133,7 +131,11 @@ export default class EmployeeService {
       const employeeWithServices = await prisma.employee.findUnique({
         where: { id: employeeId },
         include: {
-          services: true
+          services: {
+            include: {
+              unit: true
+            }
+          }
         }
       });
 
@@ -235,5 +237,45 @@ export default class EmployeeService {
     }
 
     return newEmployeeService;
+  }
+
+  public async changeEmployeeServiceAssignment(
+    employeeId: Employee['id'],
+    serviceIds: Array<Service['id']>
+  ) {
+    let newEmployeeServices: Service[] | null = null;
+
+    const employeeServices = await this.getEmployeeServices(employeeId);
+
+    if (employeeServices === null) {
+      return null;
+    }
+
+    const employeeServicesIds = employeeServices.map((service) => service.id);
+
+    try {
+      const updatedEmployee = await prisma.employee.update({
+        where: { id: employeeId },
+        data: {
+          services: {
+            disconnect: employeeServicesIds.map((id) => ({ id })),
+            connect: serviceIds.map((id) => ({ id }))
+          }
+        },
+        select: {
+          services: {
+            include: {
+              unit: true
+            }
+          }
+        }
+      });
+
+      newEmployeeServices = updatedEmployee.services;
+    } catch (err) {
+      console.error(`Something went wrong: ${err}`);
+    }
+
+    return newEmployeeServices;
   }
 }

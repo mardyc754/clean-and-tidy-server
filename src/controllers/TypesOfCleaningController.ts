@@ -1,4 +1,5 @@
 import type { Response } from 'express';
+import { Stringified } from 'type-fest';
 
 import type {
   ChangeServicePriceData,
@@ -8,6 +9,8 @@ import type {
 import { validateServiceCreationData } from '~/middlewares/type-validators/typesOfCleaning';
 
 import { TypesOfCleaningService } from '~/services';
+
+import { AllServicesQueryOptions } from '~/services/TypesOfCleaningService';
 
 import { queryParamToBoolean } from '~/utils/general';
 
@@ -45,12 +48,13 @@ export default class TypesOfCleaningController extends AbstractController {
     req: TypedRequest<
       DefaultParamsType,
       DefaultBodyType,
-      { primaryOnly?: string }
+      Stringified<AllServicesQueryOptions>
     >,
     res: Response
   ) => {
     const services = await this.typesOfCleaningService.getAllServices({
-      primaryOnly: queryParamToBoolean(req.query.primaryOnly)
+      primaryOnly: queryParamToBoolean(req.query.primaryOnly),
+      includeEmployees: queryParamToBoolean(req.query.includeEmployees)
     });
 
     if (services !== null) {

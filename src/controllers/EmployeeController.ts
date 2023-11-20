@@ -4,7 +4,7 @@ import type { Request, Response } from 'express';
 
 import type { EmployeeCreationData } from '~/schemas/employee';
 
-import { checkIsEmployee } from '~/middlewares/auth/checkRole';
+import { checkIsAdmin, checkIsEmployee } from '~/middlewares/auth/checkRole';
 import { validateEmployeeCreationData } from '~/middlewares/type-validators/employee';
 
 import { EmployeeService } from '~/services';
@@ -22,7 +22,7 @@ export default class EmployeeController extends AbstractController {
   }
 
   public createRouters() {
-    this.router.get('/', this.getAllEmployees);
+    this.router.get('/', checkIsAdmin(), this.getAllEmployees);
     this.router.post('/', validateEmployeeCreationData(), this.createEmployee);
     this.router.get('/:id', this.getEmployeeById);
     this.router.get('/:id/visits', checkIsEmployee(), this.getEmployeeVisits);
@@ -37,6 +37,11 @@ export default class EmployeeController extends AbstractController {
       '/:employeeId/services/:serviceId',
       this.linkEmployeeWithService
     );
+
+    this.router.put(
+      '/:employeeId/services',
+      this.changeEmployeeServiceAssignment
+    );
     this.router.delete('/:id', this.deleteEmployeeData);
   }
 
@@ -44,9 +49,7 @@ export default class EmployeeController extends AbstractController {
     const employees = await this.employeeService.getAllEmployees();
 
     if (employees !== null) {
-      res.status(200).send({
-        data: employees
-      });
+      res.status(200).send(employees);
     } else {
       res.status(400).send({ message: 'Error when receiving all employees' });
     }
@@ -118,7 +121,7 @@ export default class EmployeeController extends AbstractController {
     );
 
     if (services !== null) {
-      res.status(200).send({ data: services });
+      res.status(200).send(services);
     } else {
       res
         .status(404)
@@ -148,9 +151,7 @@ export default class EmployeeController extends AbstractController {
     });
 
     if (employee) {
-      res.status(201).send({
-        data: employee
-      });
+      res.status(201).send(employee);
     } else {
       res
         .status(404)
@@ -167,7 +168,7 @@ export default class EmployeeController extends AbstractController {
     );
 
     if (deletedEmployee !== null) {
-      res.status(200).send({ data: deletedEmployee });
+      res.status(200).send(deletedEmployee);
     } else {
       res
         .status(404)
@@ -185,10 +186,29 @@ export default class EmployeeController extends AbstractController {
     );
 
     if (newLinkedService !== null) {
-      res.status(200).send({ data: newLinkedService });
+      res.status(200).send(newLinkedService);
     } else {
       res.status(404).send({
         message: `Employee with id=${req.params.employeeId} or service with id=${req.params.serviceId} not found`
+      });
+    }
+  };
+
+  private changeEmployeeServiceAssignment = async (
+    req: TypedRequest<{ employeeId: string }, { serviceIds: number[] }>,
+    res: Response
+  ) => {
+    const newLinkedServices =
+      await this.employeeService.changeEmployeeServiceAssignment(
+        parseInt(req.params.employeeId),
+        req.body.serviceIds
+      );
+
+    if (newLinkedServices !== null) {
+      res.status(200).send(newLinkedServices);
+    } else {
+      res.status(404).send({
+        message: `Employee with id=${req.params.employeeId} not found`
       });
     }
   };

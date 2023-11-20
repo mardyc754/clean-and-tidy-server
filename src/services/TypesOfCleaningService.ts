@@ -2,6 +2,8 @@ import { type Employee, type Service } from '@prisma/client';
 
 import { prisma } from '~/db';
 
+import { prismaExclude } from '~/lib/prisma';
+
 import {
   ChangeServicePriceData,
   CreateServiceData,
@@ -15,11 +17,12 @@ import {
   includeWithOtherDataIfTrue
 } from '../utils/queryUtils';
 
-type AllServicesQueryOptions = {
+export type AllServicesQueryOptions = {
   primaryOnly: boolean;
+  includeEmployees: boolean;
 };
 
-type ServiceQueryOptions = {
+export type ServiceQueryOptions = {
   includeSecondaryServices: boolean;
   includePrimaryServices: boolean;
   includeCleaningFrequencies: boolean;
@@ -66,7 +69,10 @@ export default class TypesOfCleaningService {
       prisma.service.findMany({
         ...(options?.primaryOnly ? { where: { isPrimary: true } } : {}),
         include: {
-          unit: true
+          unit: true,
+          employees: options?.includeEmployees
+            ? { select: prismaExclude('Employee', ['password']) }
+            : false
         }
       })
     );
