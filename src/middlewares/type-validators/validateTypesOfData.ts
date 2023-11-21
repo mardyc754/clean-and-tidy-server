@@ -128,7 +128,7 @@ export function validateTypes<
     try {
       paramsParser && paramsParser.parse(req.params);
       bodyParser && bodyParser.parse(req.body);
-      queryParser && queryParser.parse(req.body);
+      queryParser && queryParser.parse(req.query);
     } catch (err) {
       console.error(err);
       let errors;

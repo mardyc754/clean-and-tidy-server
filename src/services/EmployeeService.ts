@@ -4,12 +4,16 @@ import {
   Status,
   VisitEmployee
 } from '@prisma/client';
+import { omit } from 'lodash';
 
 import { prisma } from '~/db';
 
 import { prismaExclude } from '~/lib/prisma';
 
-import type { EmployeeCreationData } from '~/schemas/employee';
+import type {
+  EmployeeAvailabilityQueryOptions,
+  EmployeeCreationData
+} from '~/schemas/employee';
 
 import { executeDatabaseOperation } from '~/utils/queryUtils';
 
@@ -277,5 +281,87 @@ export default class EmployeeService {
     }
 
     return newEmployeeServices;
+  }
+
+  public async getEmployeesOfferingService(id: Service['id']) {
+    let employees: Employee[] | null = null;
+
+    try {
+      const service = await prisma.service.findUnique({
+        where: { id },
+        include: {
+          employees: true
+        }
+      });
+
+      employees = service?.employees ?? [];
+    } catch (err) {
+      console.error(`Something went wrong: ${err}`);
+    }
+    return employees;
+  }
+
+  public async getEmployeeAvailability(
+    id: Service['id'],
+    options?: EmployeeAvailabilityQueryOptions
+  ) {
+    const employeesWithVisits = await executeDatabaseOperation(
+      prisma.employee.findMany({
+        where: {
+          services: {
+            some: {
+              id
+            }
+          }
+        },
+        select: {
+          ...prismaExclude('Employee', ['password']),
+          visits: {
+            where: {
+              visit: {
+                startDate: {
+                  gte: options?.from ? new Date(options?.from) : undefined
+                },
+                endDate: {
+                  lte: options?.to ? new Date(options?.to) : undefined
+                }
+              }
+            },
+            orderBy: {
+              visit: {
+                startDate: 'asc'
+              }
+            },
+            select: {
+              visit: {
+                select: {
+                  startDate: true,
+                  endDate: true
+                }
+              }
+            }
+          }
+        }
+      })
+    );
+
+    if (!employeesWithVisits) {
+      return null;
+    }
+
+    const visitTimespans = employeesWithVisits.map((employee) => ({
+      // employee.visits.flatMap((visit) => ({
+      //   startDate: visit.visit.startDate,
+      //   endDate: visit.visit.endDate
+      // }))
+      ...omit(employee, ['visits']),
+      workingHours: employee.visits.flatMap(({ visit }) => ({
+        start: visit.startDate,
+        end: visit.endDate
+      }))
+    }));
+
+    // return employeesWithVisits;
+    return visitTimespans;
   }
 }

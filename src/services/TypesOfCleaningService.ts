@@ -84,24 +84,6 @@ export default class TypesOfCleaningService {
     return services.map((service) => getResponseServiceData(service));
   }
 
-  public async getEmployeesOfferingService(id: Service['id']) {
-    let employees: Employee[] | null = null;
-
-    try {
-      employees = await prisma.service
-        .findUnique({
-          where: { id },
-          include: {
-            employees: true
-          }
-        })
-        .then((service) => service?.employees ?? []);
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
-    }
-    return employees;
-  }
-
   // admin only
   public async createService(data: CreateServiceData) {
     const { unit, ...otherData } = data;

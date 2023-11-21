@@ -2,10 +2,16 @@ import { Status } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import type { Request, Response } from 'express';
 
-import type { EmployeeCreationData } from '~/schemas/employee';
+import type {
+  EmployeeAvailabilityQueryOptions,
+  EmployeeCreationData
+} from '~/schemas/employee';
 
 import { checkIsAdmin, checkIsEmployee } from '~/middlewares/auth/checkRole';
-import { validateEmployeeCreationData } from '~/middlewares/type-validators/employee';
+import {
+  validateAvailabilityRange,
+  validateEmployeeCreationData
+} from '~/middlewares/type-validators/employee';
 
 import { EmployeeService } from '~/services';
 
@@ -43,6 +49,12 @@ export default class EmployeeController extends AbstractController {
       this.changeEmployeeServiceAssignment
     );
     this.router.delete('/:id', this.deleteEmployeeData);
+    this.router.get('/services/:id', this.getEmployeesOfferingService);
+    this.router.get(
+      '/services/:id/availability',
+      validateAvailabilityRange(),
+      this.getEmployeeAvailability
+    );
   }
 
   private getAllEmployees = async (_: Request, res: Response) => {
@@ -209,6 +221,46 @@ export default class EmployeeController extends AbstractController {
     } else {
       res.status(404).send({
         message: `Employee with id=${req.params.employeeId} not found`
+      });
+    }
+  };
+
+  private getEmployeesOfferingService = async (
+    req: TypedRequest<{ id: string }>,
+    res: Response
+  ) => {
+    const employees = await this.employeeService.getEmployeesOfferingService(
+      parseInt(req.params.id)
+    );
+
+    if (employees !== null) {
+      res.status(200).send(employees);
+    } else {
+      res
+        .status(400)
+        .send({ message: 'Error when fetching employees offering service' });
+    }
+  };
+
+  private getEmployeeAvailability = async (
+    req: TypedRequest<
+      { id: string },
+      DefaultBodyType,
+      EmployeeAvailabilityQueryOptions
+    >,
+    res: Response
+  ) => {
+    console.log(req.query);
+    const reservation = await this.employeeService.getEmployeeAvailability(
+      parseInt(req.params.id),
+      { from: req.query.from, to: req.query.to }
+    );
+
+    if (reservation) {
+      res.status(200).send(reservation);
+    } else {
+      res.status(404).send({
+        message: `Reservation with id=${req.params.id} not found`
       });
     }
   };

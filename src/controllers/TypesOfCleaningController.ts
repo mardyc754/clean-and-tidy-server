@@ -35,7 +35,6 @@ export default class TypesOfCleaningController extends AbstractController {
     this.router.get('/', this.getAllServices);
     this.router.post('/', validateServiceCreationData(), this.createService);
     this.router.get('/:id', this.getServiceById);
-    this.router.get('/:id/employees', this.getEmployeesOfferingService);
     this.router.put('/:id', this.changeServicePrice);
     this.router.delete('/:id', this.deleteService);
     this.router.post(
@@ -140,24 +139,6 @@ export default class TypesOfCleaningController extends AbstractController {
       res.status(200).send({ data: service });
     } else {
       res.status(400).send({ message: 'Error when deleting service' });
-    }
-  };
-
-  private getEmployeesOfferingService = async (
-    req: TypedRequest<{ id: string }>,
-    res: Response
-  ) => {
-    const employees =
-      await this.typesOfCleaningService.getEmployeesOfferingService(
-        parseInt(req.params.id)
-      );
-
-    if (employees !== null) {
-      res.status(200).send({ data: employees });
-    } else {
-      res
-        .status(400)
-        .send({ message: 'Error when fetching employees offering service' });
     }
   };
 

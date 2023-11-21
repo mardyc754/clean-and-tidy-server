@@ -467,8 +467,4 @@ export default class ReservationService {
 
     return reservationToClose;
   }
-
-  // the most important function in the project
-  // TODO: After other services will be defined properly
-  // public async checkAvailability()
 }

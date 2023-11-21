@@ -19,3 +19,12 @@ export const employeeIdSchema = z.object({
 });
 
 export type EmployeeIdData = z.infer<typeof employeeIdSchema>;
+
+export const employeeAvailabilitySchema = z.object({
+  from: z.string().datetime().optional(),
+  to: z.string().datetime().optional()
+});
+
+export type EmployeeAvailabilityQueryOptions = z.infer<
+  typeof employeeAvailabilitySchema
+>;
