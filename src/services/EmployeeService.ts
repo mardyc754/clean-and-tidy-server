@@ -10,9 +10,9 @@ import { prisma } from '~/db';
 
 import { prismaExclude } from '~/lib/prisma';
 
-import type {
-  EmployeeAvailabilityQueryOptions,
-  EmployeeCreationData
+import {
+  type EmployeeCreationData,
+  type EmployeeWorkingHoursQueryOptions
 } from '~/schemas/employee';
 
 import { executeDatabaseOperation } from '~/utils/queryUtils';
@@ -20,6 +20,42 @@ import { executeDatabaseOperation } from '~/utils/queryUtils';
 type EmployeeReservationQueryOptions = {
   status: Status;
 };
+
+type EmployeeFilterOptions = {
+  includeVisits?: boolean;
+};
+
+function includeServicesWithUnit() {
+  return {
+    services: {
+      include: {
+        service: {
+          include: {
+            unit: true
+          }
+        }
+      }
+    }
+  };
+}
+function getDetailedVisitsData(employeeId?: Employee['id']) {
+  return {
+    visits: {
+      where: employeeId ? { employeeId } : undefined,
+      include: {
+        visit: {
+          include: {
+            reservation: {
+              include: {
+                ...includeServicesWithUnit()
+              }
+            }
+          }
+        }
+      }
+    }
+  };
+}
 
 export default class EmployeeService {
   public async getEmployeeById(id: Employee['id']) {
@@ -48,10 +84,13 @@ export default class EmployeeService {
     return employee;
   }
 
-  public async getAllEmployees() {
+  public async getAllEmployees(options?: EmployeeFilterOptions) {
     return await executeDatabaseOperation(
       prisma.employee.findMany({
-        select: prismaExclude('Employee', ['password'])
+        select: {
+          ...prismaExclude('Employee', ['password']),
+          ...(options?.includeVisits ? getDetailedVisitsData() : undefined)
+        }
       })
     );
   }
@@ -68,28 +107,7 @@ export default class EmployeeService {
       const employeeWithVisits = await prisma.employee.findUnique({
         where: { id: employeeId },
         include: {
-          visits: {
-            where: { employeeId },
-            include: {
-              visit: {
-                include: {
-                  reservation: {
-                    include: {
-                      services: {
-                        include: {
-                          service: {
-                            include: {
-                              unit: true
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
+          ...getDetailedVisitsData(employeeId)
         }
       });
 
@@ -301,9 +319,9 @@ export default class EmployeeService {
     return employees;
   }
 
-  public async getEmployeeAvailability(
+  public async getEmployeeWorkingHours(
     id: Service['id'],
-    options?: EmployeeAvailabilityQueryOptions
+    options?: EmployeeWorkingHoursQueryOptions
   ) {
     const employeesWithVisits = await executeDatabaseOperation(
       prisma.employee.findMany({

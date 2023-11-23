@@ -1,19 +1,23 @@
 import { Status } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import type { Request, Response } from 'express';
+import type { Response } from 'express';
 
 import type {
-  EmployeeAvailabilityQueryOptions,
-  EmployeeCreationData
+  EmployeeCreationData,
+  EmployeeQueryOptions,
+  EmployeeWorkingHoursQueryOptions
 } from '~/schemas/employee';
 
 import { checkIsAdmin, checkIsEmployee } from '~/middlewares/auth/checkRole';
 import {
-  validateAvailabilityRange,
-  validateEmployeeCreationData
+  validateEmployeeCreationData,
+  validateEmployeeQueryOptions,
+  validateWorkingHoursRange
 } from '~/middlewares/type-validators/employee';
 
 import { EmployeeService } from '~/services';
+
+import { queryParamToBoolean } from '~/utils/general';
 
 import type { DefaultBodyType, DefaultParamsType, TypedRequest } from '~/types';
 
@@ -28,7 +32,12 @@ export default class EmployeeController extends AbstractController {
   }
 
   public createRouters() {
-    this.router.get('/', checkIsAdmin(), this.getAllEmployees);
+    this.router.get(
+      '/',
+      checkIsAdmin(),
+      validateEmployeeQueryOptions(),
+      this.getAllEmployees
+    );
     this.router.post('/', validateEmployeeCreationData(), this.createEmployee);
     this.router.get('/:id', this.getEmployeeById);
     this.router.get('/:id/visits', checkIsEmployee(), this.getEmployeeVisits);
@@ -51,14 +60,19 @@ export default class EmployeeController extends AbstractController {
     this.router.delete('/:id', this.deleteEmployeeData);
     this.router.get('/services/:id', this.getEmployeesOfferingService);
     this.router.get(
-      '/services/:id/availability',
-      validateAvailabilityRange(),
-      this.getEmployeeAvailability
+      '/services/:id/working-hours',
+      validateWorkingHoursRange(),
+      this.getEmployeeWorkingHours
     );
   }
 
-  private getAllEmployees = async (_: Request, res: Response) => {
-    const employees = await this.employeeService.getAllEmployees();
+  private getAllEmployees = async (
+    req: TypedRequest<DefaultParamsType, DefaultBodyType, EmployeeQueryOptions>,
+    res: Response
+  ) => {
+    const employees = await this.employeeService.getAllEmployees({
+      includeVisits: queryParamToBoolean(req.query.includeVisits)
+    });
 
     if (employees !== null) {
       res.status(200).send(employees);
@@ -242,16 +256,16 @@ export default class EmployeeController extends AbstractController {
     }
   };
 
-  private getEmployeeAvailability = async (
+  private getEmployeeWorkingHours = async (
     req: TypedRequest<
       { id: string },
       DefaultBodyType,
-      EmployeeAvailabilityQueryOptions
+      EmployeeWorkingHoursQueryOptions
     >,
     res: Response
   ) => {
     console.log(req.query);
-    const reservation = await this.employeeService.getEmployeeAvailability(
+    const reservation = await this.employeeService.getEmployeeWorkingHours(
       parseInt(req.params.id),
       { from: req.query.from, to: req.query.to }
     );

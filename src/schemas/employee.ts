@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { stringifiedBoolean } from './common';
+
 export const employeeCreationSchema = z
   .object({
     startHour: z.string().datetime(),
@@ -20,11 +22,17 @@ export const employeeIdSchema = z.object({
 
 export type EmployeeIdData = z.infer<typeof employeeIdSchema>;
 
-export const employeeAvailabilitySchema = z.object({
+export const employeeWorkingHoursSchema = z.object({
   from: z.string().datetime().optional(),
   to: z.string().datetime().optional()
 });
 
-export type EmployeeAvailabilityQueryOptions = z.infer<
-  typeof employeeAvailabilitySchema
+export type EmployeeWorkingHoursQueryOptions = z.infer<
+  typeof employeeWorkingHoursSchema
 >;
+
+export const employeeQueryOptions = z.object({
+  includeVisits: stringifiedBoolean.optional()
+});
+
+export type EmployeeQueryOptions = z.infer<typeof employeeQueryOptions>;

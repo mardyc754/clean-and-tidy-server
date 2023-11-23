@@ -1,7 +1,8 @@
 import {
-  employeeAvailabilitySchema,
   employeeCreationSchema,
-  employeeIdSchema
+  employeeIdSchema,
+  employeeQueryOptions,
+  employeeWorkingHoursSchema
 } from '~/schemas/employee';
 
 import { validateTypes } from './validateTypesOfData';
@@ -18,8 +19,14 @@ export const validateEmployeeId = () => {
   });
 };
 
-export const validateAvailabilityRange = () => {
+export const validateWorkingHoursRange = () => {
   return validateTypes({
-    queryParser: employeeAvailabilitySchema
+    queryParser: employeeWorkingHoursSchema
+  });
+};
+
+export const validateEmployeeQueryOptions = () => {
+  return validateTypes({
+    queryParser: employeeQueryOptions
   });
 };
