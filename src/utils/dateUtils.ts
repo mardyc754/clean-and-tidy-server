@@ -63,3 +63,21 @@ export function displayDateWithHours(date: ValidDayjsDate) {
 export function advanceDateByHours(date: ValidDayjsDate, hours: number) {
   return dayjs(date).add(hours, 'hour');
 }
+
+export function isTheSameDay(
+  firstDate: ValidDayjsDate,
+  secondDate: ValidDayjsDate
+) {
+  return dayjs(firstDate).isSame(secondDate, 'day');
+}
+
+export function isAfter(firstDate: ValidDayjsDate, secondDate: ValidDayjsDate) {
+  return dayjs(firstDate).isAfter(secondDate);
+}
+
+export function isBefore(
+  firstDate: ValidDayjsDate,
+  secondDate: ValidDayjsDate
+) {
+  return dayjs(firstDate).isBefore(secondDate);
+}

@@ -64,6 +64,12 @@ export default class EmployeeController extends AbstractController {
       validateWorkingHoursRange(),
       this.getEmployeeWorkingHours
     );
+
+    this.router.get(
+      '/services/:id/busy-hours',
+      validateWorkingHoursRange(),
+      this.getBusyHours
+    );
   }
 
   private getAllEmployees = async (
@@ -265,7 +271,30 @@ export default class EmployeeController extends AbstractController {
     res: Response
   ) => {
     console.log(req.query);
-    const reservation = await this.employeeService.getEmployeeWorkingHours(
+    const reservation = await this.employeeService.getServiceBusyHours(
+      parseInt(req.params.id),
+      { from: req.query.from, to: req.query.to }
+    );
+
+    if (reservation) {
+      res.status(200).send(reservation);
+    } else {
+      res.status(404).send({
+        message: `Reservation with id=${req.params.id} not found`
+      });
+    }
+  };
+
+  private getBusyHours = async (
+    req: TypedRequest<
+      { id: string },
+      DefaultBodyType,
+      EmployeeWorkingHoursQueryOptions
+    >,
+    res: Response
+  ) => {
+    console.log(req.query);
+    const reservation = await this.employeeService.getBusyHours(
       parseInt(req.params.id),
       { from: req.query.from, to: req.query.to }
     );

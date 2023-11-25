@@ -15,6 +15,7 @@ import {
   type EmployeeWorkingHoursQueryOptions
 } from '~/schemas/employee';
 
+import { calculateBusyHours } from '~/utils/employeeUtils';
 import { executeDatabaseOperation } from '~/utils/queryUtils';
 
 type EmployeeReservationQueryOptions = {
@@ -319,7 +320,7 @@ export default class EmployeeService {
     return employees;
   }
 
-  public async getEmployeeWorkingHours(
+  public async getServiceBusyHours(
     id: Service['id'],
     options?: EmployeeWorkingHoursQueryOptions
   ) {
@@ -328,6 +329,7 @@ export default class EmployeeService {
         where: {
           services: {
             some: {
+              // id: { in: [1, 2] }
               id
             }
           }
@@ -379,7 +381,20 @@ export default class EmployeeService {
       }))
     }));
 
-    // return employeesWithVisits;
     return visitTimespans;
+  }
+
+  public async getBusyHours(
+    id: Service['id'],
+    options?: EmployeeWorkingHoursQueryOptions
+  ) {
+    const employeesWithWorkingHours = await this.getServiceBusyHours(
+      id,
+      options
+    );
+
+    return calculateBusyHours(
+      employeesWithWorkingHours?.map(({ workingHours }) => workingHours) ?? []
+    );
   }
 }
