@@ -40,15 +40,6 @@ export const reservationCreationSchema = z
     visitData: visitCreationDataSchema,
     address: address.or(z.number().int()),
     contactDetails,
-    services: z.array(reservationServiceSchema).refine(
-      (val) => {
-        return (
-          val.filter((service) => service.isMainServiceForReservation)
-            .length === 1
-        );
-      },
-      { message: 'There must be exactly one main service for reservation' }
-    ),
     extraInfo: z.string().max(500).nullish()
   })
   .strict();

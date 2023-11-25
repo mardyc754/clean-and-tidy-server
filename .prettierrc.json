@@ -17,6 +17,8 @@
     "^~/controllers/(.*)$",
     "^~/services$",
     "^~/services/(.*)$",
+    "^~/queries$",
+    "^~/queries/(.*)$",
     "^~/utils$",
     "^~/utils/(.*)$",
     "^~/types$",

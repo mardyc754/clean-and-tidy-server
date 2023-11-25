@@ -167,7 +167,7 @@ export default class AuthController extends AbstractController {
 
       const { userId, role } = decoded;
 
-      let user: Client | Employee | null = null;
+      let user: Client | Omit<Employee, 'password'> | null = null;
 
       if (role === UserRole.CLIENT) {
         user = await this.clientService.getClientById(userId);

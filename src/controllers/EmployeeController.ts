@@ -96,9 +96,7 @@ export default class EmployeeController extends AbstractController {
     );
 
     if (employee) {
-      res.status(200).send({
-        data: employee
-      });
+      res.status(200).send(employee);
     } else {
       res
         .status(404)
@@ -107,11 +105,12 @@ export default class EmployeeController extends AbstractController {
   };
 
   private getEmployeeVisits = async (
-    req: TypedRequest<{ id: string }>,
+    req: TypedRequest<{ id: string }, DefaultBodyType, { status: Status }>,
     res: Response
   ) => {
     const visits = await this.employeeService.getEmployeeVisits(
-      parseInt(req.params.id)
+      parseInt(req.params.id),
+      req.query.status
     );
 
     if (visits !== null) {

@@ -148,9 +148,10 @@ model VisitPart {
   employeeService                  EmployeeService               @relation(fields: [employeeId, serviceId], references: [employeeId, serviceId], onDelete: Cascade)
   employeeId                       Int
   startDate                        DateTime
-  numberOfUnits                    Int                           @default(1)
+  endDate                          DateTime
   status                           Status                        @default(TO_BE_CONFIRMED)
-  // cost                             Decimal                       @db.Money
+  cost                             Decimal                       @db.Money
+  numberOfUnits                    Int
 
   @@id([visitId])
 }

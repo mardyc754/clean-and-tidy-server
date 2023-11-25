@@ -129,9 +129,10 @@ export default class VisitController extends AbstractController {
     );
 
     if (visit) {
-      res.status(200).send({
-        ...visit
-      });
+      // res.status(200).send({
+      //   ...visit
+      // });
+      res.status(200).send(visit);
     } else {
       res
         .status(400)

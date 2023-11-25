@@ -3,6 +3,12 @@ import type { RequireAtLeastOne } from 'type-fest';
 
 import { prisma } from '~/db';
 
+import {
+  serviceInclude,
+  serviceWithUnit,
+  visitPartWithEmployee
+} from '~/queries/serviceQuery';
+
 import { executeDatabaseOperation } from '../utils/queryUtils';
 
 type ClientCreationData = Pick<Client, 'email'> & {
@@ -72,32 +78,29 @@ export default class ClientService {
     return users;
   }
 
+  // TODO FIXME: this is not working
   public async getClientReservations(clientId: Client['id'], status?: Status) {
-    const reservationStatusFilter = status
-      ? { include: { employees: { where: { status } } } }
-      : true;
     const clientData = await executeDatabaseOperation(
       prisma.client.findUnique({
         where: { id: clientId },
         select: {
           reservations: {
+            where: {
+              status
+            },
             include: {
-              visits: reservationStatusFilter,
-              services: {
+              visits: {
                 include: {
-                  service: {
-                    include: {
-                      unit: true
-                    }
-                  }
+                  visitParts: visitPartWithEmployee,
+                  services: serviceInclude
                 }
-              }
+              },
+              address: true
             }
           }
         }
       })
     );
-
     return clientData?.reservations ?? null;
   }
 
