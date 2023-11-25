@@ -52,11 +52,11 @@ export default class ReservationService {
         include: {
           visits: {
             include: {
-              visitParts: visitPartWithEmployee,
+              visitParts: visitPartWithEmployee
               // include services only if the option is true
-              services: serviceInclude
             }
-          }
+          },
+          services: serviceInclude
         }
       })
     );
@@ -128,12 +128,12 @@ export default class ReservationService {
         include: {
           visits: {
             include: {
-              visitParts: { where: { status } },
-              services: {
-                include: {
-                  service: true
-                }
-              }
+              visitParts: { where: { status } }
+            }
+          },
+          services: {
+            include: {
+              service: true
             }
           }
         }
@@ -152,8 +152,7 @@ export default class ReservationService {
       prisma.visit.findMany({
         where: { reservationId: reservation.id },
         include: {
-          visitParts: visitPartWithEmployee,
-          services: serviceInclude
+          visitParts: visitPartWithEmployee
         }
       })
     );
@@ -171,6 +170,7 @@ export default class ReservationService {
       address,
       contactDetails: { firstName: bookerFirstName, lastName: bookerLastName },
       visitData: { visitParts },
+      services,
       visitData,
       extraInfo
     } = data;
@@ -234,7 +234,12 @@ export default class ReservationService {
               }
             }
           },
-          extraInfo: extraInfo ?? null
+          extraInfo: extraInfo ?? null,
+          services: {
+            createMany: {
+              data: services
+            }
+          }
         }
       });
     } catch (err) {

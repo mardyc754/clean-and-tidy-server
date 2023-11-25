@@ -21,7 +21,7 @@ function createWeeklyVisits(
   endDate: string,
   weekSpan: number
 ) {
-  const { visitParts, includeDetergents, services } = visitData;
+  const { visitParts, includeDetergents } = visitData;
 
   const firstVisitPartStartDate = visitParts[0]?.startDate;
 
@@ -36,11 +36,6 @@ function createWeeklyVisits(
     weekNumbers.map((week, i) => ({
       name: `${reservationName}-${i + 1}`,
       includeDetergents,
-      services: {
-        createMany: {
-          data: services
-        }
-      },
       visitParts: {
         create: visitParts.map((visitPart, index) => ({
           ...visitPart,
@@ -59,7 +54,7 @@ function createMonthlyVisits(
   visitData: VisitCreationData,
   endDate: string
 ) {
-  const { visitParts, includeDetergents, services } = visitData;
+  const { visitParts, includeDetergents } = visitData;
 
   const firstVisitPartStartDate = visitParts[0]?.startDate;
 
@@ -81,11 +76,6 @@ function createMonthlyVisits(
     monthNumbers.map((month, i) => ({
       name: `${reservationName}-${i + 1}`,
       includeDetergents,
-      services: {
-        createMany: {
-          data: services
-        }
-      },
       visitParts: {
         create: visitParts.map((visitPart, index) => ({
           ...visitPart,
@@ -105,7 +95,7 @@ export function createVisits(
   frequency: Reservation['frequency'],
   endDate: string
 ) {
-  const { visitParts, includeDetergents, services } = visitData;
+  const { visitParts, includeDetergents } = visitData;
 
   const startDate = visitParts[0]?.startDate;
   const lastVisitPartEndDate = visitParts.at(-1)?.endDate;
@@ -132,11 +122,6 @@ export function createVisits(
         {
           name: `${reservationName}-1`,
           includeDetergents,
-          services: {
-            createMany: {
-              data: services
-            }
-          },
           visitParts: {
             create: visitParts.map((visitPart, index) => ({
               ...visitPart,

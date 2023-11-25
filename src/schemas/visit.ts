@@ -3,13 +3,6 @@ import { z } from 'zod';
 
 import { ISOString } from './common';
 
-export const reservationServiceSchema = z
-  .object({
-    serviceId: z.number().int(),
-    isMainServiceForReservation: z.boolean()
-  })
-  .strict();
-
 export const visitPartCreationData = z.object({
   employeeId: z.number().int(),
   serviceId: z.number().int(),
@@ -23,15 +16,6 @@ export type VisitPartCreationData = z.infer<typeof visitPartCreationData>;
 
 export const visitCreationDataSchema = z.object({
   includeDetergents: z.boolean(),
-  services: z.array(reservationServiceSchema).refine(
-    (val) => {
-      return (
-        val.filter((service) => service.isMainServiceForReservation).length ===
-        1
-      );
-    },
-    { message: 'There must be exactly one main service for reservation' }
-  ),
   visitParts: z.array(visitPartCreationData)
 });
 

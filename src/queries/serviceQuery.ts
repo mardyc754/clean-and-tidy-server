@@ -98,7 +98,7 @@ export const visitPartWithEmployee =
   });
 
 export const serviceInclude =
-  Prisma.validator<Prisma.VisitServiceDefaultArgs>()({
+  Prisma.validator<Prisma.ReservationServiceDefaultArgs>()({
     include: {
       service: serviceWithUnit
     }
@@ -106,9 +106,8 @@ export const serviceInclude =
 
 export const includeAllVisitData = Prisma.validator<Prisma.VisitDefaultArgs>()({
   include: {
-    visitParts: visitPartWithEmployee,
+    visitParts: visitPartWithEmployee
     // include services only if the option is true
-    services: serviceInclude
   }
 });
 

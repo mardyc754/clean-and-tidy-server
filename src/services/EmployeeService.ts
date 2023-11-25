@@ -26,7 +26,7 @@ import {
 import { calculateBusyHours } from '~/utils/employeeUtils';
 import { executeDatabaseOperation } from '~/utils/queryUtils';
 import { flattenNestedEmployeeServices } from '~/utils/services';
-import { flattenNestedVisitServices } from '~/utils/visits';
+import { flattenNestedReservationServices } from '~/utils/visits';
 
 type EmployeeReservationQueryOptions = {
   status: Status;

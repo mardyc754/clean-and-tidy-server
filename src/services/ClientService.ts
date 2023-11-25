@@ -91,10 +91,10 @@ export default class ClientService {
             include: {
               visits: {
                 include: {
-                  visitParts: visitPartWithEmployee,
-                  services: serviceInclude
+                  visitParts: visitPartWithEmployee
                 }
               },
+              services: serviceInclude,
               address: true
             }
           }
