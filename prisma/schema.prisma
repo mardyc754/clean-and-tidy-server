@@ -114,9 +114,9 @@ model Unit {
 
 
 model EmployeeService {
-  employee                      Employee                      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employee                      Employee                      @relation(fields: [employeeId], references: [id])
   employeeId                    Int                           
-  service                       Service                       @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  service                       Service                       @relation(fields: [serviceId], references: [id])
   serviceId                     Int                           
   visitParts                    VisitPart[]
   
@@ -142,6 +142,7 @@ model ReservationService {
 
 
 model VisitPart {
+  id                               Int                           @id @default(autoincrement())
   visit                            Visit                         @relation(fields: [visitId], references: [id], onDelete: Cascade)
   visitId                          Int 
   serviceId                        Int
@@ -152,8 +153,6 @@ model VisitPart {
   status                           Status                        @default(TO_BE_CONFIRMED)
   cost                             Decimal                       @db.Money
   numberOfUnits                    Int
-
-  @@id([visitId])
 }
 
 

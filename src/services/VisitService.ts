@@ -1,16 +1,17 @@
 import { EmployeeService, Status, type Visit, VisitPart } from '@prisma/client';
+import { omit } from 'lodash';
 import type { RequireAtLeastOne } from 'type-fest';
 
 import { prisma } from '~/db';
 
-import { ChangeVisitDateData, SingleVisitCreationData } from '~/schemas/visit';
+import { ChangeVisitDateData, VisitPartCreationData } from '~/schemas/visit';
 
 import { areStartEndDateValid, now } from '~/utils/dateUtils';
 
 import { executeDatabaseOperation } from '../utils/queryUtils';
 
 export type VisitQueryOptions = RequireAtLeastOne<{
-  includeEmployees: boolean;
+  includeEmployee: boolean;
 }>;
 
 export default class VisitService {
@@ -26,26 +27,41 @@ export default class VisitService {
     return visits;
   }
 
-  // TODO FIXME: this is not working
-  public async getVisitById(id: Visit['id'], options?: VisitQueryOptions) {
-    let visit: Visit | null = null;
+  public async getVisitById(id: VisitPart['id'], options?: VisitQueryOptions) {
+    if (options?.includeEmployee) {
+      const visitPart = await executeDatabaseOperation(
+        prisma.visitPart.findFirst({
+          where: { id },
+          include: {
+            visit: {
+              select: {
+                includeDetergents: true
+              }
+            },
+            employeeService: {
+              include: { employee: true }
+            }
+          }
+        })
+      );
 
-    // try {
-    //   visit = await prisma.visit.findFirst({
-    //     where: { id },
-    //     include: options?.includeEmployees
-    //       ? { employees: { include: { employee: true } } }
-    //       : undefined
-    //   });
-    // } catch (err) {
-    //   console.error(`Something went wrong: ${err}`);
-    // }
-
-    return visit;
+      return visitPart
+        ? {
+            ...omit(visitPart, 'employeeService', 'visit'),
+            includeDetergents: visitPart.visit.includeDetergents,
+            employee: visitPart.employeeService.employee
+          }
+        : null;
+    }
+    return await executeDatabaseOperation(
+      prisma.visitPart.findFirst({
+        where: { id }
+      })
+    );
   }
 
   // TODO FIXME: this is not working
-  public async createVisit(data: SingleVisitCreationData) {
+  public async createVisit(data: VisitPartCreationData) {
     // const { employeeIds, ...otherData } = data;
 
     // return await executeDatabaseOperation(

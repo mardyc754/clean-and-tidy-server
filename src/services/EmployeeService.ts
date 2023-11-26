@@ -5,7 +5,7 @@ import {
   Status,
   VisitPart
 } from '@prisma/client';
-import { omit, without } from 'lodash';
+import { omit, pick, without } from 'lodash';
 
 import { prisma } from '~/db';
 
@@ -25,7 +25,10 @@ import {
 
 import { calculateBusyHours } from '~/utils/employeeUtils';
 import { executeDatabaseOperation } from '~/utils/queryUtils';
-import { flattenNestedEmployeeServices } from '~/utils/services';
+import {
+  flattenNestedEmployeeServices,
+  flattenVisitPartsFromServices
+} from '~/utils/services';
 import { flattenNestedReservationServices } from '~/utils/visits';
 
 type EmployeeReservationQueryOptions = {
@@ -104,7 +107,16 @@ export default class EmployeeService {
           services: {
             include: {
               service: serviceWithUnit,
-              visitParts: options?.includeVisits
+              visitParts: {
+                include: {
+                  employeeService: includeFullService,
+                  visit: {
+                    include: {
+                      reservation: true
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -113,8 +125,8 @@ export default class EmployeeService {
 
     return employees
       ? employees.map((employee) => ({
-          ...employee,
-          services: flattenNestedEmployeeServices(employee.services)
+          ...omit(employee, 'services'),
+          visitParts: flattenVisitPartsFromServices(employee.services)
         }))
       : null;
   }
@@ -134,6 +146,11 @@ export default class EmployeeService {
             include: {
               service: serviceWithUnit
             }
+          },
+          visit: {
+            include: {
+              reservation: true
+            }
           }
         }
       })
@@ -141,8 +158,14 @@ export default class EmployeeService {
 
     return visits
       ? visits.map((visit) => ({
-          ...omit(visit, 'employeeService'),
-          service: omit(visit.employeeService.service, 'id')
+          ...omit(visit, 'employeeService', 'visit'),
+          // ...pick(visit.visit.reservation, [
+          //   'bookerEmail',
+          //   'bookerFirstName',
+          //   'bookerLastName'
+          // ]),
+          reservation: visit.visit.reservation,
+          service: visit.employeeService.service
         }))
       : null;
   }
@@ -151,7 +174,7 @@ export default class EmployeeService {
     id: Employee['id'],
     options?: EmployeeReservationQueryOptions
   ) {
-    return await executeDatabaseOperation(
+    const reservations = await executeDatabaseOperation(
       prisma.reservation.findMany({
         where: {
           visits: { some: { visitParts: { some: { employeeId: id } } } },
@@ -165,9 +188,17 @@ export default class EmployeeService {
             include: {
               visitParts: { where: { employeeId: id } }
             }
-          }
+          },
+          services: includeFullService
         }
       })
+    );
+
+    return (
+      reservations?.map((reservation) => ({
+        ...reservation,
+        services: flattenNestedReservationServices(reservation.services)
+      })) ?? null
     );
   }
 

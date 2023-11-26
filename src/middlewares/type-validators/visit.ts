@@ -1,13 +1,13 @@
 import {
   changeVisitDateSchema,
   changeVisitStatusSchema,
-  singleVisitCreationDataSchema
+  visitPartCreationData
 } from '~/schemas/visit';
 
 import { validateTypes } from './validateTypesOfData';
 
 export function validateVisitCreationData() {
-  return validateTypes({ bodyParser: singleVisitCreationDataSchema });
+  return validateTypes({ bodyParser: visitPartCreationData });
 }
 
 export function validateVisitDate() {

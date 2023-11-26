@@ -4,7 +4,7 @@ import { Stringified } from 'type-fest';
 import {
   ChangeVisitDateData,
   ChangeVisitStatusData,
-  SingleVisitCreationData
+  VisitPartCreationData
 } from '~/schemas/visit';
 
 import {
@@ -60,7 +60,7 @@ export default class VisitController extends AbstractController {
   ) => {
     const visit = await this.visitService.getVisitById(
       parseInt(req.params.id),
-      { includeEmployees: queryParamToBoolean(req.query.includeEmployees) }
+      { includeEmployee: queryParamToBoolean(req.query.includeEmployee) }
     );
 
     if (visit) {
@@ -71,7 +71,7 @@ export default class VisitController extends AbstractController {
   };
 
   private createVisit = async (
-    req: TypedRequest<DefaultParamsType, SingleVisitCreationData>,
+    req: TypedRequest<DefaultParamsType, VisitPartCreationData>,
     res: Response
   ) => {
     const data = req.body;

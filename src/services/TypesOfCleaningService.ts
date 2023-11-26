@@ -1,10 +1,6 @@
-import { type Employee, Prisma, type Service } from '@prisma/client';
-import { omit } from 'lodash';
-import { OverrideProperties } from 'type-fest';
+import { type Service } from '@prisma/client';
 
 import { prisma } from '~/db';
-
-import { prismaExclude } from '~/lib/prisma';
 
 import { EmployeeWorkingHoursQueryOptions } from '~/schemas/employee';
 import {
@@ -14,20 +10,14 @@ import {
 } from '~/schemas/typesOfCleaning';
 
 import {
-  getAllServicesData,
-  getServiceEmployees,
   getSingleServiceData,
   serviceEmployees,
   serviceUnit
 } from '~/queries/serviceQuery';
 
-import { calculateBusyHours } from '~/utils/employeeUtils';
 import { getResponseServiceData } from '~/utils/services';
 
-import {
-  executeDatabaseOperation,
-  includeWithOtherDataIfTrue
-} from '../utils/queryUtils';
+import { executeDatabaseOperation } from '../utils/queryUtils';
 
 export type AllServicesQueryOptions = {
   primaryOnly: boolean;

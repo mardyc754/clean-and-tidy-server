@@ -9,6 +9,11 @@ import {
   visitPartWithEmployee
 } from '~/queries/serviceQuery';
 
+import {
+  flattenNestedReservationServices,
+  flattenNestedVisits
+} from '~/utils/visits';
+
 import { executeDatabaseOperation } from '../utils/queryUtils';
 
 type ClientCreationData = Pick<Client, 'email'> & {
@@ -78,7 +83,6 @@ export default class ClientService {
     return users;
   }
 
-  // TODO FIXME: this is not working
   public async getClientReservations(clientId: Client['id'], status?: Status) {
     const clientData = await executeDatabaseOperation(
       prisma.client.findUnique({
@@ -101,7 +105,13 @@ export default class ClientService {
         }
       })
     );
-    return clientData?.reservations ?? null;
+    return (
+      clientData?.reservations.map((reservation) => ({
+        ...reservation,
+        visits: flattenNestedVisits(reservation.visits),
+        services: flattenNestedReservationServices(reservation.services)
+      })) ?? null
+    );
   }
 
   public async getClientAddresses(clientId: Client['id']) {

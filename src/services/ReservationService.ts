@@ -36,7 +36,10 @@ import {
   changeWeekDay,
   createVisits
 } from '~/utils/reservations';
-import { flattenNestedVisits } from '~/utils/visits';
+import {
+  flattenNestedReservationServices,
+  flattenNestedVisits
+} from '~/utils/visits';
 
 export type ReservationQueryOptions = RequireAtLeastOne<{
   includeVisits: boolean;
@@ -92,7 +95,8 @@ export default class ReservationService {
             // include visits only if the option is true
             visits: includeAllVisitData,
             // include address only if the option is true
-            address: options?.includeAddress
+            address: options?.includeAddress,
+            services: serviceInclude
           }
         })
       );
@@ -103,7 +107,8 @@ export default class ReservationService {
 
       return {
         ...reservationData,
-        visits: flattenNestedVisits(reservationData.visits)
+        visits: flattenNestedVisits(reservationData.visits),
+        services: flattenNestedReservationServices(reservationData.services)
       };
     }
 
@@ -169,9 +174,9 @@ export default class ReservationService {
       frequency,
       address,
       contactDetails: { firstName: bookerFirstName, lastName: bookerLastName },
-      visitData: { visitParts },
+      visitParts,
       services,
-      visitData,
+      includeDetergents,
       extraInfo
     } = data;
 
@@ -208,7 +213,7 @@ export default class ReservationService {
           visits: {
             create: createVisits(
               reservationGroupName,
-              visitData,
+              { visitParts, includeDetergents },
               frequency,
               endDate
             )

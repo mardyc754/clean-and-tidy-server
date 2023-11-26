@@ -6,7 +6,7 @@ import {
   type Visit
 } from '@prisma/client';
 
-import { VisitCreationData } from '~/schemas/visit';
+import { ReservationCreationData } from '~/schemas/reservation';
 
 import {
   advanceDateByMonths,
@@ -17,7 +17,7 @@ import {
 
 function createWeeklyVisits(
   reservationName: string,
-  visitData: VisitCreationData,
+  visitData: Pick<ReservationCreationData, 'visitParts' | 'includeDetergents'>,
   endDate: string,
   weekSpan: number
 ) {
@@ -51,7 +51,7 @@ function createWeeklyVisits(
 
 function createMonthlyVisits(
   reservationName: string,
-  visitData: VisitCreationData,
+  visitData: Pick<ReservationCreationData, 'visitParts' | 'includeDetergents'>,
   endDate: string
 ) {
   const { visitParts, includeDetergents } = visitData;
@@ -91,7 +91,7 @@ function createMonthlyVisits(
 
 export function createVisits(
   reservationName: string,
-  visitData: VisitCreationData,
+  visitData: Pick<ReservationCreationData, 'visitParts' | 'includeDetergents'>,
   frequency: Reservation['frequency'],
   endDate: string
 ) {

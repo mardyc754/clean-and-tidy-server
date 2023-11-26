@@ -2,9 +2,11 @@ import {
   type CleaningFrequency,
   type Employee,
   type EmployeeService,
-  Prisma,
+  Reservation,
   type Service,
-  type Unit
+  type Unit,
+  Visit,
+  VisitPart
 } from '@prisma/client';
 import { omit } from 'lodash';
 
@@ -18,6 +20,12 @@ type ServiceWithUnit = Service & {
 
 type EmployeeServiceNested = EmployeeService & {
   service: Service & { unit: Unit | null };
+  visitParts: Array<
+    VisitPart & {
+      employeeService: EmployeeService & { service: ServiceWithUnit };
+      visit: Visit & { reservation: Reservation };
+    }
+  >;
 };
 
 // type ServiceWithUnit = Prisma.ServiceGetPayload<typeof serviceWithUnit>;
@@ -56,4 +64,18 @@ export function flattenNestedEmployeeServices(
     ...omit(service, 'serviceId', 'service'),
     ...service.service
   }));
+}
+
+export function flattenVisitPartsFromServices(
+  services: EmployeeServiceNested[]
+) {
+  return flattenNestedEmployeeServices(services).flatMap(
+    (service) =>
+      service.visitParts.map((visitPart) => ({
+        ...omit(visitPart, 'employeeService', 'employeeServiceId', 'visit'),
+        ...visitPart.employeeService,
+        reservation: visitPart.visit.reservation
+      }))
+    // service.visitParts
+  );
 }

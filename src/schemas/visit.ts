@@ -14,23 +14,6 @@ export const visitPartCreationData = z.object({
 
 export type VisitPartCreationData = z.infer<typeof visitPartCreationData>;
 
-export const visitCreationDataSchema = z.object({
-  includeDetergents: z.boolean(),
-  visitParts: z.array(visitPartCreationData)
-});
-
-export type VisitCreationData = z.infer<typeof visitCreationDataSchema>;
-
-export const singleVisitCreationDataSchema = z
-  .object({
-    reservationId: z.number()
-  })
-  .merge(visitCreationDataSchema);
-
-export type SingleVisitCreationData = z.infer<
-  typeof singleVisitCreationDataSchema
->;
-
 export const changeVisitDateSchema = z.object({
   id: z.number(),
   startDate: ISOString,
