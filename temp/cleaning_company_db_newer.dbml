@@ -55,6 +55,7 @@ Table Reservation {
   bookerEmail                                 varchar [not null, ref: > Client.email]           
   bookerFirstName                             varchar(50) [not null]
   bookerLastName                              varchar(50) [not null]
+  extraInfo                                   varchar(500)
 }
 
 Table Employee {
@@ -68,14 +69,8 @@ Table Employee {
   isAdmin                                     boolean [not null]
 }
 
-// Table VisitEmployee {
-//   employeeId                                  integer [ref: > Employee.id]
-//   visitId                                     integer [ref: > Visit.id]
-//   status                                      Status [not null]
-// }
 
 Table EmployeeService {
-  // id                                          integer [primary key]
   employeeId                                  integer [primary key, ref: > Employee.id]
   serviceId                                   integer [primary key, ref: > Service.id]
 }
@@ -89,22 +84,22 @@ Table Service {
 }
 
 Table PrimarySecondaryService {
-  primaryServiceId                            integer [ref: > Service.id]
-  secondaryServiceId                          integer [ref: > Service.id]
+  primaryServiceId                            integer [ref: > Service.id, not null]
+  secondaryServiceId                          integer [ref: > Service.id, not null]
   
 }
 
 Table Unit {
   id                                          integer [primary key]
-  name                                        varchar(40)
+  name                                        varchar(40) [not null]
   price                                       numeric(4,2) [not null]
-  duration                                    integer       
+  duration                                    integer [not null]       
 }
 
 
 Table ServiceFrequency {
-  serviceId                                   integer [ref: > Service.id]
-  frequencyId                                 integer [ref: > CleaningFrequency.id]
+  serviceId                                   integer [ref: > Service.id, not null]
+  frequencyId                                 integer [ref: > CleaningFrequency.id, not null]
 }
 
 Table CleaningFrequency {
@@ -113,30 +108,21 @@ Table CleaningFrequency {
   value                                       Frequency
 }
 
-// Table VisitEmployeeService {
-//   visitId                                     integer [ref: > Visit.id]
-//   employeeServiceId                           integer [ref: > EmployeeService.id]
-//   isMainServiceForReservation                 boolean [not null]
-//   numberOfUnits                               integer [not null]
-//   status                                      Status  [not null]                                      
-// }
 
-Table VisitService {
-  // id                                          integer [primary key]
-  serviceId                                   integer [ref: > Service.id]
-  visitId                                     integer [ref: > Visit.id]
-  isMainServiceForReservation                 boolean [not null] 
+Table ReservationService {
+  serviceId                                   integer [ref: > Service.id, not null]
+  reservationId                               integer [ref: > Reservation.id, not null]
+  isMainServiceForReservation                 boolean [not null, not null] 
 }
 
-Table VisitServiceEmployee {
-  // employeeId                                 integer [ref: > Employee.id]
-  // serviceId                                  integer [ref: > VisitService.serviceId]
-  employeeId                                 integer [ref: > EmployeeService.employeeId]
-  serviceId                                  integer [ref: > EmployeeService.serviceId]
-  visitId                                    integer [ref: > VisitService.visitId]
+Table VisitPart {
+  id                                         integer [primary key]
+  employeeId                                 integer [ref: > EmployeeService.employeeId, not null]
+  serviceId                                  integer [ref: > EmployeeService.serviceId, not null]
+  visitId                                    integer [ref: > Visit.id]
   startDate                                  timestamp [not null]
+  endDate                                    timestamp [not null]
   numberOfUnits                              integer [not null]  
-  // endDate                                    timestamp [not null]    
   status                                     Status  [not null]
   cost                                       numeric(4,2) [not null]
 }

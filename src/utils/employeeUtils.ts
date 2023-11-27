@@ -1,36 +1,55 @@
+import type { Employee, VisitPart } from '@prisma/client';
+
 import { isAfter } from '~/utils/dateUtils';
 
-type Timespan = {
-  start: Date;
-  end: Date;
+type TimeInterval = {
+  startDate: Date;
+  endDate: Date;
 };
 
-export const calculateBusyHours = (allEmployeeWorkingHours: Timespan[][]) => {
+export type EmployeeNested = {
+  employee: Omit<Employee, 'password'>;
+};
+
+type EmployeeNestedWithVisitParts = EmployeeNested & {
+  visitParts: VisitPart[];
+};
+
+/**
+ * Calculates the busy hours by using intersection on the sets of working hours
+ * @param allEmployeeWorkingHours the working hours of all employees
+ * @returns the list with time intervals when all employees are busy
+ */
+export const calculateBusyHours = (
+  allEmployeeWorkingHours: TimeInterval[][]
+) => {
   let busyHours = allEmployeeWorkingHours[0] ?? [];
 
   allEmployeeWorkingHours.slice(1).forEach((singleEmployeeWorkingHours) => {
-    const newBusyHours: Timespan[] = [];
+    const newBusyHours: TimeInterval[] = [];
 
     // check the hour conflicts between employees
     // by comparing employee working hours with the rest of the employees
-    singleEmployeeWorkingHours.forEach((timespan) => {
+    singleEmployeeWorkingHours.forEach((interval) => {
       const conflicts = busyHours.filter(
-        (busyTimespan) =>
+        (busyInterval) =>
           // four cases:
-          // - timespan starts before and finishes while busy
-          // - timespan is contained inside busy timespan
-          // - busy timespan contains timespan
-          // - timespan starts while busy and finishes after
-          isAfter(timespan.end, busyTimespan.start) &&
-          isAfter(busyTimespan.end, timespan.start)
+          // - interval starts before and finishes while busy
+          // - interval is contained inside busy interval
+          // - busy interval contains interval
+          // - interval starts while busy and finishes after
+          isAfter(interval.endDate, busyInterval.startDate) &&
+          isAfter(busyInterval.endDate, interval.startDate)
       );
 
       conflicts.forEach((conflict) => {
         newBusyHours.push({
-          start: isAfter(timespan.start, conflict.start)
-            ? timespan.start
-            : conflict.start,
-          end: isAfter(timespan.end, conflict.end) ? conflict.end : timespan.end
+          startDate: isAfter(interval.startDate, conflict.startDate)
+            ? interval.startDate
+            : conflict.startDate,
+          endDate: isAfter(interval.endDate, conflict.endDate)
+            ? conflict.endDate
+            : interval.endDate
         });
       });
     });
@@ -39,4 +58,16 @@ export const calculateBusyHours = (allEmployeeWorkingHours: Timespan[][]) => {
   });
 
   return busyHours;
+};
+
+export const getEmployeeWithWorkingHours = (
+  employee: EmployeeNestedWithVisitParts
+) => {
+  return {
+    ...employee.employee,
+    workingHours: employee.visitParts.map((visitPart) => ({
+      startDate: visitPart.startDate,
+      endDate: visitPart.endDate
+    }))
+  };
 };

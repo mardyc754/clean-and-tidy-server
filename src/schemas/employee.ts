@@ -36,3 +36,11 @@ export const employeeQueryOptions = z.object({
 });
 
 export type EmployeeQueryOptions = z.infer<typeof employeeQueryOptions>;
+
+export const servicesWorkingHours = z.object({
+  from: z.string().datetime().optional(),
+  to: z.string().datetime().optional(),
+  serviceIds: z.array(z.number()).optional()
+});
+
+export type ServicesWorkingHoursOptions = z.infer<typeof servicesWorkingHours>;

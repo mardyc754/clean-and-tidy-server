@@ -1,11 +1,5 @@
-import {
-  type Employee,
-  Prisma,
-  type Service,
-  Status,
-  VisitPart
-} from '@prisma/client';
-import { omit, pick, without } from 'lodash';
+import { type Employee, type Service, Status, VisitPart } from '@prisma/client';
+import { omit, without } from 'lodash';
 
 import { prisma } from '~/db';
 
@@ -17,18 +11,16 @@ import {
 } from '~/schemas/employee';
 
 import {
-  includeAllVisitData,
   includeFullService,
+  includeServiceVisitPartsAndReservation,
+  includeVisitParts,
   selectEmployee,
   serviceWithUnit
 } from '~/queries/serviceQuery';
 
 import { calculateBusyHours } from '~/utils/employeeUtils';
 import { executeDatabaseOperation } from '~/utils/queryUtils';
-import {
-  flattenNestedEmployeeServices,
-  flattenVisitPartsFromServices
-} from '~/utils/services';
+import { flattenVisitPartsFromServices } from '~/utils/services';
 import { flattenNestedReservationServices } from '~/utils/visits';
 
 type EmployeeReservationQueryOptions = {
@@ -38,37 +30,6 @@ type EmployeeReservationQueryOptions = {
 type EmployeeFilterOptions = {
   includeVisits?: boolean;
 };
-
-const includeServicesWithUnit = Prisma.validator<Prisma.EmployeeInclude>()({
-  services: {
-    include: {
-      service: {
-        include: {
-          unit: true
-        }
-      }
-    }
-  }
-});
-
-function getDetailedVisitsData(employeeId?: Employee['id']) {
-  return {
-    visits: {
-      where: employeeId ? { employeeId } : undefined,
-      include: {
-        visit: {
-          include: {
-            reservation: {
-              include: {
-                ...includeServicesWithUnit
-              }
-            }
-          }
-        }
-      }
-    }
-  };
-}
 
 export default class EmployeeService {
   public async getEmployeeById(id: Employee['id']) {
@@ -103,22 +64,7 @@ export default class EmployeeService {
       prisma.employee.findMany({
         select: {
           ...prismaExclude('Employee', ['password']),
-          // ...(options?.includeVisits ? includeAllVisitData : undefined)
-          services: {
-            include: {
-              service: serviceWithUnit,
-              visitParts: {
-                include: {
-                  employeeService: includeFullService,
-                  visit: {
-                    include: {
-                      reservation: true
-                    }
-                  }
-                }
-              }
-            }
-          }
+          services: includeServiceVisitPartsAndReservation
         }
       })
     );
@@ -141,29 +87,13 @@ export default class EmployeeService {
           employeeId,
           status: status
         },
-        include: {
-          employeeService: {
-            include: {
-              service: serviceWithUnit
-            }
-          },
-          visit: {
-            include: {
-              reservation: true
-            }
-          }
-        }
+        ...includeVisitParts
       })
     );
 
     return visits
       ? visits.map((visit) => ({
           ...omit(visit, 'employeeService', 'visit'),
-          // ...pick(visit.visit.reservation, [
-          //   'bookerEmail',
-          //   'bookerFirstName',
-          //   'bookerLastName'
-          // ]),
           reservation: visit.visit.reservation,
           service: visit.employeeService.service
         }))
@@ -285,34 +215,6 @@ export default class EmployeeService {
     return deleteEmployee;
   }
 
-  // TODO FIXME: this is not working
-  public async linkEmployeeWithService(
-    employeeId: Employee['id'],
-    serviceId: Service['id']
-  ) {
-    let newEmployeeService: Service | null = null;
-
-    // try {
-    //   const updatedEmployee = await prisma.employee.update({
-    //     where: { id: employeeId },
-    //     data: {
-    //       services: {
-    //         connect: { id: serviceId }
-    //       }
-    //     },
-    //     select: {
-    //       services: { where: { id: serviceId } }
-    //     }
-    //   });
-
-    //   newEmployeeService = updatedEmployee.services[0] ?? null;
-    // } catch (err) {
-    //   console.error(`Something went wrong: ${err}`);
-    // }
-
-    return newEmployeeService;
-  }
-
   public async changeEmployeeServiceAssignment(
     employeeId: Employee['id'],
     serviceIds: Array<Service['id']>
@@ -324,9 +226,7 @@ export default class EmployeeService {
     }
 
     const employeeServicesIds = employeeServices.map((service) => service.id);
-
     const removedServiceIds = without(employeeServicesIds, ...serviceIds);
-
     const createdServiceIds = without(serviceIds, ...employeeServicesIds);
 
     try {
@@ -357,7 +257,6 @@ export default class EmployeeService {
     return null;
   }
 
-  // TODO FIXME: this is not working
   public async getEmployeesOfferingService(id: Service['id']) {
     try {
       const service = await prisma.service.findUnique({
@@ -376,85 +275,6 @@ export default class EmployeeService {
       console.error(`Something went wrong: ${err}`);
     }
 
-    return null;
-  }
-
-  // TODO FIXME: this is not working
-  public async getServiceBusyHours(
-    id: Service['id'],
-    options?: EmployeeWorkingHoursQueryOptions
-  ) {
-    const employeesWithVisits = await executeDatabaseOperation(
-      prisma.employee.findMany({
-        where: {
-          services: {
-            some: {
-              // id: { in: [1, 2] }
-              serviceId: id
-            }
-          }
-        },
-        select: {
-          ...prismaExclude('Employee', ['password']),
-          services: {
-            // where: { _count: { gt: 0 } }
-            include: {
-              visitParts: {
-                where: {
-                  startDate: {
-                    gte: options?.from ? new Date(options?.from) : undefined
-                  },
-                  endDate: {
-                    lte: options?.to ? new Date(options?.to) : undefined
-                  }
-                },
-
-                orderBy: {
-                  startDate: 'asc'
-                },
-                select: {
-                  startDate: true,
-                  endDate: true
-                }
-              }
-            }
-          }
-        }
-      })
-    );
-
-    if (!employeesWithVisits) {
-      return null;
-    }
-
-    // const visitTimespans = employeesWithVisits.map((employee) => ({
-    //   // employee.visits.flatMap((visit) => ({
-    //   //   startDate: visit.visit.startDate,
-    //   //   endDate: visit.visit.endDate
-    //   // }))
-    //   ...omit(employee, ['visits']),
-    //   workingHours: employee.services.visitParts.flatMap(({ visit }) => ({
-    //     start: visit.startDate,
-    //     end: visit.endDate
-    //   }))
-    // }));
-
-    // return visitTimespans;
-    return employeesWithVisits;
-  }
-
-  public async getBusyHours(
-    id: Service['id'],
-    options?: EmployeeWorkingHoursQueryOptions
-  ) {
-    // const employeesWithWorkingHours = await this.getServiceBusyHours(
-    //   id,
-    //   options
-    // );
-
-    // return calculateBusyHours(
-    //   employeesWithWorkingHours?.map(({ workingHours }) => workingHours) ?? []
-    // );
     return null;
   }
 }

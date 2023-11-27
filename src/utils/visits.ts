@@ -1,5 +1,4 @@
 import type {
-  Employee,
   ReservationService,
   Service,
   Unit,
@@ -7,9 +6,7 @@ import type {
 } from '@prisma/client';
 import { omit } from 'lodash';
 
-type EmployeeNested = {
-  employee: Omit<Employee, 'password'>;
-};
+import type { EmployeeNested } from './employeeUtils';
 
 type ReservationServiceNested = ReservationService & {
   service: Service & { unit: Unit | null };

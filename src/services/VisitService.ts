@@ -1,12 +1,10 @@
-import { EmployeeService, Status, type Visit, VisitPart } from '@prisma/client';
+import { EmployeeService, type Visit, VisitPart } from '@prisma/client';
 import { omit } from 'lodash';
 import type { RequireAtLeastOne } from 'type-fest';
 
 import { prisma } from '~/db';
 
 import { ChangeVisitDateData, VisitPartCreationData } from '~/schemas/visit';
-
-import { areStartEndDateValid, now } from '~/utils/dateUtils';
 
 import { executeDatabaseOperation } from '../utils/queryUtils';
 

@@ -1,7 +1,10 @@
 import type { Response } from 'express';
 import { Stringified } from 'type-fest';
 
-import { EmployeeWorkingHoursQueryOptions } from '~/schemas/employee';
+import {
+  EmployeeWorkingHoursQueryOptions,
+  ServicesWorkingHoursOptions
+} from '~/schemas/employee';
 import type {
   ChangeServicePriceData,
   CreateServiceData
@@ -35,6 +38,7 @@ export default class TypesOfCleaningController extends AbstractController {
   public createRouters() {
     this.router.get('/', this.getAllServices);
     this.router.post('/', validateServiceCreationData(), this.createService);
+    this.router.get('/busy-hours', this.getAllServicesBusyHours);
     this.router.get('/:id', this.getServiceById);
     this.router.put('/:id', this.changeServicePrice);
     this.router.delete('/:id', this.deleteService);
@@ -182,7 +186,32 @@ export default class TypesOfCleaningController extends AbstractController {
       res.status(200).send(reservation);
     } else {
       res.status(404).send({
-        message: `Reservation with id=${req.params.id} not found`
+        message: `Service with id ${req.params.id} not found`
+      });
+    }
+  };
+
+  private getAllServicesBusyHours = async (
+    req: TypedRequest<
+      DefaultParamsType,
+      DefaultBodyType,
+      Stringified<ServicesWorkingHoursOptions>
+    >,
+    res: Response
+  ) => {
+    const services = await this.typesOfCleaningService.getAllServicesBusyHours({
+      from: req.query.from,
+      to: req.query.to,
+      serviceIds: req.query.serviceIds
+        ? req.query.serviceIds.split(',').map((id) => parseInt(id))
+        : undefined
+    });
+
+    if (services) {
+      res.status(200).send(services);
+    } else {
+      res.status(404).send({
+        message: `Services not found`
       });
     }
   };

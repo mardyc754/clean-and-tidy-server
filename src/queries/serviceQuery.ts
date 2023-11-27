@@ -4,6 +4,8 @@ import { prisma } from '~/db';
 
 import { prismaExclude } from '~/lib/prisma';
 
+import { EmployeeWorkingHoursQueryOptions } from '~/schemas/employee';
+
 import {
   AllServicesQueryOptions,
   ServiceQueryOptions
@@ -86,16 +88,20 @@ export const getSingleServiceData = (
   });
 };
 
-export const visitPartWithEmployee =
-  Prisma.validator<Prisma.VisitPartDefaultArgs>()({
-    include: {
-      employeeService: {
-        select: {
-          employee: selectEmployee
-        }
+export const visitPartWithEmployee = Prisma.validator<
+  Prisma.VisitPartAggregateArgs & Prisma.VisitPartDefaultArgs
+>()({
+  include: {
+    employeeService: {
+      select: {
+        employee: selectEmployee
       }
     }
-  });
+  },
+  orderBy: {
+    startDate: 'asc'
+  }
+});
 
 export const serviceInclude =
   Prisma.validator<Prisma.ReservationServiceDefaultArgs>()({
@@ -119,5 +125,48 @@ export const includeFullService =
           unit: true
         }
       }
+    }
+  });
+
+export const includeVisitParts = Prisma.validator<
+  Prisma.VisitPartAggregateArgs & Prisma.VisitPartDefaultArgs
+>()({
+  include: {
+    employeeService: includeFullService,
+    visit: {
+      include: {
+        reservation: true
+      }
+    }
+  },
+  orderBy: {
+    startDate: 'asc'
+  }
+});
+
+export const includeServiceVisitPartsAndReservation =
+  Prisma.validator<Prisma.EmployeeServiceDefaultArgs>()({
+    include: {
+      service: serviceWithUnit,
+      visitParts: includeVisitParts
+    }
+  });
+
+export const visitPartTimeframe = (
+  options?: EmployeeWorkingHoursQueryOptions
+) =>
+  Prisma.validator<
+    Prisma.VisitPartAggregateArgs & Prisma.VisitPartDefaultArgs
+  >()({
+    where: {
+      startDate: {
+        gte: options?.from ? new Date(options?.from) : undefined
+      },
+      endDate: {
+        lte: options?.to ? new Date(options?.to) : undefined
+      }
+    },
+    orderBy: {
+      startDate: 'asc'
     }
   });

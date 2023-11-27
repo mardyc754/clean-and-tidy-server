@@ -1,8 +1,14 @@
 import { type Service } from '@prisma/client';
+import { omit } from 'lodash';
 
 import { prisma } from '~/db';
 
-import { EmployeeWorkingHoursQueryOptions } from '~/schemas/employee';
+import { prismaExclude } from '~/lib/prisma';
+
+import type {
+  EmployeeWorkingHoursQueryOptions,
+  ServicesWorkingHoursOptions
+} from '~/schemas/employee';
 import {
   ChangeServicePriceData,
   CreateServiceData,
@@ -11,10 +17,16 @@ import {
 
 import {
   getSingleServiceData,
+  selectEmployee,
   serviceEmployees,
-  serviceUnit
+  serviceUnit,
+  visitPartTimeframe
 } from '~/queries/serviceQuery';
 
+import {
+  calculateBusyHours,
+  getEmployeeWithWorkingHours
+} from '~/utils/employeeUtils';
 import { getResponseServiceData } from '~/utils/services';
 
 import { executeDatabaseOperation } from '../utils/queryUtils';
@@ -139,110 +151,74 @@ export default class TypesOfCleaningService {
     return service;
   }
 
-  // TODO FIXME: this is not working
   public async getServiceBusyHours(
     id: Service['id'],
     options?: EmployeeWorkingHoursQueryOptions
   ) {
-    // const employeesWithVisits = await executeDatabaseOperation(
-    // prisma.employee.findMany({
-    //   where: {
-    //     services: {
-    //       some: {
-    //         // id: { in: [1, 2] }
-    //         id
-    //       }
-    //     }
-    //   },
-    //   select: {
-    //     ...prismaExclude('Employee', ['password']),
-    //     visits: {
-    //       where: {
-    //         visit: {
-    //           startDate: {
-    //             gte: options?.from ? new Date(options?.from) : undefined
-    //           },
-    //           endDate: {
-    //             lte: options?.to ? new Date(options?.to) : undefined
-    //           }
-    //         }
-    //       },
-    //       orderBy: {
-    //         visit: {
-    //           startDate: 'asc'
-    //         }
-    //       },
-    //       select: {
-    //         visit: {
-    //           select: {
-    //             startDate: true,
-    //             endDate: true
-    //           }
-    //         }
-    //       }
-    //     }
-    //   }
-    // })
-    //   prisma.service.findUnique({
-    //     where: { id },
-    //     select: {
-    //       employees: {
-    //         select: {
-    //           ...prismaExclude('Employee', ['password']),
-    //           visits: {
-    //             where: {
-    //               visit: {
-    //                 startDate: {
-    //                   gte: options?.from ? new Date(options?.from) : undefined
-    //                 },
-    //                 endDate: {
-    //                   lte: options?.to ? new Date(options?.to) : undefined
-    //                 }
-    //               }
-    //             },
-    //             orderBy: {
-    //               visit: {
-    //                 startDate: 'asc'
-    //               }
-    //             },
-    //             select: {
-    //               visit: {
-    //                 select: {
-    //                   startDate: true,
-    //                   endDate: true,
-    //                   reservation: {
-    //                     select: {
-    //                       services: true
-    //                     }
-    //                   }
-    //                 }
-    //               }
-    //             }
-    //           }
-    //         }
-    //       }
-    //     }
-    //   })
-    // );
-    // if (!employeesWithVisits) {
-    //   return null;
-    // }
-    // return employeesWithVisits.employees;
-    // const visitTimespans = employeesWithVisits.map((employee) => ({
-    //   // employee.visits.flatMap((visit) => ({
-    //   //   startDate: visit.visit.startDate,
-    //   //   endDate: visit.visit.endDate
-    //   // }))
-    //   ...omit(employee, ['visits']),
-    //   workingHours: employee.visits.flatMap(({ visit }) => ({
-    //     start: visit.startDate,
-    //     end: visit.endDate
-    //   }))
-    // }));
-    // return visitTimespans;
-    // return calculateBusyHours(
-    //   employeesWithWorkingHours?.map(({ workingHours }) => workingHours) ?? []
-    // );
-    return null;
+    const service = await executeDatabaseOperation(
+      prisma.service.findUnique({
+        where: {
+          id
+        },
+        include: {
+          employees: {
+            select: {
+              employee: selectEmployee,
+              visitParts: visitPartTimeframe(options)
+            }
+          }
+        }
+      })
+    );
+
+    const employeesWithWorkingHours =
+      service?.employees.map((employee) =>
+        getEmployeeWithWorkingHours(employee)
+      ) ?? [];
+
+    return service
+      ? {
+          ...omit(service, 'employees'),
+          busyHours: calculateBusyHours(
+            employeesWithWorkingHours.map((employee) => employee.workingHours)
+          )
+        }
+      : null;
+  }
+
+  public async getAllServicesBusyHours(options?: ServicesWorkingHoursOptions) {
+    const services = await executeDatabaseOperation(
+      prisma.service.findMany({
+        where: {
+          id: { in: options?.serviceIds }
+        },
+        include: {
+          employees: {
+            select: {
+              employee: selectEmployee,
+              visitParts: visitPartTimeframe(options)
+            }
+          }
+        }
+      })
+    );
+
+    if (!services) {
+      return null;
+    }
+
+    const servicesWithEmployees = services.map((service) => ({
+      ...omit(service, 'employees'),
+      employees: service.employees.map((employee) =>
+        getEmployeeWithWorkingHours(employee)
+      )
+    }));
+
+    return servicesWithEmployees.map((service) => ({
+      ...omit(service, 'employees'),
+      busyHours: calculateBusyHours(
+        service.employees.map((employee) => employee.workingHours)
+      )
+    }));
   }
 }

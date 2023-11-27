@@ -4,15 +4,13 @@ import type { Response } from 'express';
 
 import type {
   EmployeeCreationData,
-  EmployeeQueryOptions,
-  EmployeeWorkingHoursQueryOptions
+  EmployeeQueryOptions
 } from '~/schemas/employee';
 
 import { checkIsAdmin, checkIsEmployee } from '~/middlewares/auth/checkRole';
 import {
   validateEmployeeCreationData,
-  validateEmployeeQueryOptions,
-  validateWorkingHoursRange
+  validateEmployeeQueryOptions
 } from '~/middlewares/type-validators/employee';
 
 import { EmployeeService } from '~/services';
@@ -48,28 +46,12 @@ export default class EmployeeController extends AbstractController {
     );
     this.router.get('/:id/services', this.getEmployeeServices);
 
-    this.router.post(
-      '/:employeeId/services/:serviceId',
-      this.linkEmployeeWithService
-    );
-
     this.router.put(
       '/:employeeId/services',
       this.changeEmployeeServiceAssignment
     );
     this.router.delete('/:id', this.deleteEmployeeData);
     this.router.get('/services/:id', this.getEmployeesOfferingService);
-    this.router.get(
-      '/services/:id/working-hours',
-      validateWorkingHoursRange(),
-      this.getEmployeeWorkingHours
-    );
-
-    this.router.get(
-      '/services/:id/busy-hours',
-      validateWorkingHoursRange(),
-      this.getBusyHours
-    );
   }
 
   private getAllEmployees = async (
@@ -207,24 +189,6 @@ export default class EmployeeController extends AbstractController {
     }
   };
 
-  private linkEmployeeWithService = async (
-    req: TypedRequest<{ employeeId: string; serviceId: string }>,
-    res: Response
-  ) => {
-    const newLinkedService = await this.employeeService.linkEmployeeWithService(
-      parseInt(req.params.employeeId),
-      parseInt(req.params.serviceId)
-    );
-
-    if (newLinkedService !== null) {
-      res.status(200).send(newLinkedService);
-    } else {
-      res.status(404).send({
-        message: `Employee with id=${req.params.employeeId} or service with id=${req.params.serviceId} not found`
-      });
-    }
-  };
-
   private changeEmployeeServiceAssignment = async (
     req: TypedRequest<{ employeeId: string }, { serviceIds: number[] }>,
     res: Response
@@ -258,52 +222,6 @@ export default class EmployeeController extends AbstractController {
       res
         .status(400)
         .send({ message: 'Error when fetching employees offering service' });
-    }
-  };
-
-  private getEmployeeWorkingHours = async (
-    req: TypedRequest<
-      { id: string },
-      DefaultBodyType,
-      EmployeeWorkingHoursQueryOptions
-    >,
-    res: Response
-  ) => {
-    console.log(req.query);
-    const reservation = await this.employeeService.getServiceBusyHours(
-      parseInt(req.params.id),
-      { from: req.query.from, to: req.query.to }
-    );
-
-    if (reservation) {
-      res.status(200).send(reservation);
-    } else {
-      res.status(404).send({
-        message: `Reservation with id=${req.params.id} not found`
-      });
-    }
-  };
-
-  private getBusyHours = async (
-    req: TypedRequest<
-      { id: string },
-      DefaultBodyType,
-      EmployeeWorkingHoursQueryOptions
-    >,
-    res: Response
-  ) => {
-    console.log(req.query);
-    const reservation = await this.employeeService.getBusyHours(
-      parseInt(req.params.id),
-      { from: req.query.from, to: req.query.to }
-    );
-
-    if (reservation) {
-      res.status(200).send(reservation);
-    } else {
-      res.status(404).send({
-        message: `Reservation with id=${req.params.id} not found`
-      });
     }
   };
 }
