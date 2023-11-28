@@ -81,3 +81,23 @@ export function isBefore(
 ) {
   return dayjs(firstDate).isBefore(secondDate);
 }
+
+export function isAfterOrSame(
+  firstDate: ValidDayjsDate,
+  secondDate: ValidDayjsDate
+) {
+  return (
+    dayjs(firstDate).isAfter(secondDate) || dayjs(firstDate).isSame(secondDate)
+  );
+}
+
+export function isBeforeOrSame(
+  firstDate: ValidDayjsDate,
+  secondDate: ValidDayjsDate
+) {
+  return (
+    dayjs(firstDate).isBefore(secondDate) || dayjs(firstDate).isSame(secondDate)
+  );
+}
+
+export const getTime = (date: ValidDayjsDate) => dayjs(date).toDate().getTime();

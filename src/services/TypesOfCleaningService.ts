@@ -25,7 +25,8 @@ import {
 
 import {
   calculateBusyHours,
-  getEmployeeWithWorkingHours
+  getEmployeeWithWorkingHours,
+  mergeBusyHours
 } from '~/utils/employeeUtils';
 import { getResponseServiceData } from '~/utils/services';
 
@@ -214,11 +215,20 @@ export default class TypesOfCleaningService {
       )
     }));
 
-    return servicesWithEmployees.map((service) => ({
-      ...omit(service, 'employees'),
-      busyHours: calculateBusyHours(
+    const allEmployeesBusyHours = servicesWithEmployees.map((service) =>
+      calculateBusyHours(
         service.employees.map((employee) => employee.workingHours)
       )
-    }));
+    );
+
+    // console.log('allEmployeesBusyHours', allEmployeesBusyHours);
+    return mergeBusyHours(allEmployeesBusyHours);
+
+    // return servicesWithEmployees.map((service) => ({
+    //   ...omit(service, 'employees'),
+    //   busyHours: calculateBusyHours(
+    //     service.employees.map((employee) => employee.workingHours)
+    //   )
+    // }));
   }
 }
