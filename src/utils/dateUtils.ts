@@ -101,3 +101,8 @@ export function isBeforeOrSame(
 }
 
 export const getTime = (date: ValidDayjsDate) => dayjs(date).toDate().getTime();
+
+export const hoursBetween = (
+  startDate: ValidDayjsDate,
+  endDate: ValidDayjsDate
+) => dayjs(endDate).diff(dayjs(startDate), 'hour', true);

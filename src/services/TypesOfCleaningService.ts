@@ -24,9 +24,11 @@ import {
 } from '~/queries/serviceQuery';
 
 import {
+  TimeInterval,
   calculateBusyHours,
   getEmployeeWithWorkingHours,
-  mergeBusyHours
+  mergeBusyHours,
+  numberOfWorkingHours
 } from '~/utils/employeeUtils';
 import { getResponseServiceData } from '~/utils/services';
 
@@ -187,48 +189,118 @@ export default class TypesOfCleaningService {
       : null;
   }
 
+  // public async getAllServicesBusyHours(options?: ServicesWorkingHoursOptions) {
+  //   const services = await executeDatabaseOperation(
+  //     prisma.service.findMany({
+  //       where: {
+  //         id: { in: options?.serviceIds }
+  //       },
+  //       include: {
+  //         employees: {
+  //           select: {
+  //             employee: selectEmployee,
+  //             visitParts: visitPartTimeframe(options)
+  //           }
+  //         }
+  //       }
+  //     })
+  //   );
+
+  //   if (!services) {
+  //     return null;
+  //   }
+
+  //   const servicesWithEmployees = services.map((service) => ({
+  //     ...omit(service, 'employees'),
+  //     employees: service.employees.map((employee) =>
+  //       getEmployeeWithWorkingHours(employee)
+  //     )
+  //   }));
+
+  //   const allEmployeesBusyHours = servicesWithEmployees.map((service) =>
+  //     calculateBusyHours(
+  //       service.employees.map((employee) => employee.workingHours)
+  //     )
+  //   );
+
+  //   // console.log('allEmployeesBusyHours', allEmployeesBusyHours);
+  //   return mergeBusyHours(allEmployeesBusyHours);
+
+  //   // return servicesWithEmployees.map((service) => ({
+  //   //   ...omit(service, 'employees'),
+  //   //   busyHours: calculateBusyHours(
+  //   //     service.employees.map((employee) => employee.workingHours)
+  //   //   )
+  //   // }));
+  // }
+
   public async getAllServicesBusyHours(options?: ServicesWorkingHoursOptions) {
-    const services = await executeDatabaseOperation(
-      prisma.service.findMany({
+    const employees = await executeDatabaseOperation(
+      prisma.employee.findMany({
         where: {
-          id: { in: options?.serviceIds }
+          services: { some: { serviceId: { in: options?.serviceIds } } }
         },
         include: {
-          employees: {
-            select: {
-              employee: selectEmployee,
-              visitParts: visitPartTimeframe(options)
+          services: {
+            include: {
+              visitParts: {
+                ...visitPartTimeframe(options),
+                select: { startDate: true, endDate: true }
+              }
             }
           }
         }
       })
     );
 
-    if (!services) {
+    if (!employees) {
       return null;
     }
 
-    const servicesWithEmployees = services.map((service) => ({
-      ...omit(service, 'employees'),
-      employees: service.employees.map((employee) =>
-        getEmployeeWithWorkingHours(employee)
-      )
-    }));
+    // service busy hours calculation
+    const services = employees.flatMap((employee) => employee.services);
 
-    const allEmployeesBusyHours = servicesWithEmployees.map((service) =>
-      calculateBusyHours(
-        service.employees.map((employee) => employee.workingHours)
-      )
-    );
+    const uniqueServiceIds = [
+      ...new Set(services.map((service) => service.serviceId))
+    ];
 
-    // console.log('allEmployeesBusyHours', allEmployeesBusyHours);
-    return mergeBusyHours(allEmployeesBusyHours);
+    // calculate busy hours for each services separately
+    const servicesBusyHours = uniqueServiceIds.map((serviceId) => {
+      const servicesWithGivenIds = services.filter(
+        (service) => service.serviceId === serviceId
+      );
 
-    // return servicesWithEmployees.map((service) => ({
-    //   ...omit(service, 'employees'),
-    //   busyHours: calculateBusyHours(
-    //     service.employees.map((employee) => employee.workingHours)
-    //   )
-    // }));
+      return calculateBusyHours(
+        servicesWithGivenIds.map((service) => service.visitParts)
+      );
+    });
+
+    // merge busy hours for all services
+    const mergedBusyHours = mergeBusyHours(servicesBusyHours);
+
+    // employees working hours calculation
+    const employeesWithWorkingHours = employees.map((employee) => {
+      const employeeWorkingHours = employee.services.flatMap(
+        (service) => service.visitParts
+      );
+
+      // employeeWorkingHours.sort(
+      //   (a, b) => a.startDate.getTime() - b.startDate.getTime()
+      // );
+
+      return {
+        id: employee.id,
+        // workingHours: employeeWorkingHours,
+        workingHours: mergeBusyHours([employeeWorkingHours]),
+        numberOfWorkingHours: numberOfWorkingHours(employeeWorkingHours)
+      };
+    });
+
+    return {
+      employees: employeesWithWorkingHours,
+      busyHours: mergedBusyHours
+    };
+
+    // return employeesWithWorkingHours;
   }
 }

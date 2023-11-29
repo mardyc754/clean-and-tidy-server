@@ -3,12 +3,13 @@ import { Stringified } from 'type-fest';
 
 import {
   getTime,
+  hoursBetween,
   isAfter,
   isAfterOrSame,
   isBeforeOrSame
 } from '~/utils/dateUtils';
 
-type TimeInterval = {
+export type TimeInterval = {
   startDate: Date;
   endDate: Date;
 };
@@ -81,6 +82,7 @@ export const getEmployeeWithWorkingHours = (
 /**
  * Merges busy hours into larger intervals
  * by using the sum of the sets of working hours
+ *
  * This is useful when calculating busy hours for multiple services at once
  * @param busyHours
  * @returns
@@ -108,8 +110,6 @@ export const mergeBusyHours = (busyHours: TimeInterval[][]) => {
       nextConflict &&
       isAfterOrSame(conflict.endDate, nextConflict.startDate)
     ) {
-      console.log('conflict', conflict);
-      console.log('nextConflict', nextConflict);
       currentInterval.endDate = nextConflict.endDate;
     } else {
       newBusyHours.push({ ...currentInterval });
@@ -124,4 +124,11 @@ export const mergeBusyHours = (busyHours: TimeInterval[][]) => {
   });
 
   return newBusyHours;
+};
+
+export const numberOfWorkingHours = (workingHours: TimeInterval[]) => {
+  return workingHours.reduce(
+    (acc, curr) => acc + hoursBetween(curr.startDate, curr.endDate),
+    0
+  );
 };
