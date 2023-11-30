@@ -189,51 +189,6 @@ export default class TypesOfCleaningService {
       : null;
   }
 
-  // public async getAllServicesBusyHours(options?: ServicesWorkingHoursOptions) {
-  //   const services = await executeDatabaseOperation(
-  //     prisma.service.findMany({
-  //       where: {
-  //         id: { in: options?.serviceIds }
-  //       },
-  //       include: {
-  //         employees: {
-  //           select: {
-  //             employee: selectEmployee,
-  //             visitParts: visitPartTimeframe(options)
-  //           }
-  //         }
-  //       }
-  //     })
-  //   );
-
-  //   if (!services) {
-  //     return null;
-  //   }
-
-  //   const servicesWithEmployees = services.map((service) => ({
-  //     ...omit(service, 'employees'),
-  //     employees: service.employees.map((employee) =>
-  //       getEmployeeWithWorkingHours(employee)
-  //     )
-  //   }));
-
-  //   const allEmployeesBusyHours = servicesWithEmployees.map((service) =>
-  //     calculateBusyHours(
-  //       service.employees.map((employee) => employee.workingHours)
-  //     )
-  //   );
-
-  //   // console.log('allEmployeesBusyHours', allEmployeesBusyHours);
-  //   return mergeBusyHours(allEmployeesBusyHours);
-
-  //   // return servicesWithEmployees.map((service) => ({
-  //   //   ...omit(service, 'employees'),
-  //   //   busyHours: calculateBusyHours(
-  //   //     service.employees.map((employee) => employee.workingHours)
-  //   //   )
-  //   // }));
-  // }
-
   public async getAllServicesBusyHours(options?: ServicesWorkingHoursOptions) {
     const employees = await executeDatabaseOperation(
       prisma.employee.findMany({
@@ -290,6 +245,7 @@ export default class TypesOfCleaningService {
 
       return {
         id: employee.id,
+        services: employee.services.map((service) => service.serviceId),
         // workingHours: employeeWorkingHours,
         workingHours: mergeBusyHours([employeeWorkingHours]),
         numberOfWorkingHours: numberOfWorkingHours(employeeWorkingHours)
