@@ -3,8 +3,7 @@ import {
   Employee,
   Frequency,
   type Reservation,
-  Status,
-  type Visit
+  Status
 } from '@prisma/client';
 import { omit } from 'lodash';
 import short from 'short-uuid';
@@ -12,9 +11,15 @@ import type { RequireAtLeastOne } from 'type-fest';
 
 import { prisma } from '~/db';
 
-import { prismaExclude } from '~/lib/prisma';
-
 import type { ReservationCreationData } from '~/schemas/reservation';
+
+import {
+  includeAllVisitData,
+  selectEmployee,
+  serviceInclude,
+  serviceWithUnit,
+  visitPartWithEmployee
+} from '~/queries/serviceQuery';
 
 import {
   advanceDateByOneYear,
@@ -30,7 +35,11 @@ import {
   changeVisitFrequency,
   changeWeekDay,
   createVisits
-} from '~/utils/reservations';
+} from '~/utils/reservationUtils';
+import {
+  flattenNestedReservationServices,
+  flattenNestedVisits
+} from '~/utils/visits';
 
 export type ReservationQueryOptions = RequireAtLeastOne<{
   includeVisits: boolean;
@@ -44,7 +53,13 @@ export default class ReservationService {
     return await executeDatabaseOperation(
       prisma.reservation.findMany({
         include: {
-          ...includeIfTrue('reservations', options?.includeVisits)
+          visits: {
+            include: {
+              visitParts: visitPartWithEmployee
+              // include services only if the option is true
+            }
+          },
+          services: serviceInclude
         }
       })
     );
@@ -72,37 +87,35 @@ export default class ReservationService {
     name: Reservation['name'],
     options?: ReservationQueryOptions
   ) {
+    if (options?.includeVisits) {
+      const reservationData = await executeDatabaseOperation(
+        prisma.reservation.findUnique({
+          where: { name },
+          include: {
+            // include visits only if the option is true
+            visits: includeAllVisitData,
+            // include address only if the option is true
+            address: options?.includeAddress,
+            services: serviceInclude
+          }
+        })
+      );
+
+      if (!reservationData) {
+        return null;
+      }
+
+      return {
+        ...reservationData,
+        visits: flattenNestedVisits(reservationData.visits),
+        services: flattenNestedReservationServices(reservationData.services)
+      };
+    }
+
     return await executeDatabaseOperation(
       prisma.reservation.findUnique({
         where: { name },
         include: {
-          // include visits only if the option is true
-          visits: options?.includeVisits
-            ? {
-                include: {
-                  employees: {
-                    select: {
-                      status: true,
-                      employee: {
-                        select: prismaExclude('Employee', ['password'])
-                      }
-                    }
-                  }
-                }
-              }
-            : undefined,
-          // include services only if the option is true
-          services: options?.includeServices
-            ? {
-                include: {
-                  service: {
-                    include: {
-                      unit: true
-                    }
-                  }
-                }
-              }
-            : undefined,
           // include address only if the option is true
           address: options?.includeAddress
         }
@@ -114,14 +127,15 @@ export default class ReservationService {
     clientEmail: Client['email'],
     status?: Status
   ) {
-    const reservationStatusFilter = status
-      ? { where: { employees: { some: { status } } } }
-      : true;
     return await executeDatabaseOperation(
       prisma.reservation.findMany({
         where: { bookerEmail: clientEmail },
         include: {
-          visits: reservationStatusFilter,
+          visits: {
+            include: {
+              visitParts: { where: { status } }
+            }
+          },
           services: {
             include: {
               service: true
@@ -132,22 +146,23 @@ export default class ReservationService {
     );
   }
 
-  public async getVisits(id: Visit['id']) {
-    return await executeDatabaseOperation(
+  public async getVisits(name: Reservation['name']) {
+    const reservation = await this.getReservationByName(name);
+
+    if (!reservation) {
+      return null;
+    }
+
+    const visits = await executeDatabaseOperation(
       prisma.visit.findMany({
-        where: { reservationId: id },
+        where: { reservationId: reservation.id },
         include: {
-          employees: {
-            select: {
-              status: true
-            }
-            // include: {
-            //   status: true
-            // }
-          }
+          visitParts: visitPartWithEmployee
         }
       })
     );
+
+    return visits ? flattenNestedVisits(visits) : [];
   }
 
   public async createReservation(data: ReservationCreationData) {
@@ -159,22 +174,22 @@ export default class ReservationService {
       frequency,
       address,
       contactDetails: { firstName: bookerFirstName, lastName: bookerLastName },
+      visitParts,
       services,
-      visitData,
+      includeDetergents,
       extraInfo
     } = data;
 
+    const lastEndDate = visitParts.at(-1)?.endDate;
+
+    if (!lastEndDate) {
+      return null;
+    }
+
     const endDate =
       frequency !== Frequency.ONCE
-        ? advanceDateByOneYear(visitData.endDate)
-        : visitData.endDate;
-
-    const visits = createVisits(
-      reservationGroupName, // TODO: it can be changed to normal id later because right now, the name will be too long
-      visitData,
-      frequency,
-      endDate
-    );
+        ? advanceDateByOneYear(lastEndDate)
+        : lastEndDate;
 
     try {
       let addressId: number;
@@ -196,20 +211,12 @@ export default class ReservationService {
           status: Status.TO_BE_CONFIRMED,
           weekDay: extractWeekDayFromDate(endDate),
           visits: {
-            create: visits.map((visit) => ({
-              ...omit(visit, 'status'),
-              employees: {
-                createMany: {
-                  data: visitData.employeeIds.map((id) => ({
-                    employeeId: id,
-                    status: visit.status
-                  }))
-                }
-              }
-            }))
-          },
-          services: {
-            create: services
+            create: createVisits(
+              reservationGroupName,
+              { visitParts, includeDetergents },
+              frequency,
+              endDate
+            )
           },
           name: reservationGroupName,
           frequency,
@@ -232,7 +239,12 @@ export default class ReservationService {
               }
             }
           },
-          extraInfo: extraInfo ?? null
+          extraInfo: extraInfo ?? null,
+          services: {
+            createMany: {
+              data: services
+            }
+          }
         }
       });
     } catch (err) {
@@ -248,54 +260,54 @@ export default class ReservationService {
     const { id, frequency } = data;
     let reservation: Reservation | null = null;
 
-    const visits = await this.getVisits(id);
+    // const visits = await this.getVisits(id);
 
-    const oldReservation = await this.getReservationById(id);
+    // const oldReservation = await this.getReservationById(id);
 
-    if (!visits || !oldReservation) {
-      return reservation;
-    }
+    // if (!visits || !oldReservation) {
+    //   return reservation;
+    // }
 
-    const { frequency: oldFrequency } = oldReservation;
+    // const { frequency: oldFrequency } = oldReservation;
 
-    if (
-      oldFrequency !== frequency &&
-      oldFrequency !== Frequency.ONCE &&
-      frequency !== Frequency.ONCE
-    ) {
-      const newVisits = changeVisitFrequency(
-        visits,
-        frequency,
-        oldReservation.name
-      );
+    // if (
+    //   oldFrequency !== frequency &&
+    //   oldFrequency !== Frequency.ONCE &&
+    //   frequency !== Frequency.ONCE
+    // ) {
+    //   const newVisits = changeVisitFrequency(
+    //     visits,
+    //     frequency,
+    //     oldReservation.name
+    //   );
 
-      try {
-        reservation = await prisma.reservation.update({
-          where: { id },
-          data: {
-            frequency,
-            status: Status.TO_BE_CONFIRMED,
-            visits: {
-              createMany: {
-                // updateMany may not work because that function updates already existing records only
-                // recommendation - create new reservations based on new ones
-                // and after confirmation remove old ones
-                data: newVisits.map((visit) => ({
-                  name: visit.name,
-                  startDate: visit.startDate,
-                  endDate: visit.endDate,
-                  includeDetergents: visit.includeDetergents,
-                  cost: visit.cost,
-                  status: visit.status
-                }))
-              }
-            }
-          }
-        });
-      } catch (err) {
-        console.error(err);
-      }
-    }
+    //   try {
+    //     reservation = await prisma.reservation.update({
+    //       where: { id },
+    //       data: {
+    //         frequency,
+    //         status: Status.TO_BE_CONFIRMED,
+    //         visits: {
+    //           createMany: {
+    //             // updateMany may not work because that function updates already existing records only
+    //             // recommendation - create new reservations based on new ones
+    //             // and after confirmation remove old ones
+    //             data: newVisits.map((visit) => ({
+    //               name: visit.name,
+    //               startDate: visit.startDate,
+    //               endDate: visit.endDate,
+    //               includeDetergents: visit.includeDetergents,
+    //               cost: visit.cost,
+    //               status: visit.status
+    //             }))
+    //           }
+    //         }
+    //       }
+    //     });
+    //   } catch (err) {
+    //     console.error(err);
+    //   }
+    // }
 
     return reservation;
   }
@@ -307,64 +319,68 @@ export default class ReservationService {
     const { id, weekDay, frequency } = data;
     let reservation: Reservation | null = null;
 
-    const visits = await this.getVisits(id);
+    // const visits = await this.getVisits(id);
 
-    if (!visits) {
-      return reservation;
-    }
+    // if (!visits) {
+    //   return reservation;
+    // }
 
-    const newVisits = changeWeekDay(visits, weekDay, frequency);
+    // const newVisits = changeWeekDay(visits, weekDay, frequency);
 
-    try {
-      reservation = await prisma.reservation.update({
-        where: { id },
-        data: {
-          status: Status.TO_BE_CONFIRMED,
-          visits: {
-            updateMany: {
-              where: { reservationId: id },
-              data: newVisits
-            }
-          }
-        }
-      });
-    } catch (err) {
-      console.error(err);
-    }
+    // try {
+    //   reservation = await prisma.reservation.update({
+    //     where: { id },
+    //     data: {
+    //       status: Status.TO_BE_CONFIRMED,
+    //       visits: {
+    //         updateMany: {
+    //           where: { reservationId: id },
+    //           data: newVisits
+    //         }
+    //       }
+    //     }
+    //   });
+    // } catch (err) {
+    //   console.error(err);
+    // }
 
     return reservation;
   }
 
   // TODO: To be improved
-  public async cancelReservation(id: Reservation['id']) {
+  public async cancelReservation(name: Reservation['name']) {
     let reservation: Reservation | null = null;
-    const oldReservation = await this.getReservationById(id);
-    const visits = await this.getVisits(id);
-
-    if (!oldReservation || !visits) {
-      return reservation;
+    const oldReservation = await this.getReservationByName(name);
+    if (!oldReservation) {
+      return null;
     }
 
-    const { frequency } = oldReservation;
+    const visits = await this.getVisits(oldReservation.name);
 
-    const newVisits = cancelVisits(visits, frequency);
+    // if (!oldReservation || !visits) {
+    //   return reservation;
+    // }
 
-    try {
-      reservation = await prisma.reservation.update({
-        where: { id },
-        data: {
-          status: Status.TO_BE_CANCELLED,
-          visits: {
-            updateMany: {
-              where: { reservationId: id },
-              data: newVisits
-            }
-          }
-        }
-      });
-    } catch (err) {
-      console.error(err);
-    }
+    // const { frequency } = oldReservation;
+
+    // const newVisits = cancelVisits(visits, frequency);
+
+    // try {
+    //   reservation = await prisma.reservation.update({
+    //     where: { id },
+    //     data: {
+    //       status: Status.TO_BE_CANCELLED,
+    //       visits: {
+    //         updateMany: {
+    //           where: { reservationId: id },
+    //           data: newVisits
+    //         }
+    //       }
+    //     }
+    //   });
+    // } catch (err) {
+    //   console.error(err);
+    // }
 
     return reservation;
   }
@@ -389,6 +405,7 @@ export default class ReservationService {
     return reservation;
   }
 
+  // TODO This should work but test it
   public async confirmReservation(
     reservationName: Reservation['name'],
     employeeId: Employee['id']
@@ -399,13 +416,9 @@ export default class ReservationService {
       return null;
     }
 
-    const { id: reservationId } = reservation;
-
-    await prisma.visitEmployee.updateMany({
+    await prisma.visitPart.updateMany({
       where: {
-        visit: {
-          reservationId
-        },
+        visit: { reservation: { name: reservationName } },
         employeeId
       },
       data: {
@@ -414,10 +427,10 @@ export default class ReservationService {
     });
 
     const visitStatuses = await executeDatabaseOperation(
-      prisma.visitEmployee.findMany({
+      prisma.visitPart.findMany({
         where: {
           visit: {
-            reservationId
+            reservation: { name: reservationName }
           }
         }
       })
@@ -426,7 +439,7 @@ export default class ReservationService {
     if (visitStatuses?.every(({ status }) => status === Status.ACTIVE)) {
       return await executeDatabaseOperation(
         prisma.reservation.update({
-          where: { id: reservationId },
+          where: { id: reservation.id },
           data: {
             status: Status.ACTIVE
           }
@@ -437,38 +450,35 @@ export default class ReservationService {
     return reservation;
   }
 
+  // TODO FIXME: this is not working
   public async autoCloseReservation(id: Reservation['id']) {
     let reservationToClose: Reservation | null = null;
 
-    const visits = await this.getVisits(id);
+    // const visits = await this.getVisits(id);
 
-    if (!visits) {
-      return reservationToClose;
-    }
+    // if (!visits) {
+    //   return reservationToClose;
+    // }
 
-    const finishedVisits = visits.filter((visit) =>
-      visit.employees.every(
-        ({ status }) => status === Status.CANCELLED || status === Status.CLOSED
-      )
-    );
+    // const finishedVisits = visits.filter((visit) =>
+    //   visit.employees.every(
+    //     ({ status }) => status === Status.CANCELLED || status === Status.CLOSED
+    //   )
+    // );
 
-    if (finishedVisits.length === visits.length) {
-      try {
-        reservationToClose = await prisma.reservation.update({
-          where: { id },
-          data: {
-            status: Status.CLOSED
-          }
-        });
-      } catch (err) {
-        console.error(`Something went wrong: ${err}`);
-      }
-    }
+    // if (finishedVisits.length === visits.length) {
+    //   try {
+    //     reservationToClose = await prisma.reservation.update({
+    //       where: { id },
+    //       data: {
+    //         status: Status.CLOSED
+    //       }
+    //     });
+    //   } catch (err) {
+    //     console.error(`Something went wrong: ${err}`);
+    //   }
+    // }
 
     return reservationToClose;
   }
-
-  // the most important function in the project
-  // TODO: After other services will be defined properly
-  // public async checkAvailability()
 }

@@ -3,6 +3,17 @@ import type { RequireAtLeastOne } from 'type-fest';
 
 import { prisma } from '~/db';
 
+import {
+  serviceInclude,
+  serviceWithUnit,
+  visitPartWithEmployee
+} from '~/queries/serviceQuery';
+
+import {
+  flattenNestedReservationServices,
+  flattenNestedVisits
+} from '~/utils/visits';
+
 import { executeDatabaseOperation } from '../utils/queryUtils';
 
 type ClientCreationData = Pick<Client, 'email'> & {
@@ -73,32 +84,34 @@ export default class ClientService {
   }
 
   public async getClientReservations(clientId: Client['id'], status?: Status) {
-    const reservationStatusFilter = status
-      ? { include: { employees: { where: { status } } } }
-      : true;
     const clientData = await executeDatabaseOperation(
       prisma.client.findUnique({
         where: { id: clientId },
         select: {
           reservations: {
+            where: {
+              status
+            },
             include: {
-              visits: reservationStatusFilter,
-              services: {
+              visits: {
                 include: {
-                  service: {
-                    include: {
-                      unit: true
-                    }
-                  }
+                  visitParts: visitPartWithEmployee
                 }
-              }
+              },
+              services: serviceInclude,
+              address: true
             }
           }
         }
       })
     );
-
-    return clientData?.reservations ?? null;
+    return (
+      clientData?.reservations.map((reservation) => ({
+        ...reservation,
+        visits: flattenNestedVisits(reservation.visits),
+        services: flattenNestedReservationServices(reservation.services)
+      })) ?? null
+    );
   }
 
   public async getClientAddresses(clientId: Client['id']) {

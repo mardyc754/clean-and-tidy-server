@@ -40,13 +40,10 @@ model Client {
 model Visit {
   id                            Int                           @id @default(autoincrement()) // maybe it should be UUID
   name                          String                        @db.VarChar(100) @unique
-  startDate                     DateTime
-  endDate                       DateTime
   includeDetergents             Boolean 
-  cost                          Decimal                       @db.Money
   reservation                   Reservation                   @relation(fields: [reservationId], references: [id], onDelete: Cascade)
   reservationId                 Int                          
-  employees                     VisitEmployee[]                                          
+  visitParts                    VisitPart[]                                 
 }
 
 model Reservation {
@@ -61,10 +58,11 @@ model Reservation {
   visits                        Visit[]
   address                       Address                       @relation(fields: [addressId], references: [id])
   addressId                     Int                          
-  services                      ReservationService[]
+  // services                      ReservationService[]
   bookerFirstName               String                        @db.VarChar(50)
   bookerLastName                String                        @db.VarChar(50)
   extraInfo                     String?                       @db.VarChar(500)
+  services                      ReservationService[]
 }
 
 model Address {
@@ -85,8 +83,8 @@ model Employee {
   password                      String                        @db.VarChar(60)
   startHour                     DateTime                      @db.Time
   endHour                       DateTime                      @db.Time      
-  visits                        VisitEmployee[]
-  services                      Service[]
+  // visits                        VisitEmployee[]
+  services                      EmployeeService[]
   isAdmin                       Boolean                       @default(false)
 }
 
@@ -96,11 +94,11 @@ model Service {
   unit                          Unit?                         @relation(fields: [unitId], references: [id], onDelete: Cascade)
   unitId                        Int?                          @unique
   isPrimary                     Boolean                       @default(false)
-  employees                     Employee[]
+  employees                     EmployeeService[]
   primaryServices               Service[]                     @relation("PrimarySecondaryService")
   secondaryServices             Service[]                     @relation("PrimarySecondaryService")
   cleaningFrequencies           CleaningFrequency[]
-  reservations                  ReservationService[] 
+  reservations                  ReservationService[]
   minNumberOfUnitsIfPrimary     Int?
   minCostIfPrimary              Decimal?                      @db.Money        
 }
@@ -112,6 +110,17 @@ model Unit {
   price                         Decimal                       @db.Money
   duration                      Int                           // duration of the service unit in minutes
   service                       Service?                     
+}
+
+
+model EmployeeService {
+  employee                      Employee                      @relation(fields: [employeeId], references: [id])
+  employeeId                    Int                           
+  service                       Service                       @relation(fields: [serviceId], references: [id])
+  serviceId                     Int                           
+  visitParts                    VisitPart[]
+  
+  @@id([employeeId, serviceId])
 }
 
 model CleaningFrequency {
@@ -127,17 +136,24 @@ model ReservationService {
   service                       Service                       @relation(fields: [serviceId], references: [id], onDelete: Cascade)
   serviceId                     Int
   isMainServiceForReservation   Boolean                       @default(false)
-  numberOfUnits                 Int                           @default(1)
   
   @@id([reservationId, serviceId])
 }
 
-model VisitEmployee {
-  visit                         Visit                         @relation(fields: [visitId], references: [id], onDelete: Cascade)
-  visitId                       Int                           
-  employee                      Employee                      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  employeeId                    Int                           
-  status                        Status                        
-  @@id([visitId, employeeId])
 
+model VisitPart {
+  id                               Int                           @id @default(autoincrement())
+  visit                            Visit                         @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  visitId                          Int 
+  serviceId                        Int
+  employeeService                  EmployeeService               @relation(fields: [employeeId, serviceId], references: [employeeId, serviceId], onDelete: Cascade)
+  employeeId                       Int
+  startDate                        DateTime
+  endDate                          DateTime
+  status                           Status                        @default(TO_BE_CONFIRMED)
+  cost                             Decimal                       @db.Money
+  numberOfUnits                    Int
 }
+
+
+

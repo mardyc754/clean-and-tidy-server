@@ -1,6 +1,8 @@
+import { Frequency } from '@prisma/client';
 import type { Response } from 'express';
 import { Stringified } from 'type-fest';
 
+import { ServicesWorkingHoursOptions } from '~/schemas/employee';
 import type {
   ChangeServicePriceData,
   CreateServiceData
@@ -34,14 +36,15 @@ export default class TypesOfCleaningController extends AbstractController {
   public createRouters() {
     this.router.get('/', this.getAllServices);
     this.router.post('/', validateServiceCreationData(), this.createService);
+    this.router.get('/busy-hours', this.getAllServicesBusyHours);
     this.router.get('/:id', this.getServiceById);
-    this.router.get('/:id/employees', this.getEmployeesOfferingService);
     this.router.put('/:id', this.changeServicePrice);
     this.router.delete('/:id', this.deleteService);
     this.router.post(
       '/:primaryServiceId/connect/:secondaryServiceId',
       this.linkPrimaryAndSecondaryService
     );
+    this.router.get('/:id/busy-hours', this.getBusyHours);
   }
 
   private getAllServices = async (
@@ -143,24 +146,6 @@ export default class TypesOfCleaningController extends AbstractController {
     }
   };
 
-  private getEmployeesOfferingService = async (
-    req: TypedRequest<{ id: string }>,
-    res: Response
-  ) => {
-    const employees =
-      await this.typesOfCleaningService.getEmployeesOfferingService(
-        parseInt(req.params.id)
-      );
-
-    if (employees !== null) {
-      res.status(200).send({ data: employees });
-    } else {
-      res
-        .status(400)
-        .send({ message: 'Error when fetching employees offering service' });
-    }
-  };
-
   private linkPrimaryAndSecondaryService = async (
     req: TypedRequest<{ primaryServiceId: string; secondaryServiceId: string }>,
     res: Response
@@ -178,6 +163,59 @@ export default class TypesOfCleaningController extends AbstractController {
       res
         .status(400)
         .send({ message: 'Error when linking primary and secondary service' });
+    }
+  };
+
+  private getBusyHours = async (
+    req: TypedRequest<
+      { id: string },
+      DefaultBodyType,
+      Stringified<ServicesWorkingHoursOptions>
+    >,
+    res: Response
+  ) => {
+    console.log(req.query);
+    const reservation = await this.typesOfCleaningService.getServiceBusyHours(
+      parseInt(req.params.id),
+      {
+        from: req.query.from,
+        to: req.query.to,
+        frequency: req.query.frequency as Frequency | undefined
+      }
+    );
+
+    if (reservation) {
+      res.status(200).send(reservation);
+    } else {
+      res.status(404).send({
+        message: `Service with id ${req.params.id} not found`
+      });
+    }
+  };
+
+  private getAllServicesBusyHours = async (
+    req: TypedRequest<
+      DefaultParamsType,
+      DefaultBodyType,
+      Stringified<ServicesWorkingHoursOptions>
+    >,
+    res: Response
+  ) => {
+    const services = await this.typesOfCleaningService.getAllServicesBusyHours({
+      from: req.query.from,
+      to: req.query.to,
+      serviceIds: req.query.serviceIds
+        ? req.query.serviceIds.split(',').map((id) => parseInt(id))
+        : undefined,
+      frequency: req.query.frequency as Frequency | undefined
+    });
+
+    if (services) {
+      res.status(200).send(services);
+    } else {
+      res.status(404).send({
+        message: `Services not found`
+      });
     }
   };
 }

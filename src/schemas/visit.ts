@@ -3,25 +3,16 @@ import { z } from 'zod';
 
 import { ISOString } from './common';
 
-export const visitCreationDataSchema = z.object({
-  endDate: ISOString,
+export const visitPartCreationData = z.object({
+  employeeId: z.number().int(),
+  serviceId: z.number().int(),
+  numberOfUnits: z.number().int(),
   startDate: ISOString,
-  includeDetergents: z.boolean(),
-  cost: z.number(),
-  employeeIds: z.array(z.number().int())
+  endDate: ISOString,
+  cost: z.number()
 });
 
-export type VisitCreationData = z.infer<typeof visitCreationDataSchema>;
-
-export const singleVisitCreationDataSchema = z
-  .object({
-    reservationId: z.number()
-  })
-  .merge(visitCreationDataSchema);
-
-export type SingleVisitCreationData = z.infer<
-  typeof singleVisitCreationDataSchema
->;
+export type VisitPartCreationData = z.infer<typeof visitPartCreationData>;
 
 export const changeVisitDateSchema = z.object({
   id: z.number(),

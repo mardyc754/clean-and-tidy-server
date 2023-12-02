@@ -1,0 +1,137 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+enum Status {
+  TO_BE_CONFIRMED
+  ACTIVE
+  CLOSED
+  TO_BE_CANCELLED
+  CANCELLED
+}
+
+enum Frequency {
+  ONCE
+  ONCE_A_WEEK
+  EVERY_TWO_WEEKS
+}
+
+Table Address {
+  id                                          integer [primary key]
+  street                                      varchar(40) [not null]
+  houseNumber                                 varchar(40) [not null]
+  postCode                                    varchar(6) [not null]
+  city                                        varchar(40) [not null]
+}
+
+Table Client {
+  id                                          integer [primary key]
+  name                                        varchar(50)
+  lastName                                    varchar(50)
+  username                                    varchar(30)
+  email                                       varchar(50) [not null, unique]
+  password                                    varchar(60)
+  phone                                       varchar(15)
+}
+
+Table Visit {
+  id                                          integer [primary key]
+  name                                        varchar(30) [not null]
+  includeDetergents                           boolean
+  reservationId                               integer [not null, ref: > Reservation.id]
+}
+
+
+Table Reservation {
+  id                                          integer [primary key]
+  name                                        varchar(50) [not null]     
+  frequency                                   Frequency [not null] 
+  endDate                                     timestamp [not null]       
+  weekDay                                     integer [not null]       
+  status                                      Status [not null]                 
+  addressId                                   integer [not null, ref: > Address.id]
+  bookerEmail                                 varchar [not null, ref: > Client.email]           
+  bookerFirstName                             varchar(50) [not null]
+  bookerLastName                              varchar(50) [not null]
+}
+
+Table Employee {
+  id                                          integer [primary key]
+  name                                        varchar(50) [not null]
+  lastName                                    varchar(50) [not null]
+  email                                       varchar(40) [not null, unique]
+  password                                    varchar(60) [not null]
+  startHour                                   timestamp [not null]
+  endHour                                     timestamp [not null]
+  isAdmin                                     boolean [not null]
+}
+
+// Table VisitEmployee {
+//   employeeId                                  integer [ref: > Employee.id]
+//   visitId                                     integer [ref: > Visit.id]
+//   status                                      Status [not null]
+// }
+
+Table EmployeeService {
+  id                                          integer [primary key]
+  employeeId                                  integer [ref: > Employee.id]
+  serviceId                                   integer [ref: > Service.id]
+}
+
+Table Service {
+  id                                          integer [primary key]
+  name                                        varchar(50) [not null]
+  unitId                                      integer [ref: - Unit.id]
+  minNumberOfUnitsIfPrimary                   integer
+  minCostIfPrimary                            integer
+}
+
+Table PrimarySecondaryService {
+  primaryServiceId                            integer [ref: > Service.id]
+  secondaryServiceId                          integer [ref: > Service.id]
+  
+}
+
+Table Unit {
+  id                                          integer [primary key]
+  name                                        varchar(40)
+  price                                       numeric(4,2) [not null]
+  duration                                    integer       
+}
+
+
+Table ServiceFrequency {
+  serviceId                                   integer [ref: > Service.id]
+  frequencyId                                 integer [ref: > CleaningFrequency.id]
+}
+
+Table CleaningFrequency {
+  id                                          integer [primary key]
+  name                                        varchar(50) [not null]
+  value                                       Frequency
+}
+
+// Table VisitEmployeeService {
+//   visitId                                     integer [ref: > Visit.id]
+//   employeeServiceId                           integer [ref: > EmployeeService.id]
+//   isMainServiceForReservation                 boolean [not null]
+//   numberOfUnits                               integer [not null]
+//   status                                      Status  [not null]                                      
+// }
+
+Table VisitService {
+  id                                          integer [primary key]
+  serviceId                                   integer [ref: > Service.id]
+  visitId                                     integer [ref: > Visit.id]
+  isMainServiceForReservation                 boolean [not null] 
+}
+
+Table VisitServiceEmployee {
+  employeeId                                 integer [ref: > Employee.id]
+  visitServiceId                             integer [ref: > VisitService.id]
+  numberOfUnits                              integer [not null]  
+  startDate                                  timestamp [not null]
+  endDate                                    timestamp [not null]    
+  status                                     Status  [not null]
+  cost                                       numeric(4,2) [not null]
+}
+

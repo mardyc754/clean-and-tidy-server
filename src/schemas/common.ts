@@ -22,3 +22,7 @@ export const isHourStringSchema = z.string().refine((val) => {
 });
 
 export const ISOString = z.string().datetime();
+
+export const stringifiedBoolean = z
+  .string()
+  .refine((value) => value === 'true' || value === 'false');
