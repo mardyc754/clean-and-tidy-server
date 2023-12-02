@@ -35,7 +35,7 @@ import {
   changeVisitFrequency,
   changeWeekDay,
   createVisits
-} from '~/utils/reservations';
+} from '~/utils/reservationUtils';
 import {
   flattenNestedReservationServices,
   flattenNestedVisits

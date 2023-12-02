@@ -3,17 +3,21 @@ import {
   Prisma,
   type Reservation,
   Status,
-  type Visit
+  type Visit,
+  type VisitPart
 } from '@prisma/client';
 
+import { ServicesWorkingHoursOptions } from '~/schemas/employee';
 import { ReservationCreationData } from '~/schemas/reservation';
 
 import {
   advanceDateByMonths,
+  advanceDateByOneYear,
   advanceDateByWeeks,
   numberOfMonthsBetween,
   numberOfWeeksBetween
 } from './dateUtils';
+import { TimeInterval } from './employeeUtils';
 
 function createWeeklyVisits(
   reservationName: string,
@@ -271,3 +275,99 @@ export function changeMultipleVisitsStatus(visits: Visit[], newStatus: Status) {
     status: newStatus
   }));
 }
+
+export const getFrequencyHelpers = (frequency: Frequency) => {
+  let step: number;
+  let unit: 'week' | 'month';
+
+  switch (frequency) {
+    case Frequency.ONCE_A_WEEK:
+      step = 1;
+      unit = 'week';
+      break;
+    case Frequency.ONCE_A_MONTH:
+      step = 1;
+      unit = 'month';
+      break;
+    case Frequency.EVERY_TWO_WEEKS:
+    default:
+      step = 2;
+      unit = 'week';
+  }
+
+  const numberOfUnitsBetweenStartEndCallback =
+    unit === 'week' ? numberOfWeeksBetween : numberOfMonthsBetween;
+
+  const advanceDateCallback =
+    unit === 'week' ? advanceDateByWeeks : advanceDateByMonths;
+
+  return {
+    step,
+    unit,
+    numberOfUnitsBetweenStartEndCallback,
+    advanceDateCallback
+  };
+};
+
+export const getCyclicDateRanges = (options?: ServicesWorkingHoursOptions) => {
+  if (
+    !options?.from ||
+    !options?.to ||
+    !options?.frequency ||
+    !(
+      [
+        Frequency.EVERY_TWO_WEEKS,
+        Frequency.ONCE_A_MONTH,
+        Frequency.ONCE_A_WEEK
+      ] as Frequency[]
+    ).includes(options.frequency)
+  ) {
+    return [
+      {
+        startDate: options?.from ? new Date(options?.from) : undefined,
+        endDate: options?.to ? new Date(options?.to) : undefined
+      }
+    ];
+  }
+
+  const { from: start, to: end, frequency } = options;
+
+  const finalDate = advanceDateByOneYear(end);
+
+  const { step, unit } = getFrequencyHelpers(frequency);
+
+  const numberOfUnitsBetweenStartEnd =
+    unit === 'week'
+      ? numberOfWeeksBetween(finalDate, start)
+      : numberOfMonthsBetween(finalDate, start);
+
+  const advanceDateCallback =
+    unit === 'week' ? advanceDateByWeeks : advanceDateByMonths;
+
+  const unitIndices = [
+    ...Array<unknown>(Math.ceil((numberOfUnitsBetweenStartEnd + 1) / step))
+  ].map((_, i) => i * step);
+
+  return unitIndices.map((unitIndex) => ({
+    startDate: new Date(advanceDateCallback(start, unitIndex)),
+    endDate: new Date(advanceDateCallback(end, unitIndex))
+  }));
+};
+
+export const flattenVisitPartsToSingleRange = (
+  visitParts: TimeInterval[],
+  frequency?: Frequency
+) => {
+  if (!frequency || frequency === Frequency.ONCE) {
+    return visitParts;
+  }
+
+  const { step, advanceDateCallback } = getFrequencyHelpers(frequency);
+
+  const result = visitParts.map((visitPart, i) => ({
+    startDate: new Date(advanceDateCallback(visitPart.startDate, -i * step)),
+    endDate: new Date(advanceDateCallback(visitPart.endDate, -i * step))
+  }));
+
+  return result;
+};

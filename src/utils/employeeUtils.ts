@@ -88,7 +88,7 @@ export const getEmployeeWithWorkingHours = (
  * @returns
  */
 export const mergeBusyHours = (busyHours: TimeInterval[][]) => {
-  const currentInterval = {
+  const currentTimeslot = {
     startDate: new Date(0),
     endDate: new Date(0)
   };
@@ -99,27 +99,32 @@ export const mergeBusyHours = (busyHours: TimeInterval[][]) => {
 
   const newBusyHours: TimeInterval[] = [];
 
-  mergedBusyHours.forEach((conflict, i) => {
+  mergedBusyHours.forEach((timeslot, i) => {
     if (i === 0) {
-      currentInterval.startDate = conflict.startDate;
-      currentInterval.endDate = conflict.endDate;
+      currentTimeslot.startDate = timeslot.startDate;
+      currentTimeslot.endDate = timeslot.endDate;
     }
-    const nextConflict = mergedBusyHours[i + 1];
+    const nextTimeslot = mergedBusyHours[i + 1];
 
     if (
-      nextConflict &&
-      isAfterOrSame(conflict.endDate, nextConflict.startDate)
+      nextTimeslot &&
+      isAfterOrSame(currentTimeslot.endDate, nextTimeslot.startDate)
     ) {
-      currentInterval.endDate = nextConflict.endDate;
+      currentTimeslot.endDate = isBeforeOrSame(
+        currentTimeslot.endDate,
+        nextTimeslot.endDate
+      )
+        ? nextTimeslot.endDate
+        : timeslot.endDate;
     } else {
-      newBusyHours.push({ ...currentInterval });
+      newBusyHours.push({ ...currentTimeslot });
 
-      currentInterval.endDate = nextConflict
-        ? nextConflict.endDate
-        : conflict.endDate;
-      currentInterval.startDate = nextConflict
-        ? nextConflict.startDate
-        : conflict.startDate;
+      currentTimeslot.endDate = nextTimeslot
+        ? nextTimeslot.endDate
+        : timeslot.endDate;
+      currentTimeslot.startDate = nextTimeslot
+        ? nextTimeslot.startDate
+        : timeslot.startDate;
     }
   });
 

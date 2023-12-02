@@ -5,10 +5,7 @@ import { prisma } from '~/db';
 
 import { prismaExclude } from '~/lib/prisma';
 
-import {
-  type EmployeeCreationData,
-  type EmployeeWorkingHoursQueryOptions
-} from '~/schemas/employee';
+import { type EmployeeCreationData } from '~/schemas/employee';
 
 import {
   includeFullService,
@@ -18,7 +15,6 @@ import {
   serviceWithUnit
 } from '~/queries/serviceQuery';
 
-import { calculateBusyHours } from '~/utils/employeeUtils';
 import { executeDatabaseOperation } from '~/utils/queryUtils';
 import { flattenVisitPartsFromServices } from '~/utils/services';
 import { flattenNestedReservationServices } from '~/utils/visits';

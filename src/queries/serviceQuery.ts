@@ -4,12 +4,14 @@ import { prisma } from '~/db';
 
 import { prismaExclude } from '~/lib/prisma';
 
-import { EmployeeWorkingHoursQueryOptions } from '~/schemas/employee';
+import { ServicesWorkingHoursOptions } from '~/schemas/employee';
 
 import {
   AllServicesQueryOptions,
   ServiceQueryOptions
 } from '~/services/TypesOfCleaningService';
+
+import { getCyclicDateRanges } from '~/utils/reservationUtils';
 
 export const serviceUnit = Prisma.validator<Prisma.ServiceInclude>()({
   unit: true
@@ -152,21 +154,22 @@ export const includeServiceVisitPartsAndReservation =
     }
   });
 
-export const visitPartTimeframe = (
-  options?: EmployeeWorkingHoursQueryOptions
-) =>
-  Prisma.validator<
+export const visitPartTimeframe = (options?: ServicesWorkingHoursOptions) => {
+  return Prisma.validator<
     Prisma.VisitPartAggregateArgs & Prisma.VisitPartDefaultArgs
   >()({
     where: {
-      startDate: {
-        gte: options?.from ? new Date(options?.from) : undefined
-      },
-      endDate: {
-        lte: options?.to ? new Date(options?.to) : undefined
-      }
+      OR: getCyclicDateRanges(options).map(({ startDate, endDate }) => ({
+        startDate: {
+          gte: startDate
+        },
+        endDate: {
+          lte: endDate
+        }
+      }))
     },
     orderBy: {
       startDate: 'asc'
     }
   });
+};

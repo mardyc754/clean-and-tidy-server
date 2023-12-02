@@ -1,3 +1,4 @@
+import { Frequency } from '@prisma/client';
 import { z } from 'zod';
 
 import { stringifiedBoolean } from './common';
@@ -22,15 +23,6 @@ export const employeeIdSchema = z.object({
 
 export type EmployeeIdData = z.infer<typeof employeeIdSchema>;
 
-export const employeeWorkingHoursSchema = z.object({
-  from: z.string().datetime().optional(),
-  to: z.string().datetime().optional()
-});
-
-export type EmployeeWorkingHoursQueryOptions = z.infer<
-  typeof employeeWorkingHoursSchema
->;
-
 export const employeeQueryOptions = z.object({
   includeVisits: stringifiedBoolean.optional()
 });
@@ -40,7 +32,8 @@ export type EmployeeQueryOptions = z.infer<typeof employeeQueryOptions>;
 export const servicesWorkingHours = z.object({
   from: z.string().datetime().optional(),
   to: z.string().datetime().optional(),
-  serviceIds: z.array(z.number()).optional()
+  serviceIds: z.array(z.number()).optional(),
+  frequency: z.nativeEnum(Frequency).optional()
 });
 
 export type ServicesWorkingHoursOptions = z.infer<typeof servicesWorkingHours>;

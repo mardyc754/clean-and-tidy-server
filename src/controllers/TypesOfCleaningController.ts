@@ -1,10 +1,8 @@
+import { Frequency } from '@prisma/client';
 import type { Response } from 'express';
 import { Stringified } from 'type-fest';
 
-import {
-  EmployeeWorkingHoursQueryOptions,
-  ServicesWorkingHoursOptions
-} from '~/schemas/employee';
+import { ServicesWorkingHoursOptions } from '~/schemas/employee';
 import type {
   ChangeServicePriceData,
   CreateServiceData
@@ -172,14 +170,18 @@ export default class TypesOfCleaningController extends AbstractController {
     req: TypedRequest<
       { id: string },
       DefaultBodyType,
-      EmployeeWorkingHoursQueryOptions
+      Stringified<ServicesWorkingHoursOptions>
     >,
     res: Response
   ) => {
     console.log(req.query);
     const reservation = await this.typesOfCleaningService.getServiceBusyHours(
       parseInt(req.params.id),
-      { from: req.query.from, to: req.query.to }
+      {
+        from: req.query.from,
+        to: req.query.to,
+        frequency: req.query.frequency as Frequency | undefined
+      }
     );
 
     if (reservation) {
@@ -204,7 +206,8 @@ export default class TypesOfCleaningController extends AbstractController {
       to: req.query.to,
       serviceIds: req.query.serviceIds
         ? req.query.serviceIds.split(',').map((id) => parseInt(id))
-        : undefined
+        : undefined,
+      frequency: req.query.frequency as Frequency | undefined
     });
 
     if (services) {

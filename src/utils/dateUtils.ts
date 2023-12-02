@@ -1,3 +1,5 @@
+import { number } from 'zod';
+
 import { dayjs } from '~/lib';
 
 type ValidDayjsDate = dayjs.Dayjs | Date | string | number | null | undefined;
@@ -34,6 +36,13 @@ export function advanceDateByOneYear(date: ValidDayjsDate) {
   return dayjs(date).add(1, 'year').toISOString();
 }
 
+export function numberOfDaysBetween(
+  endDate: ValidDayjsDate,
+  startDate: ValidDayjsDate
+) {
+  return dayjs(endDate).diff(dayjs(startDate), 'day');
+}
+
 export function numberOfWeeksBetween(
   endDate: ValidDayjsDate,
   startDate: ValidDayjsDate
@@ -46,6 +55,10 @@ export function numberOfMonthsBetween(
   startDate: ValidDayjsDate
 ) {
   return dayjs(endDate).diff(dayjs(startDate), 'month');
+}
+
+export function advanceDateByDays(date: ValidDayjsDate, days: number) {
+  return dayjs(date).add(days, 'day').toISOString();
 }
 
 export function advanceDateByWeeks(date: ValidDayjsDate, weeks: number) {

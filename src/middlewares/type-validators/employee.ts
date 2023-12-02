@@ -2,7 +2,7 @@ import {
   employeeCreationSchema,
   employeeIdSchema,
   employeeQueryOptions,
-  employeeWorkingHoursSchema
+  servicesWorkingHours
 } from '~/schemas/employee';
 
 import { validateTypes } from './validateTypesOfData';
@@ -21,7 +21,7 @@ export const validateEmployeeId = () => {
 
 export const validateWorkingHoursRange = () => {
   return validateTypes({
-    queryParser: employeeWorkingHoursSchema
+    queryParser: servicesWorkingHours
   });
 };
 
