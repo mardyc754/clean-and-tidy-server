@@ -1,3 +1,5 @@
+import { number } from 'zod';
+
 import { dayjs } from '~/lib';
 
 type ValidDayjsDate = dayjs.Dayjs | Date | string | number | null | undefined;
@@ -34,6 +36,13 @@ export function advanceDateByOneYear(date: ValidDayjsDate) {
   return dayjs(date).add(1, 'year').toISOString();
 }
 
+export function numberOfDaysBetween(
+  endDate: ValidDayjsDate,
+  startDate: ValidDayjsDate
+) {
+  return dayjs(endDate).diff(dayjs(startDate), 'day');
+}
+
 export function numberOfWeeksBetween(
   endDate: ValidDayjsDate,
   startDate: ValidDayjsDate
@@ -46,6 +55,10 @@ export function numberOfMonthsBetween(
   startDate: ValidDayjsDate
 ) {
   return dayjs(endDate).diff(dayjs(startDate), 'month');
+}
+
+export function advanceDateByDays(date: ValidDayjsDate, days: number) {
+  return dayjs(date).add(days, 'day').toISOString();
 }
 
 export function advanceDateByWeeks(date: ValidDayjsDate, weeks: number) {
@@ -63,3 +76,46 @@ export function displayDateWithHours(date: ValidDayjsDate) {
 export function advanceDateByHours(date: ValidDayjsDate, hours: number) {
   return dayjs(date).add(hours, 'hour');
 }
+
+export function isTheSameDay(
+  firstDate: ValidDayjsDate,
+  secondDate: ValidDayjsDate
+) {
+  return dayjs(firstDate).isSame(secondDate, 'day');
+}
+
+export function isAfter(firstDate: ValidDayjsDate, secondDate: ValidDayjsDate) {
+  return dayjs(firstDate).isAfter(secondDate);
+}
+
+export function isBefore(
+  firstDate: ValidDayjsDate,
+  secondDate: ValidDayjsDate
+) {
+  return dayjs(firstDate).isBefore(secondDate);
+}
+
+export function isAfterOrSame(
+  firstDate: ValidDayjsDate,
+  secondDate: ValidDayjsDate
+) {
+  return (
+    dayjs(firstDate).isAfter(secondDate) || dayjs(firstDate).isSame(secondDate)
+  );
+}
+
+export function isBeforeOrSame(
+  firstDate: ValidDayjsDate,
+  secondDate: ValidDayjsDate
+) {
+  return (
+    dayjs(firstDate).isBefore(secondDate) || dayjs(firstDate).isSame(secondDate)
+  );
+}
+
+export const getTime = (date: ValidDayjsDate) => dayjs(date).toDate().getTime();
+
+export const hoursBetween = (
+  startDate: ValidDayjsDate,
+  endDate: ValidDayjsDate
+) => dayjs(endDate).diff(dayjs(startDate), 'hour', true);

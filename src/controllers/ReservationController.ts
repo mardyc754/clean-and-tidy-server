@@ -140,9 +140,10 @@ export default class ReservationController extends AbstractController {
     );
 
     if (reservation !== null) {
-      res.status(200).send({
-        ...reservation
-      });
+      // res.status(200).send({
+      //   ...reservation
+      // });
+      res.status(200).send(reservation);
     } else {
       res.status(404).send({
         message: `Reservation with name=${req.params.name} not found`,
@@ -152,9 +153,7 @@ export default class ReservationController extends AbstractController {
   };
 
   private getVisits = async (req: Request<{ id: string }>, res: Response) => {
-    const reservations = await this.reservationService.getVisits(
-      parseInt(req.params.id)
-    );
+    const reservations = await this.reservationService.getVisits(req.params.id);
 
     if (reservations !== null) {
       res.status(200).send({

@@ -1,28 +1,40 @@
-import {
-  type Employee,
-  type Service,
-  Status,
-  type Visit,
-  VisitEmployee
-} from '@prisma/client';
+import { type Employee, type Service, Status, VisitPart } from '@prisma/client';
+import { omit, without } from 'lodash';
 
 import { prisma } from '~/db';
 
-import type { EmployeeCreationData } from '~/schemas/employee';
+import { prismaExclude } from '~/lib/prisma';
+
+import { type EmployeeCreationData } from '~/schemas/employee';
+
+import {
+  includeFullService,
+  includeServiceVisitPartsAndReservation,
+  includeVisitParts,
+  selectEmployee,
+  serviceWithUnit
+} from '~/queries/serviceQuery';
 
 import { executeDatabaseOperation } from '~/utils/queryUtils';
+import { flattenVisitPartsFromServices } from '~/utils/services';
+import { flattenNestedReservationServices } from '~/utils/visits';
 
 type EmployeeReservationQueryOptions = {
   status: Status;
 };
 
+type EmployeeFilterOptions = {
+  includeVisits?: boolean;
+};
+
 export default class EmployeeService {
   public async getEmployeeById(id: Employee['id']) {
-    let employee: Employee | null = null;
+    let employee: Omit<Employee, 'password'> | null = null;
 
     try {
       employee = await prisma.employee.findUnique({
-        where: { id }
+        where: { id },
+        ...selectEmployee
       });
     } catch (err) {
       console.error(`Something went wrong: ${err}`);
@@ -43,78 +55,76 @@ export default class EmployeeService {
     return employee;
   }
 
-  public async getAllEmployees() {
-    let employees: Employee[] | null = null;
+  public async getAllEmployees(options?: EmployeeFilterOptions) {
+    const employees = await executeDatabaseOperation(
+      prisma.employee.findMany({
+        select: {
+          ...prismaExclude('Employee', ['password']),
+          services: includeServiceVisitPartsAndReservation
+        }
+      })
+    );
 
-    try {
-      employees = await prisma.employee.findMany();
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
-    }
-    return employees;
+    return employees
+      ? employees.map((employee) => ({
+          ...omit(employee, 'services'),
+          visitParts: flattenVisitPartsFromServices(employee.services)
+        }))
+      : null;
   }
 
   public async getEmployeeVisits(
     employeeId: Employee['id'],
-    status?: VisitEmployee['status']
+    status?: VisitPart['status']
   ) {
-    let visits: VisitEmployee[] | null = null;
+    const visits = await executeDatabaseOperation(
+      prisma.visitPart.findMany({
+        where: {
+          employeeId,
+          status: status
+        },
+        ...includeVisitParts
+      })
+    );
 
-    const reservationStatusFilter = status ? { where: { status } } : true;
-
-    try {
-      const employeeWithVisits = await prisma.employee.findUnique({
-        where: { id: employeeId },
-        include: {
-          visits: {
-            where: { employeeId },
-            include: {
-              visit: {
-                include: {
-                  reservation: {
-                    include: {
-                      services: {
-                        include: {
-                          service: true
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      });
-
-      visits = employeeWithVisits?.visits ?? [];
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
-    }
-    return visits;
+    return visits
+      ? visits.map((visit) => ({
+          ...omit(visit, 'employeeService', 'visit'),
+          reservation: visit.visit.reservation,
+          service: visit.employeeService.service
+        }))
+      : null;
   }
 
   public async getReservationsAssignedToEmployee(
     id: Employee['id'],
     options?: EmployeeReservationQueryOptions
   ) {
-    return await executeDatabaseOperation(
+    const reservations = await executeDatabaseOperation(
       prisma.reservation.findMany({
         where: {
-          visits: { some: { employees: { some: { employee: { id } } } } },
+          visits: { some: { visitParts: { some: { employeeId: id } } } },
           status: options?.status
         },
         include: {
-          services: {
+          visits: {
+            where: {
+              visitParts: { some: { employeeId: id } }
+            },
             include: {
-              service: true
+              visitParts: { where: { employeeId: id } }
             }
           },
-          visits: {
-            where: { employees: { some: { employee: { id } } } }
-          }
+          services: includeFullService
         }
       })
+    );
+
+    return (
+      reservations?.map((reservation) => ({
+        ...reservation,
+        services: flattenNestedReservationServices(reservation.services)
+      })) ?? null
     );
   }
 
@@ -125,11 +135,12 @@ export default class EmployeeService {
       const employeeWithServices = await prisma.employee.findUnique({
         where: { id: employeeId },
         include: {
-          services: true
+          services: includeFullService
         }
       });
 
-      services = employeeWithServices?.services ?? [];
+      services =
+        employeeWithServices?.services.flatMap(({ service }) => service) ?? [];
     } catch (err) {
       console.error(`Something went wrong: ${err}`);
     }
@@ -146,9 +157,7 @@ export default class EmployeeService {
           ...data,
           isAdmin: false,
           services: {
-            connect: data.services?.map((id) => ({
-              id
-            }))
+            create: data.services?.map((id) => ({ serviceId: id })) ?? []
           }
         }
       });
@@ -202,30 +211,66 @@ export default class EmployeeService {
     return deleteEmployee;
   }
 
-  public async linkEmployeeWithService(
+  public async changeEmployeeServiceAssignment(
     employeeId: Employee['id'],
-    serviceId: Service['id']
+    serviceIds: Array<Service['id']>
   ) {
-    let newEmployeeService: Service | null = null;
+    const employeeServices = await this.getEmployeeServices(employeeId);
+
+    if (employeeServices === null) {
+      return null;
+    }
+
+    const employeeServicesIds = employeeServices.map((service) => service.id);
+    const removedServiceIds = without(employeeServicesIds, ...serviceIds);
+    const createdServiceIds = without(serviceIds, ...employeeServicesIds);
 
     try {
       const updatedEmployee = await prisma.employee.update({
         where: { id: employeeId },
         data: {
           services: {
-            connect: { id: serviceId }
+            deleteMany: removedServiceIds.map((id) => ({ serviceId: id })),
+            createMany: {
+              data: createdServiceIds.map((id) => ({ serviceId: id }))
+            }
           }
         },
         select: {
-          services: { where: { id: serviceId } }
+          services: {
+            include: {
+              service: serviceWithUnit
+            }
+          }
         }
       });
 
-      newEmployeeService = updatedEmployee.services[0] ?? null;
+      return updatedEmployee.services.map(({ service }) => service);
     } catch (err) {
       console.error(`Something went wrong: ${err}`);
     }
 
-    return newEmployeeService;
+    return null;
+  }
+
+  public async getEmployeesOfferingService(id: Service['id']) {
+    try {
+      const service = await prisma.service.findUnique({
+        where: { id },
+        include: {
+          employees: {
+            include: {
+              employee: selectEmployee
+            }
+          }
+        }
+      });
+
+      return service?.employees.flatMap(({ employee }) => employee) ?? null;
+    } catch (err) {
+      console.error(`Something went wrong: ${err}`);
+    }
+
+    return null;
   }
 }

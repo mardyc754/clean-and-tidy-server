@@ -1,7 +1,7 @@
 import { Frequency, Status } from '@prisma/client';
 import { z } from 'zod';
 
-import { visitCreationDataSchema } from './visit';
+import { visitPartCreationData } from './visit';
 
 const FrequencySchema = z.nativeEnum(Frequency);
 
@@ -27,8 +27,7 @@ export const contactDetails = z
 export const reservationServiceSchema = z
   .object({
     serviceId: z.number().int(),
-    isMainServiceForReservation: z.boolean(),
-    numberOfUnits: z.number().int()
+    isMainServiceForReservation: z.boolean()
   })
   .strict();
 
@@ -36,10 +35,12 @@ export const reservationCreationSchema = z
   .object({
     frequency: FrequencySchema,
     bookerEmail: z.string().email(),
-    // endDate: z.string().datetime(),
-    visitData: visitCreationDataSchema,
+    includeDetergents: z.boolean(),
+    // detergentsCost: z.number().int().min(0),
+    visitParts: z.array(visitPartCreationData),
     address: address.or(z.number().int()),
     contactDetails,
+    extraInfo: z.string().max(500).nullish(),
     services: z.array(reservationServiceSchema).refine(
       (val) => {
         return (

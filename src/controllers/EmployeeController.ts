@@ -1,13 +1,21 @@
 import { Status } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import type { Request, Response } from 'express';
+import type { Response } from 'express';
 
-import type { EmployeeCreationData } from '~/schemas/employee';
+import type {
+  EmployeeCreationData,
+  EmployeeQueryOptions
+} from '~/schemas/employee';
 
-import { checkIsEmployee } from '~/middlewares/auth/checkRole';
-import { validateEmployeeCreationData } from '~/middlewares/type-validators/employee';
+import { checkIsAdmin, checkIsEmployee } from '~/middlewares/auth/checkRole';
+import {
+  validateEmployeeCreationData,
+  validateEmployeeQueryOptions
+} from '~/middlewares/type-validators/employee';
 
 import { EmployeeService } from '~/services';
+
+import { queryParamToBoolean } from '~/utils/general';
 
 import type { DefaultBodyType, DefaultParamsType, TypedRequest } from '~/types';
 
@@ -22,7 +30,12 @@ export default class EmployeeController extends AbstractController {
   }
 
   public createRouters() {
-    this.router.get('/', this.getAllEmployees);
+    this.router.get(
+      '/',
+      checkIsAdmin(),
+      validateEmployeeQueryOptions(),
+      this.getAllEmployees
+    );
     this.router.post('/', validateEmployeeCreationData(), this.createEmployee);
     this.router.get('/:id', this.getEmployeeById);
     this.router.get('/:id/visits', checkIsEmployee(), this.getEmployeeVisits);
@@ -33,20 +46,24 @@ export default class EmployeeController extends AbstractController {
     );
     this.router.get('/:id/services', this.getEmployeeServices);
 
-    this.router.post(
-      '/:employeeId/services/:serviceId',
-      this.linkEmployeeWithService
+    this.router.put(
+      '/:employeeId/services',
+      this.changeEmployeeServiceAssignment
     );
     this.router.delete('/:id', this.deleteEmployeeData);
+    this.router.get('/services/:id', this.getEmployeesOfferingService);
   }
 
-  private getAllEmployees = async (_: Request, res: Response) => {
-    const employees = await this.employeeService.getAllEmployees();
+  private getAllEmployees = async (
+    req: TypedRequest<DefaultParamsType, DefaultBodyType, EmployeeQueryOptions>,
+    res: Response
+  ) => {
+    const employees = await this.employeeService.getAllEmployees({
+      includeVisits: queryParamToBoolean(req.query.includeVisits)
+    });
 
     if (employees !== null) {
-      res.status(200).send({
-        data: employees
-      });
+      res.status(200).send(employees);
     } else {
       res.status(400).send({ message: 'Error when receiving all employees' });
     }
@@ -61,9 +78,7 @@ export default class EmployeeController extends AbstractController {
     );
 
     if (employee) {
-      res.status(200).send({
-        data: employee
-      });
+      res.status(200).send(employee);
     } else {
       res
         .status(404)
@@ -72,11 +87,12 @@ export default class EmployeeController extends AbstractController {
   };
 
   private getEmployeeVisits = async (
-    req: TypedRequest<{ id: string }>,
+    req: TypedRequest<{ id: string }, DefaultBodyType, { status: Status }>,
     res: Response
   ) => {
     const visits = await this.employeeService.getEmployeeVisits(
-      parseInt(req.params.id)
+      parseInt(req.params.id),
+      req.query.status
     );
 
     if (visits !== null) {
@@ -118,7 +134,7 @@ export default class EmployeeController extends AbstractController {
     );
 
     if (services !== null) {
-      res.status(200).send({ data: services });
+      res.status(200).send(services);
     } else {
       res
         .status(404)
@@ -148,9 +164,7 @@ export default class EmployeeController extends AbstractController {
     });
 
     if (employee) {
-      res.status(201).send({
-        data: employee
-      });
+      res.status(201).send(employee);
     } else {
       res
         .status(404)
@@ -167,7 +181,7 @@ export default class EmployeeController extends AbstractController {
     );
 
     if (deletedEmployee !== null) {
-      res.status(200).send({ data: deletedEmployee });
+      res.status(200).send(deletedEmployee);
     } else {
       res
         .status(404)
@@ -175,21 +189,39 @@ export default class EmployeeController extends AbstractController {
     }
   };
 
-  private linkEmployeeWithService = async (
-    req: TypedRequest<{ employeeId: string; serviceId: string }>,
+  private changeEmployeeServiceAssignment = async (
+    req: TypedRequest<{ employeeId: string }, { serviceIds: number[] }>,
     res: Response
   ) => {
-    const newLinkedService = await this.employeeService.linkEmployeeWithService(
-      parseInt(req.params.employeeId),
-      parseInt(req.params.serviceId)
-    );
+    const newLinkedServices =
+      await this.employeeService.changeEmployeeServiceAssignment(
+        parseInt(req.params.employeeId),
+        req.body.serviceIds
+      );
 
-    if (newLinkedService !== null) {
-      res.status(200).send({ data: newLinkedService });
+    if (newLinkedServices !== null) {
+      res.status(200).send(newLinkedServices);
     } else {
       res.status(404).send({
-        message: `Employee with id=${req.params.employeeId} or service with id=${req.params.serviceId} not found`
+        message: `Employee with id=${req.params.employeeId} not found`
       });
+    }
+  };
+
+  private getEmployeesOfferingService = async (
+    req: TypedRequest<{ id: string }>,
+    res: Response
+  ) => {
+    const employees = await this.employeeService.getEmployeesOfferingService(
+      parseInt(req.params.id)
+    );
+
+    if (employees !== null) {
+      res.status(200).send(employees);
+    } else {
+      res
+        .status(400)
+        .send({ message: 'Error when fetching employees offering service' });
     }
   };
 }
