@@ -44,7 +44,6 @@ export default class TypesOfCleaningController extends AbstractController {
       '/:primaryServiceId/connect/:secondaryServiceId',
       this.linkPrimaryAndSecondaryService
     );
-    this.router.get('/:id/busy-hours', this.getBusyHours);
   }
 
   private getAllServices = async (
@@ -163,33 +162,6 @@ export default class TypesOfCleaningController extends AbstractController {
       res
         .status(400)
         .send({ message: 'Error when linking primary and secondary service' });
-    }
-  };
-
-  private getBusyHours = async (
-    req: TypedRequest<
-      { id: string },
-      DefaultBodyType,
-      Stringified<ServicesWorkingHoursOptions>
-    >,
-    res: Response
-  ) => {
-    console.log(req.query);
-    const reservation = await this.typesOfCleaningService.getServiceBusyHours(
-      parseInt(req.params.id),
-      {
-        from: req.query.from,
-        to: req.query.to,
-        frequency: req.query.frequency as Frequency | undefined
-      }
-    );
-
-    if (reservation) {
-      res.status(200).send(reservation);
-    } else {
-      res.status(404).send({
-        message: `Service with id ${req.params.id} not found`
-      });
     }
   };
 

@@ -77,6 +77,10 @@ export function advanceDateByHours(date: ValidDayjsDate, hours: number) {
   return dayjs(date).add(hours, 'hour');
 }
 
+export function advanceDateByMinutes(date: ValidDayjsDate, minutes: number) {
+  return dayjs(date).add(minutes, 'm').toDate();
+}
+
 export function isTheSameDay(
   firstDate: ValidDayjsDate,
   secondDate: ValidDayjsDate

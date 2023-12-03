@@ -1,7 +1,7 @@
 import type { Employee, VisitPart } from '@prisma/client';
-import { Stringified } from 'type-fest';
 
 import {
+  advanceDateByMinutes,
   getTime,
   hoursBetween,
   isAfter,
@@ -115,7 +115,7 @@ export const mergeBusyHours = (busyHours: TimeInterval[][]) => {
         nextTimeslot.endDate
       )
         ? nextTimeslot.endDate
-        : timeslot.endDate;
+        : currentTimeslot.endDate;
     } else {
       newBusyHours.push({ ...currentTimeslot });
 
@@ -136,4 +136,13 @@ export const numberOfWorkingHours = (workingHours: TimeInterval[]) => {
     (acc, curr) => acc + hoursBetween(curr.startDate, curr.endDate),
     0
   );
+};
+
+export const addBreaksToWorkingHours = (workingHours: TimeInterval[]) => {
+  // we can think about not reducing the first start date by half an hour
+  // but frontend should be able to handle this
+  return workingHours.map((workingHour) => ({
+    startDate: advanceDateByMinutes(workingHour.startDate, -30),
+    endDate: advanceDateByMinutes(workingHour.endDate, 30)
+  }));
 };
