@@ -39,7 +39,6 @@ import {
   mergeBusyHours,
   numberOfWorkingHours
 } from '~/utils/employeeUtils';
-import { getHolidaysForYear } from '~/utils/holidays';
 import {
   getCyclicDateRanges,
   getFrequencyHelpers
@@ -192,11 +191,6 @@ export default class TypesOfCleaningService {
       return null;
     }
 
-    const holidays = [
-      options?.from ? getYearFromDate(options?.from) : new Date().getFullYear(),
-      options?.to ? getYearFromDate(options?.to) : new Date().getFullYear() + 1
-    ].flatMap((year) => getHolidaysForYear(year));
-
     const cyclicRanges = getCyclicDateRanges(options);
 
     // employees working hours calculation
@@ -268,8 +262,7 @@ export default class TypesOfCleaningService {
 
     return {
       employees: employeesWithWorkingHours,
-      busyHours: calculateBusyHours(flattenedEmployeeVisitParts),
-      holidays
+      busyHours: calculateBusyHours(flattenedEmployeeVisitParts)
     };
   }
 }

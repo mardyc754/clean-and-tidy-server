@@ -2,6 +2,7 @@ import {
   AddressController,
   AuthController,
   ClientController,
+  DateController,
   EmployeeController,
   ReservationController,
   TypesOfCleaningController,
@@ -20,7 +21,8 @@ const app = new App(
     new EmployeeController(),
     new VisitController(),
     new ReservationController(),
-    new AddressController()
+    new AddressController(),
+    new DateController()
   ],
   port
 );
