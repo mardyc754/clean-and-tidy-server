@@ -2,7 +2,13 @@ import { number } from 'zod';
 
 import { dayjs } from '~/lib';
 
-type ValidDayjsDate = dayjs.Dayjs | Date | string | number | null | undefined;
+export type ValidDayjsDate =
+  | dayjs.Dayjs
+  | Date
+  | string
+  | number
+  | null
+  | undefined;
 
 export function now() {
   return dayjs(Date.now()); // for safety, it'd be better to change the date to UTC
@@ -123,3 +129,14 @@ export const hoursBetween = (
   startDate: ValidDayjsDate,
   endDate: ValidDayjsDate
 ) => dayjs(endDate).diff(dayjs(startDate), 'hour', true);
+
+export const minutesBetween = (
+  startDate: ValidDayjsDate,
+  endDate: ValidDayjsDate
+) => dayjs(endDate).diff(dayjs(startDate), 'minute');
+
+export const startOfDay = (date: ValidDayjsDate) =>
+  dayjs(date).startOf('day').toDate();
+
+export const endOfDay = (date: ValidDayjsDate) =>
+  dayjs(date).endOf('day').toDate();
