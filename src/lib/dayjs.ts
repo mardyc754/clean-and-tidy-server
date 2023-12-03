@@ -40,6 +40,7 @@ import 'dayjs/locale/pl';
 //    "years":2021
 // }
 import toObject from 'dayjs/plugin/toObject';
+import weekOfYear from 'dayjs/plugin/weekOfYear';
 
 // import updateLocale from 'dayjs/plugin/updateLocale';
 
@@ -50,7 +51,7 @@ dayjs.extend(toObject);
 // dayjs.extend(localizedFormat);
 // dayjs.extend(localeData);
 // dayjs.extend(dayOfYear);
-// dayjs.extend(weekOfYear);
+dayjs.extend(weekOfYear);
 // dayjs.extend(quarterOfYear);
 // dayjs.extend(customParseFormat);
 

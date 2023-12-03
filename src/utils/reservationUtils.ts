@@ -3,8 +3,7 @@ import {
   Prisma,
   type Reservation,
   Status,
-  type Visit,
-  type VisitPart
+  type Visit
 } from '@prisma/client';
 
 import { ServicesWorkingHoursOptions } from '~/schemas/employee';
@@ -18,7 +17,6 @@ import {
   numberOfMonthsBetween,
   numberOfWeeksBetween
 } from './dateUtils';
-import { Timeslot } from './employeeUtils';
 
 function createWeeklyVisits(
   reservationName: string,
@@ -360,30 +358,4 @@ export const getCyclicDateRanges = (options?: ServicesWorkingHoursOptions) => {
     startDate: new Date(advanceDateCallback(start, unitIndex)),
     endDate: new Date(advanceDateCallback(end, unitIndex))
   }));
-};
-
-export const flattenVisitPartsToSingleRange = (
-  visitParts: Timeslot[],
-  frequency?: Frequency
-) => {
-  if (!frequency || frequency === Frequency.ONCE) {
-    return visitParts;
-  }
-
-  const { step, advanceDateCallback } = getFrequencyHelpers(frequency);
-
-  const result = visitParts.map((visitPart, i) => ({
-    startDate: new Date(
-      advanceDateCallback
-        ? (advanceDateCallback(visitPart.startDate, -i * step) as string)
-        : visitPart.startDate
-    ),
-    endDate: new Date(
-      advanceDateCallback
-        ? (advanceDateCallback(visitPart.endDate, -i * step) as string)
-        : visitPart.endDate
-    )
-  }));
-
-  return result;
 };

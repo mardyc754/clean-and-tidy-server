@@ -141,3 +141,8 @@ export const endOfDay = (date: ValidDayjsDate) =>
 
 export const startOfWeek = (date: ValidDayjsDate) =>
   dayjs(date).startOf('week').toDate();
+
+export const getYearFromDate = (date: ValidDayjsDate) => dayjs(date).year();
+
+export const getWeekNumberFromDate = (date: ValidDayjsDate) =>
+  dayjs(date).week();

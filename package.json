@@ -11,7 +11,8 @@
     "generate-db": "npx prisma generate",
     "db-push": "npx prisma db push",
     "dev": "nodemon",
-    "prettier": "prettier --write ."
+    "prettier": "prettier --write .",
+    "build": "holidays2json --pick PL --min"
   },
   "engines": {
     "node": "^18.16.0"
@@ -56,6 +57,7 @@
     "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
+    "date-holidays": "^3.23.2",
     "dayjs": "^1.11.9",
     "dotenv": "^16.3.1",
     "jsonwebtoken": "^9.0.2",
