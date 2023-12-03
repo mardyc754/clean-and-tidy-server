@@ -41,6 +41,8 @@ import 'dayjs/locale/pl';
 // }
 import toObject from 'dayjs/plugin/toObject';
 
+// import updateLocale from 'dayjs/plugin/updateLocale';
+
 // import locale
 
 dayjs.extend(toObject);
@@ -54,5 +56,31 @@ dayjs.extend(toObject);
 
 // dayjs.extend(duration);
 // dayjs.extend(relativeTime);
+
+// needed to handle week days in the way
+// that the Monday is the first day of the week
+dayjs.locale('pl');
+
+// alternative solution - extend English locale
+// dayjs.extend(updateLocale);
+
+// dayjs.updateLocale('en', {
+//   weekStart: 1,
+//   formats: {
+//     // abbreviated format options allowing localization
+//     LTS: 'HH:mm:ss',
+//     LT: 'HH:mm',
+//     // L: 'MM/DD/YYYY',
+//     L: 'DD.MM.YYYY',
+//     LL: 'MMMM D, YYYY',
+//     LLL: 'MMMM D, YYYY HH:mm',
+//     LLLL: 'dddd, MMMM D, YYYY HH:mm',
+//     // lowercase/short, optional formats for localization
+//     l: 'D/M/YYYY',
+//     ll: 'D MMM, YYYY',
+//     lll: 'D MMM, YYYY HH:mm',
+//     llll: 'ddd, MMM D, YYYY HH:mm'
+//   }
+// });
 
 export default dayjs;

@@ -1,5 +1,3 @@
-import { number } from 'zod';
-
 import { dayjs } from '~/lib';
 
 export type ValidDayjsDate =
@@ -64,15 +62,15 @@ export function numberOfMonthsBetween(
 }
 
 export function advanceDateByDays(date: ValidDayjsDate, days: number) {
-  return dayjs(date).add(days, 'day').toISOString();
+  return dayjs(date).add(days, 'day').toDate();
 }
 
 export function advanceDateByWeeks(date: ValidDayjsDate, weeks: number) {
-  return dayjs(date).add(weeks, 'week').toISOString();
+  return dayjs(date).add(weeks, 'week').toDate();
 }
 
 export function advanceDateByMonths(date: ValidDayjsDate, months: number) {
-  return dayjs(date).add(months, 'month').toISOString();
+  return dayjs(date).add(months, 'month').toDate();
 }
 
 export function displayDateWithHours(date: ValidDayjsDate) {
@@ -140,3 +138,6 @@ export const startOfDay = (date: ValidDayjsDate) =>
 
 export const endOfDay = (date: ValidDayjsDate) =>
   dayjs(date).endOf('day').toDate();
+
+export const startOfWeek = (date: ValidDayjsDate) =>
+  dayjs(date).startOf('week').toDate();

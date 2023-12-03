@@ -1,6 +1,7 @@
 import type { Employee, VisitPart } from '@prisma/client';
 
 import {
+  advanceDateByDays,
   advanceDateByMinutes,
   endOfDay,
   getTime,
@@ -10,7 +11,8 @@ import {
   isBeforeOrSame,
   isTheSameDay,
   minutesBetween,
-  startOfDay
+  startOfDay,
+  startOfWeek
 } from '~/utils/dateUtils';
 
 export type Timeslot = {
@@ -218,12 +220,13 @@ export const calculateEmployeeWorkingHours = (timeslots: Timeslot[]) => {
     }
   });
 
-  return mergeBusyHours([workingHours]);
+  // return calculateBusyHoursForWeeks(workingHours);
+  return workingHours;
 };
 
 /**
  * Calculate employee busy hours by adding extra half an hour before and after visit parts
- * @param timeslots timeslots for which we want to calculate busy hours
+ * @param timeslots original working hours timeslots for which we want to calculate busy hours
  * @returns calculated busy hours
  *
  * NOTE: for the days where the total number of working hours is greater than 8,
@@ -259,5 +262,50 @@ export const calculateEmployeeBusyHours = (timeslots: Timeslot[]) => {
     }
   });
 
-  return busyHours;
+  return calculateBusyHoursForWeeks(busyHours);
+};
+
+const calculateBusyHoursForWeeks = (busyHours: Timeslot[]) => {
+  const uniqueDays = Array.from(
+    new Set(busyHours.map((timeslot) => startOfDay(timeslot.startDate)))
+  );
+
+  const uniqueWeeks = Array.from(
+    new Set(busyHours.map((timeslot) => startOfWeek(timeslot.startDate)))
+  );
+
+  uniqueWeeks.sort((a, b) => getTime(a) - getTime(b));
+
+  const busyHoursForWeeks: Timeslot[] = [];
+
+  uniqueWeeks.forEach((week) => {
+    const weekDays = Array(7)
+      .fill(0)
+      .map((_, i) => startOfDay(advanceDateByDays(week, i)));
+
+    const weekTimeslots = busyHours.filter((timeslot) =>
+      isTheSameDay(startOfWeek(timeslot.startDate), week)
+    );
+
+    busyHoursForWeeks.push(...weekTimeslots);
+
+    const busyDays = weekDays.filter((day) =>
+      uniqueDays.some((uniqueDay) => isTheSameDay(day, uniqueDay))
+    );
+
+    if (busyDays.length >= 5) {
+      const remainingDays = weekDays.filter(
+        (day) => !busyDays.some((busyDay) => isTheSameDay(day, busyDay))
+      );
+
+      busyHoursForWeeks.push(
+        ...remainingDays.map((day) => ({
+          startDate: startOfDay(day),
+          endDate: endOfDay(day)
+        }))
+      );
+    }
+  });
+  // return busyHours;
+  return mergeBusyHours([busyHoursForWeeks]);
 };
