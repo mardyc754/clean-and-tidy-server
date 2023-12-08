@@ -200,10 +200,46 @@ export default class TypesOfCleaningService {
         employee.services.flatMap((service) => service.visitParts)
       );
 
+      // flatten visit parts to single range
+      const busyHoursForTimeslots = cyclicRanges.map((range, i) => {
+        const { startDate, endDate } = range;
+
+        const employeeVisitsInTimeRange = employeeWorkingHours.filter(
+          (visitPart) =>
+            isAfterOrSame(visitPart.startDate, startDate) &&
+            isBeforeOrSame(visitPart.endDate, endDate)
+        );
+
+        const { step, advanceDateCallback } = getFrequencyHelpers(
+          options?.frequency as Frequency
+        );
+
+        return employeeVisitsInTimeRange.map((visitPart) => {
+          // flatten visit parts to single range
+          return {
+            startDate: new Date(
+              advanceDateCallback
+                ? (advanceDateCallback(
+                    visitPart.startDate,
+                    -i * step
+                  ) as string)
+                : visitPart.startDate
+            ),
+            endDate: new Date(
+              advanceDateCallback
+                ? (advanceDateCallback(visitPart.endDate, -i * step) as string)
+                : visitPart.endDate
+            )
+          };
+        });
+      });
+
       return {
         ...employee,
         services: employee.services.map((service) => service.serviceId),
-        workingHours: employeeWorkingHours,
+        // squash visit part dates into single range
+        // and merge the busy hours
+        workingHours: mergeBusyHours(busyHoursForTimeslots),
         // for calculating the number of working hours
         // we need the working hours with added extra time
         // only before the visit
@@ -216,49 +252,50 @@ export default class TypesOfCleaningService {
     });
 
     // flatten visit parts to single range
-    const flattenedEmployeeVisitParts = employeesWithWorkingHours
-      .map((employee) => employee.workingHours)
-      .map((visitParts) => {
-        const busyHoursForTimeslots = cyclicRanges.map((range, i) => {
-          const { startDate, endDate } = range;
+    const flattenedEmployeeVisitParts = employeesWithWorkingHours.map(
+      (employee) => employee.workingHours
+    );
+    // .map((visitParts) => {
+    //   const busyHoursForTimeslots = cyclicRanges.map((range, i) => {
+    //     const { startDate, endDate } = range;
 
-          const employeeVisitsInTimeRange = visitParts.filter(
-            (visitPart) =>
-              isAfterOrSame(visitPart.startDate, startDate) &&
-              isBeforeOrSame(visitPart.endDate, endDate)
-          );
+    //     const employeeVisitsInTimeRange = visitParts.filter(
+    //       (visitPart) =>
+    //         isAfterOrSame(visitPart.startDate, startDate) &&
+    //         isBeforeOrSame(visitPart.endDate, endDate)
+    //     );
 
-          const { step, advanceDateCallback } = getFrequencyHelpers(
-            options?.frequency as Frequency
-          );
+    //     const { step, advanceDateCallback } = getFrequencyHelpers(
+    //       options?.frequency as Frequency
+    //     );
 
-          return employeeVisitsInTimeRange.map((visitPart) => {
-            // flatten visit parts to single range
-            return {
-              startDate: new Date(
-                advanceDateCallback
-                  ? (advanceDateCallback(
-                      visitPart.startDate,
-                      -i * step
-                    ) as string)
-                  : visitPart.startDate
-              ),
-              endDate: new Date(
-                advanceDateCallback
-                  ? (advanceDateCallback(
-                      visitPart.endDate,
-                      -i * step
-                    ) as string)
-                  : visitPart.endDate
-              )
-            };
-          });
-        });
+    //     return employeeVisitsInTimeRange.map((visitPart) => {
+    //       // flatten visit parts to single range
+    //       return {
+    //         startDate: new Date(
+    //           advanceDateCallback
+    //             ? (advanceDateCallback(
+    //                 visitPart.startDate,
+    //                 -i * step
+    //               ) as string)
+    //             : visitPart.startDate
+    //         ),
+    //         endDate: new Date(
+    //           advanceDateCallback
+    //             ? (advanceDateCallback(
+    //                 visitPart.endDate,
+    //                 -i * step
+    //               ) as string)
+    //             : visitPart.endDate
+    //         )
+    //       };
+    //     });
+    //   });
 
-        // squash visit part dates into single range
-        // and merge the busy hours
-        return mergeBusyHours(busyHoursForTimeslots);
-      });
+    //   // squash visit part dates into single range
+    //   // and merge the busy hours
+    //   return mergeBusyHours(busyHoursForTimeslots);
+    // });
 
     return {
       employees: employeesWithWorkingHours,
