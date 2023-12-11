@@ -6,3 +6,4 @@ export { default as EmployeeController } from './EmployeeController';
 export { default as ReservationController } from './ReservationController';
 export { default as VisitController } from './VisitController';
 export { default as AddressController } from './AddressController';
+export { default as DateController } from './DateController';

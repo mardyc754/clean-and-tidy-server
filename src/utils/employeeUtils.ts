@@ -1,15 +1,21 @@
 import type { Employee, VisitPart } from '@prisma/client';
 
 import {
+  advanceDateByDays,
   advanceDateByMinutes,
+  endOfDay,
   getTime,
   hoursBetween,
   isAfter,
   isAfterOrSame,
-  isBeforeOrSame
+  isBeforeOrSame,
+  isTheSameDay,
+  minutesBetween,
+  startOfDay,
+  startOfWeek
 } from '~/utils/dateUtils';
 
-export type TimeInterval = {
+export type Timeslot = {
   startDate: Date;
   endDate: Date;
 };
@@ -27,13 +33,11 @@ type EmployeeNestedWithVisitParts = EmployeeNested & {
  * @param allEmployeeWorkingHours the working hours of all employees
  * @returns the list with time intervals when all employees are busy
  */
-export const calculateBusyHours = (
-  allEmployeeWorkingHours: TimeInterval[][]
-) => {
+export const calculateBusyHours = (allEmployeeWorkingHours: Timeslot[][]) => {
   let busyHours = allEmployeeWorkingHours[0] ?? [];
 
   allEmployeeWorkingHours.slice(1).forEach((singleEmployeeWorkingHours) => {
-    const newBusyHours: TimeInterval[] = [];
+    const newBusyHours: Timeslot[] = [];
 
     // check the hour conflicts between employees
     // by comparing employee working hours with the rest of the employees
@@ -87,7 +91,7 @@ export const getEmployeeWithWorkingHours = (
  * @param busyHours
  * @returns
  */
-export const mergeBusyHours = (busyHours: TimeInterval[][]) => {
+export const mergeBusyHours = (busyHours: Timeslot[][]) => {
   const currentTimeslot = {
     startDate: new Date(0),
     endDate: new Date(0)
@@ -97,7 +101,7 @@ export const mergeBusyHours = (busyHours: TimeInterval[][]) => {
 
   mergedBusyHours.sort((a, b) => getTime(a.startDate) - getTime(b.startDate));
 
-  const newBusyHours: TimeInterval[] = [];
+  const newBusyHours: Timeslot[] = [];
 
   mergedBusyHours.forEach((timeslot, i) => {
     if (i === 0) {
@@ -131,18 +135,177 @@ export const mergeBusyHours = (busyHours: TimeInterval[][]) => {
   return newBusyHours;
 };
 
-export const numberOfWorkingHours = (workingHours: TimeInterval[]) => {
+export const numberOfWorkingHours = (workingHours: Timeslot[]) => {
   return workingHours.reduce(
     (acc, curr) => acc + hoursBetween(curr.startDate, curr.endDate),
     0
   );
 };
 
-export const addBreaksToWorkingHours = (workingHours: TimeInterval[]) => {
+export const addBreaksToWorkingHours = (workingHours: Timeslot[]) => {
   // we can think about not reducing the first start date by half an hour
   // but frontend should be able to handle this
   return workingHours.map((workingHour) => ({
     startDate: advanceDateByMinutes(workingHour.startDate, -30),
     endDate: advanceDateByMinutes(workingHour.endDate, 30)
   }));
+};
+
+/**
+ * Calculate employees working hours by adding breaks between visit parts
+ * where the break is at least 30 minutes
+ * @param timeslots timeslots for which we want to calculate working hours
+ * @returns calculated working hours
+ *
+ * NOTE: for the days where the total number of working hours is greater than 8,
+ * then the whole day is marked as a working day
+ */
+export const calculateEmployeeWorkingHours = (timeslots: Timeslot[]) => {
+  const uniqueDays = Array.from(
+    new Set(timeslots.map((timeslot) => startOfDay(timeslot.startDate)))
+  );
+
+  const currentTimeslot = {
+    startDate: new Date(0),
+    endDate: new Date(0)
+  };
+
+  uniqueDays.sort((a, b) => getTime(a) - getTime(b));
+
+  const workingHours: Timeslot[] = [];
+
+  uniqueDays.forEach((day) => {
+    const dayTimeslots = timeslots.filter((timeslot) =>
+      isTheSameDay(timeslot.startDate, day)
+    );
+
+    dayTimeslots.sort((a, b) => getTime(a.startDate) - getTime(b.startDate));
+
+    const workingHoursForDay: Timeslot[] = [];
+
+    dayTimeslots.forEach((timeslot, i) => {
+      if (i === 0) {
+        currentTimeslot.startDate = advanceDateByMinutes(
+          timeslot.startDate,
+          -30
+        );
+        currentTimeslot.endDate = timeslot.endDate;
+      }
+
+      const nextTimeslot = dayTimeslots[i + 1];
+
+      if (
+        nextTimeslot &&
+        minutesBetween(nextTimeslot?.startDate, currentTimeslot.endDate) <= 30
+      ) {
+        currentTimeslot.endDate = nextTimeslot.endDate;
+      } else {
+        workingHoursForDay.push({ ...currentTimeslot });
+
+        currentTimeslot.startDate = nextTimeslot
+          ? advanceDateByMinutes(nextTimeslot.startDate, -30)
+          : timeslot.startDate;
+        currentTimeslot.endDate = nextTimeslot
+          ? nextTimeslot.endDate
+          : timeslot.startDate;
+      }
+    });
+
+    const numberOfHoursInADay = numberOfWorkingHours(workingHoursForDay);
+
+    if (numberOfHoursInADay < 8) {
+      workingHours.push(...workingHoursForDay);
+    } else {
+      workingHours.push({ startDate: startOfDay(day), endDate: endOfDay(day) });
+    }
+  });
+
+  // return calculateBusyHoursForWeeks(workingHours);
+  return workingHours;
+};
+
+/**
+ * Calculate employee busy hours by adding extra half an hour before and after visit parts
+ * @param timeslots original working hours timeslots for which we want to calculate busy hours
+ * @returns calculated busy hours
+ *
+ * NOTE: for the days where the total number of working hours is greater than 8,
+ * then the whole day is marked as busy
+ */
+export const calculateEmployeeBusyHours = (timeslots: Timeslot[]) => {
+  const uniqueDays = Array.from(
+    new Set(timeslots.map((timeslot) => startOfDay(timeslot.startDate)))
+  );
+
+  uniqueDays.sort((a, b) => getTime(a) - getTime(b));
+
+  const busyHours: Timeslot[] = [];
+
+  const workingHours = mergeBusyHours([addBreaksToWorkingHours(timeslots)]);
+
+  uniqueDays.forEach((day) => {
+    const dayTimeslots = workingHours.filter((timeslot) =>
+      isTheSameDay(timeslot.startDate, day)
+    );
+
+    dayTimeslots.sort((a, b) => getTime(a.startDate) - getTime(b.startDate));
+
+    const numberOfHoursInADay = numberOfWorkingHours(dayTimeslots);
+
+    if (numberOfHoursInADay < 8) {
+      busyHours.push(...dayTimeslots);
+    } else {
+      busyHours.push({
+        startDate: startOfDay(day),
+        endDate: endOfDay(day)
+      });
+    }
+  });
+
+  return calculateBusyHoursForWeeks(busyHours);
+};
+
+const calculateBusyHoursForWeeks = (busyHours: Timeslot[]) => {
+  const uniqueDays = Array.from(
+    new Set(busyHours.map((timeslot) => startOfDay(timeslot.startDate)))
+  );
+
+  const uniqueWeeks = Array.from(
+    new Set(busyHours.map((timeslot) => startOfWeek(timeslot.startDate)))
+  );
+
+  uniqueWeeks.sort((a, b) => getTime(a) - getTime(b));
+
+  const busyHoursForWeeks: Timeslot[] = [];
+
+  uniqueWeeks.forEach((week) => {
+    const weekDays = Array(7)
+      .fill(0)
+      .map((_, i) => startOfDay(advanceDateByDays(week, i)));
+
+    const weekTimeslots = busyHours.filter((timeslot) =>
+      isTheSameDay(startOfWeek(timeslot.startDate), week)
+    );
+
+    busyHoursForWeeks.push(...weekTimeslots);
+
+    const busyDays = weekDays.filter((day) =>
+      uniqueDays.some((uniqueDay) => isTheSameDay(day, uniqueDay))
+    );
+
+    if (busyDays.length >= 5) {
+      const remainingDays = weekDays.filter(
+        (day) => !busyDays.some((busyDay) => isTheSameDay(day, busyDay))
+      );
+
+      busyHoursForWeeks.push(
+        ...remainingDays.map((day) => ({
+          startDate: startOfDay(day),
+          endDate: endOfDay(day)
+        }))
+      );
+    }
+  });
+  // return busyHours;
+  return mergeBusyHours([busyHoursForWeeks]);
 };

@@ -3,21 +3,20 @@ import {
   Prisma,
   type Reservation,
   Status,
-  type Visit,
-  type VisitPart
+  type Visit
 } from '@prisma/client';
 
 import { ServicesWorkingHoursOptions } from '~/schemas/employee';
 import { ReservationCreationData } from '~/schemas/reservation';
 
 import {
+  ValidDayjsDate,
   advanceDateByMonths,
   advanceDateByOneYear,
   advanceDateByWeeks,
   numberOfMonthsBetween,
   numberOfWeeksBetween
 } from './dateUtils';
-import { TimeInterval } from './employeeUtils';
 
 function createWeeklyVisits(
   reservationName: string,
@@ -276,30 +275,37 @@ export function changeMultipleVisitsStatus(visits: Visit[], newStatus: Status) {
   }));
 }
 
-export const getFrequencyHelpers = (frequency: Frequency) => {
+export const getFrequencyHelpers = (frequency: Frequency | undefined) => {
   let step: number;
-  let unit: 'week' | 'month';
-
+  let unit: 'week' | 'month' | undefined = undefined;
+  let numberOfUnitsBetweenStartEndCallback:
+    | ((endDate: ValidDayjsDate, startDate: ValidDayjsDate) => number)
+    | undefined = undefined;
+  let advanceDateCallback:
+    | ((date: ValidDayjsDate, step: number) => ValidDayjsDate)
+    | undefined = undefined;
   switch (frequency) {
     case Frequency.ONCE_A_WEEK:
       step = 1;
       unit = 'week';
+      numberOfUnitsBetweenStartEndCallback = numberOfWeeksBetween;
+      advanceDateCallback = advanceDateByWeeks;
       break;
     case Frequency.ONCE_A_MONTH:
       step = 1;
       unit = 'month';
+      numberOfUnitsBetweenStartEndCallback = numberOfMonthsBetween;
+      advanceDateCallback = advanceDateByMonths;
       break;
     case Frequency.EVERY_TWO_WEEKS:
-    default:
       step = 2;
       unit = 'week';
+      numberOfUnitsBetweenStartEndCallback = numberOfWeeksBetween;
+      advanceDateCallback = advanceDateByWeeks;
+      break;
+    default:
+      step = 0;
   }
-
-  const numberOfUnitsBetweenStartEndCallback =
-    unit === 'week' ? numberOfWeeksBetween : numberOfMonthsBetween;
-
-  const advanceDateCallback =
-    unit === 'week' ? advanceDateByWeeks : advanceDateByMonths;
 
   return {
     step,
@@ -352,22 +358,4 @@ export const getCyclicDateRanges = (options?: ServicesWorkingHoursOptions) => {
     startDate: new Date(advanceDateCallback(start, unitIndex)),
     endDate: new Date(advanceDateCallback(end, unitIndex))
   }));
-};
-
-export const flattenVisitPartsToSingleRange = (
-  visitParts: TimeInterval[],
-  frequency?: Frequency
-) => {
-  if (!frequency || frequency === Frequency.ONCE) {
-    return visitParts;
-  }
-
-  const { step, advanceDateCallback } = getFrequencyHelpers(frequency);
-
-  const result = visitParts.map((visitPart, i) => ({
-    startDate: new Date(advanceDateCallback(visitPart.startDate, -i * step)),
-    endDate: new Date(advanceDateCallback(visitPart.endDate, -i * step))
-  }));
-
-  return result;
 };

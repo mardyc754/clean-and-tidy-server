@@ -1,8 +1,12 @@
-import { number } from 'zod';
-
 import { dayjs } from '~/lib';
 
-type ValidDayjsDate = dayjs.Dayjs | Date | string | number | null | undefined;
+export type ValidDayjsDate =
+  | dayjs.Dayjs
+  | Date
+  | string
+  | number
+  | null
+  | undefined;
 
 export function now() {
   return dayjs(Date.now()); // for safety, it'd be better to change the date to UTC
@@ -58,15 +62,15 @@ export function numberOfMonthsBetween(
 }
 
 export function advanceDateByDays(date: ValidDayjsDate, days: number) {
-  return dayjs(date).add(days, 'day').toISOString();
+  return dayjs(date).add(days, 'day').toDate();
 }
 
 export function advanceDateByWeeks(date: ValidDayjsDate, weeks: number) {
-  return dayjs(date).add(weeks, 'week').toISOString();
+  return dayjs(date).add(weeks, 'week').toDate();
 }
 
 export function advanceDateByMonths(date: ValidDayjsDate, months: number) {
-  return dayjs(date).add(months, 'month').toISOString();
+  return dayjs(date).add(months, 'month').toDate();
 }
 
 export function displayDateWithHours(date: ValidDayjsDate) {
@@ -123,3 +127,22 @@ export const hoursBetween = (
   startDate: ValidDayjsDate,
   endDate: ValidDayjsDate
 ) => dayjs(endDate).diff(dayjs(startDate), 'hour', true);
+
+export const minutesBetween = (
+  startDate: ValidDayjsDate,
+  endDate: ValidDayjsDate
+) => dayjs(endDate).diff(dayjs(startDate), 'minute');
+
+export const startOfDay = (date: ValidDayjsDate) =>
+  dayjs(date).startOf('day').toDate();
+
+export const endOfDay = (date: ValidDayjsDate) =>
+  dayjs(date).endOf('day').toDate();
+
+export const startOfWeek = (date: ValidDayjsDate) =>
+  dayjs(date).startOf('week').toDate();
+
+export const getYearFromDate = (date: ValidDayjsDate) => dayjs(date).year();
+
+export const getWeekNumberFromDate = (date: ValidDayjsDate) =>
+  dayjs(date).week();
