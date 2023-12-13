@@ -174,12 +174,13 @@ export default class TypesOfCleaningController extends AbstractController {
     res: Response
   ) => {
     const services = await this.typesOfCleaningService.getAllServicesBusyHours({
-      from: req.query.from,
-      to: req.query.to,
+      period: req.query.period,
       serviceIds: req.query.serviceIds
         ? req.query.serviceIds.split(',').map((id) => parseInt(id))
         : undefined,
-      frequency: req.query.frequency as Frequency | undefined
+      frequency: req.query.frequency as Frequency | undefined,
+      excludeFrom: req.query.excludeFrom,
+      excludeTo: req.query.excludeTo
     });
 
     if (services) {

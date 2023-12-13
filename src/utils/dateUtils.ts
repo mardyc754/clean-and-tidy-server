@@ -146,3 +146,13 @@ export const getYearFromDate = (date: ValidDayjsDate) => dayjs(date).year();
 
 export const getWeekNumberFromDate = (date: ValidDayjsDate) =>
   dayjs(date).week();
+
+export const startOfMonth = (date: ValidDayjsDate) =>
+  dayjs(date).startOf('month').toDate();
+
+export const endOfMonth = (date: ValidDayjsDate) =>
+  dayjs(date).endOf('month').toDate();
+
+export const dateFromMonthAndYear = (month: number, year: number) => {
+  return dayjs().year(year).month(month).toDate();
+};

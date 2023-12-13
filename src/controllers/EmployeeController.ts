@@ -1,10 +1,13 @@
-import { Status } from '@prisma/client';
+import { Frequency, Status } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import type { Response } from 'express';
+import { Stringified } from 'type-fest';
 
 import type {
   EmployeeCreationData,
-  EmployeeQueryOptions
+  EmployeeQueryOptions,
+  EmployeeWorkingHoursOptions,
+  ServicesWorkingHoursOptions
 } from '~/schemas/employee';
 
 import { checkIsAdmin, checkIsEmployee } from '~/middlewares/auth/checkRole';
@@ -37,6 +40,7 @@ export default class EmployeeController extends AbstractController {
       this.getAllEmployees
     );
     this.router.post('/', validateEmployeeCreationData(), this.createEmployee);
+    this.router.get('/busy-hours', this.getEmployeesBusyHours);
     this.router.get('/:id', this.getEmployeeById);
     this.router.get('/:id/visits', checkIsEmployee(), this.getEmployeeVisits);
     this.router.get(
@@ -222,6 +226,31 @@ export default class EmployeeController extends AbstractController {
       res
         .status(400)
         .send({ message: 'Error when fetching employees offering service' });
+    }
+  };
+
+  private getEmployeesBusyHours = async (
+    req: TypedRequest<
+      DefaultParamsType,
+      DefaultBodyType,
+      Stringified<EmployeeWorkingHoursOptions>
+    >,
+    res: Response
+  ) => {
+    const employees = await this.employeeService.getEmployeesBusyHoursForVisit({
+      visitIds: req.query.visitIds
+        ? req.query.visitIds.split(',').map((id) => parseInt(id))
+        : undefined,
+      frequency: req.query.frequency as Frequency | undefined,
+      period: req.query.period
+    });
+
+    if (employees !== null) {
+      res.status(200).send(employees);
+    } else {
+      res
+        .status(400)
+        .send({ message: 'Error when fetching employees busy hours' });
     }
   };
 }

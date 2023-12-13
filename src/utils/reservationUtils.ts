@@ -6,7 +6,10 @@ import {
   type Visit
 } from '@prisma/client';
 
-import { ServicesWorkingHoursOptions } from '~/schemas/employee';
+import {
+  EmployeeWorkingHoursOptions,
+  ServicesWorkingHoursOptions
+} from '~/schemas/employee';
 import { ReservationCreationData } from '~/schemas/reservation';
 
 import {
@@ -14,8 +17,11 @@ import {
   advanceDateByMonths,
   advanceDateByOneYear,
   advanceDateByWeeks,
+  dateFromMonthAndYear,
+  endOfMonth,
   numberOfMonthsBetween,
-  numberOfWeeksBetween
+  numberOfWeeksBetween,
+  startOfMonth
 } from './dateUtils';
 
 function createWeeklyVisits(
@@ -315,28 +321,37 @@ export const getFrequencyHelpers = (frequency: Frequency | undefined) => {
   };
 };
 
-export const getCyclicDateRanges = (options?: ServicesWorkingHoursOptions) => {
+export const getCyclicDateRanges = (
+  year?: number,
+  month?: number,
+  frequency?: Frequency
+) => {
+  if (month === undefined || year === undefined) {
+    return null;
+  }
+
+  console.log({ year, month, frequency });
+
+  const queryDate = dateFromMonthAndYear(month, year);
+  const start = new Date(startOfMonth(queryDate));
+  const end = new Date(endOfMonth(queryDate));
+
   if (
-    !options?.from ||
-    !options?.to ||
-    !options?.frequency ||
     !(
       [
         Frequency.EVERY_TWO_WEEKS,
         Frequency.ONCE_A_MONTH,
         Frequency.ONCE_A_WEEK
-      ] as Frequency[]
-    ).includes(options.frequency)
+      ] as (Frequency | undefined)[]
+    ).includes(frequency)
   ) {
     return [
       {
-        startDate: options?.from ? new Date(options?.from) : undefined,
-        endDate: options?.to ? new Date(options?.to) : undefined
+        startDate: start,
+        endDate: end
       }
     ];
   }
-
-  const { from: start, to: end, frequency } = options;
 
   const finalDate = advanceDateByOneYear(end);
 
@@ -353,6 +368,13 @@ export const getCyclicDateRanges = (options?: ServicesWorkingHoursOptions) => {
   const unitIndices = [
     ...Array<unknown>(Math.ceil((numberOfUnitsBetweenStartEnd + 1) / step))
   ].map((_, i) => i * step);
+
+  console.log(
+    unitIndices.map((unitIndex) => ({
+      startDate: new Date(advanceDateCallback(start, unitIndex)),
+      endDate: new Date(advanceDateCallback(end, unitIndex))
+    }))
+  );
 
   return unitIndices.map((unitIndex) => ({
     startDate: new Date(advanceDateCallback(start, unitIndex)),
