@@ -303,26 +303,26 @@ export default class EmployeeService {
   ) {
     const periodParams = options?.period?.split('-');
 
-    // not shure if there should be added 1 to the month
+    console.log(options?.excludeFrom, options?.excludeTo);
+    // not sure if there should be added 1 to the month
     // in order not to count it from 0
     const year = periodParams?.[0] ? parseInt(periodParams[0]) : undefined;
     const month = periodParams?.[1] ? parseInt(periodParams[1]) : undefined;
 
     const cyclicRanges = getCyclicDateRanges(year, month, options?.frequency);
 
-    console.log({ cyclicRanges });
     const employees = await executeDatabaseOperation(
       prisma.employee.findMany({
         where: {
           services: {
             some: {
               visitParts: {
-                some: {
-                  id: {
-                    in: options?.visitIds
-                  }
-                }
-                // some: { visitId: { in: options?.visitIds } }
+                // some: {
+                //   id: {
+                //     in: options?.visitIds
+                //   }
+                // }
+                some: { visitId: { in: options?.visitIds } }
               }
             }
           }

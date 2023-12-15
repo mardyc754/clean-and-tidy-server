@@ -2,7 +2,7 @@ import type { Request, Response } from 'express';
 import { Stringified } from 'type-fest';
 
 import {
-  ChangeVisitDateData,
+  ChangeVisitData,
   ChangeVisitStatusData,
   VisitPartCreationData
 } from '~/schemas/visit';
@@ -35,7 +35,7 @@ export default class VisitController extends AbstractController {
     this.router.get('/', this.getAllVisits); // is this needed somewhere?
     this.router.post('/', validateVisitCreationData(), this.createVisit);
     this.router.get('/:id', this.getVisitById);
-    this.router.put('/:id/date', validateVisitDate(), this.changeDate);
+    this.router.put('/:id', this.changeVisitData);
     this.router.delete('/:id', this.deleteVisit);
     this.router.put('/:id/status', validateVisitStatus(), this.changeStatus);
   }
@@ -58,7 +58,7 @@ export default class VisitController extends AbstractController {
     >,
     res: Response
   ) => {
-    const visit = await this.visitService.getVisitById(
+    const visit = await this.visitService.getVisitPartById(
       parseInt(req.params.id),
       { includeEmployee: queryParamToBoolean(req.query.includeEmployee) }
     );
@@ -87,19 +87,17 @@ export default class VisitController extends AbstractController {
     }
   };
 
-  private changeDate = async (
-    req: TypedRequest<{ id: string }, ChangeVisitDateData>,
+  private changeVisitData = async (
+    req: TypedRequest<{ id: string }, Pick<ChangeVisitData, 'startDate'>>,
     res: Response
   ) => {
-    const visit = await this.visitService.changeVisitDate({
+    const visit = await this.visitService.changeVisitData({
       ...req.body,
       id: parseInt(req.params.id)
     });
 
     if (visit) {
-      res.status(200).send({
-        data: visit
-      });
+      res.status(200).send(visit);
     } else {
       res.status(400).send({ message: 'Error when updating visit data' });
     }

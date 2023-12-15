@@ -14,13 +14,12 @@ export const visitPartCreationData = z.object({
 
 export type VisitPartCreationData = z.infer<typeof visitPartCreationData>;
 
-export const changeVisitDateSchema = z.object({
+export const changeVisitDataSchema = z.object({
   id: z.number(),
-  startDate: ISOString,
-  endDate: ISOString
+  startDate: ISOString
 });
 
-export type ChangeVisitDateData = z.infer<typeof changeVisitDateSchema>;
+export type ChangeVisitData = z.infer<typeof changeVisitDataSchema>;
 
 export const changeVisitStatusSchema = z.object({
   status: z.nativeEnum(Status),

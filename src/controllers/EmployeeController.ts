@@ -242,7 +242,9 @@ export default class EmployeeController extends AbstractController {
         ? req.query.visitIds.split(',').map((id) => parseInt(id))
         : undefined,
       frequency: req.query.frequency as Frequency | undefined,
-      period: req.query.period
+      period: req.query.period,
+      excludeFrom: req.query.excludeFrom,
+      excludeTo: req.query.excludeTo
     });
 
     if (employees !== null) {
