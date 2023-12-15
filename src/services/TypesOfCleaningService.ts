@@ -190,8 +190,8 @@ export default class TypesOfCleaningService {
                   cyclicRanges,
                   options?.excludeFrom,
                   options?.excludeTo
-                ),
-                select: { startDate: true, endDate: true }
+                )
+                // select: { startDate: true, endDate: true }
               }
             }
           }

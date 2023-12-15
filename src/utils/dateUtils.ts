@@ -18,7 +18,7 @@ export function isNewStartDateValid(
 ) {
   return (
     // dayjs(startDate).diff(now(), 'day') > 2 &&
-    dayjs(startDate).diff(now(), 'day') > 1 &&
+    // dayjs(startDate).diff(now(), 'day') > 1 &&
     dayjs(startDate).diff(oldStartDate, 'day') < 7
   );
 }
@@ -150,4 +150,11 @@ export const endOfMonth = (date: ValidDayjsDate) =>
 
 export const dateFromMonthAndYear = (month: number, year: number) => {
   return dayjs().year(year).month(month).toDate();
+};
+
+export const isAtLeastOneDayBetween = (
+  start: ValidDayjsDate,
+  end: ValidDayjsDate
+) => {
+  return dayjs(end).diff(start, 'hours') >= 24;
 };

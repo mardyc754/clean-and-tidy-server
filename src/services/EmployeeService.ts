@@ -336,8 +336,8 @@ export default class EmployeeService {
                   cyclicRanges,
                   options?.excludeFrom,
                   options?.excludeTo
-                ),
-                select: { startDate: true, endDate: true }
+                )
+                // select: { startDate: true, endDate: true }
               }
               // visitParts: true
             }

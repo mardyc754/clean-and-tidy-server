@@ -1,4 +1,9 @@
-import { type Employee, Frequency, type VisitPart } from '@prisma/client';
+import {
+  type Employee,
+  Frequency,
+  Status,
+  type VisitPart
+} from '@prisma/client';
 import { Stringified } from 'type-fest';
 
 import {
@@ -40,7 +45,7 @@ type EmployeeWithServicesAndVisitParts = Omit<Employee, 'password'> & {
   services: Array<{
     employeeId: number;
     serviceId: number;
-    visitParts: Timeslot[];
+    visitParts: VisitPart[];
   }>;
 };
 
@@ -335,7 +340,18 @@ export const getEmployeesBusyHours = (
   const employeesWithWorkingHours = employees.map((employee) => {
     // add half an hour before and after the visit
     const employeeWorkingHours = calculateEmployeeBusyHours(
-      employee.services.flatMap((service) => service.visitParts)
+      employee.services.flatMap((service) =>
+        service.visitParts
+          .filter(
+            (visitPart) =>
+              visitPart.status !== Status.CANCELLED &&
+              visitPart.status !== Status.CLOSED
+          )
+          .map((visitPart) => ({
+            startDate: visitPart.startDate,
+            endDate: visitPart.endDate
+          }))
+      )
     );
 
     // flatten visit parts to single range

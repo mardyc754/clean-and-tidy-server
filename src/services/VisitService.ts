@@ -1,4 +1,4 @@
-import { EmployeeService, type Visit, VisitPart } from '@prisma/client';
+import { Status, type Visit, VisitPart } from '@prisma/client';
 import { omit } from 'lodash';
 import type { RequireAtLeastOne } from 'type-fest';
 
@@ -10,6 +10,7 @@ import { visitPartWithEmployee } from '~/queries/serviceQuery';
 
 import {
   advanceDateByMinutes,
+  isAtLeastOneDayBetween,
   isNewStartDateValid,
   minutesBetween
 } from '~/utils/dateUtils';
@@ -109,7 +110,6 @@ export default class VisitService {
   public async changeVisitData(data: ChangeVisitData) {
     const { id, startDate } = data;
 
-    console.log(data);
     const oldVisitData = await this.getVisitById(id);
 
     if (!oldVisitData) {
@@ -174,26 +174,6 @@ export default class VisitService {
     return deletedVisit;
   }
 
-  // TODO FIXME: this is not working
-  public async changeVisitStatus(
-    visitId: Visit['id'],
-    employeeId: EmployeeService['employeeId'],
-    newStatus: VisitPart['status']
-  ) {
-    // const visitStatus = await executeDatabaseOperation(
-    //   prisma.visitEmployee.update({
-    //     where: { visitId_employeeId: { visitId, employeeId } },
-    //     data: { status: newStatus }
-    //   })
-    // );
-    // if (!visitStatus) {
-    //   return null;
-    // }
-    // const visit = await this.getVisitById(visitId);
-    // return visit;
-    return null;
-  }
-
   // public async autoCloseVisit(id: Visit['id'], endDate: Visit['endDate']) {
   //   let visitToClose: VisitEmployee[] | null = null;
 
@@ -208,4 +188,39 @@ export default class VisitService {
 
   //   return visitToClose;
   // }
+
+  public async cancelVisit(id: Visit['id']) {
+    const oldVisitData = await this.getVisitById(id);
+
+    if (!oldVisitData) {
+      return null;
+    }
+
+    const canceledVisit = await executeDatabaseOperation(
+      prisma.visit.update({
+        where: { id },
+        data: {
+          includeDetergents: false,
+          visitParts: {
+            update: oldVisitData.visitParts.map((visitPart) => {
+              return {
+                where: { id: visitPart.id },
+                data: {
+                  status: Status.CANCELLED,
+                  cost: isAtLeastOneDayBetween(new Date(), visitPart.startDate)
+                    ? 0
+                    : visitPart.cost.toNumber() / 2
+                }
+              };
+            })
+          }
+        },
+        include: {
+          visitParts: visitPartWithEmployee
+        }
+      })
+    );
+
+    return canceledVisit ? flattenNestedVisit(canceledVisit) : null;
+  }
 }

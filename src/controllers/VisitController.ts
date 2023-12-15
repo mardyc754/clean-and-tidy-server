@@ -37,7 +37,7 @@ export default class VisitController extends AbstractController {
     this.router.get('/:id', this.getVisitById);
     this.router.put('/:id', this.changeVisitData);
     this.router.delete('/:id', this.deleteVisit);
-    this.router.put('/:id/status', validateVisitStatus(), this.changeStatus);
+    this.router.put('/:id/cancel', this.cancelVisit);
   }
 
   private getAllVisits = async (_: Request, res: Response) => {
@@ -115,26 +115,13 @@ export default class VisitController extends AbstractController {
     }
   };
 
-  // this should be protected
-  private changeStatus = async (
-    req: TypedRequest<{ id: string }, ChangeVisitStatusData>,
-    res: Response
-  ) => {
-    const visit = await this.visitService.changeVisitStatus(
-      parseInt(req.params.id),
-      req.body.employeeId,
-      req.body.status
-    );
+  private cancelVisit = async (req: Request<{ id: string }>, res: Response) => {
+    const visit = await this.visitService.cancelVisit(parseInt(req.params.id));
 
     if (visit) {
-      // res.status(200).send({
-      //   ...visit
-      // });
       res.status(200).send(visit);
     } else {
-      res
-        .status(400)
-        .send({ message: "Error when confirm visit's status  change" });
+      res.status(400).send({ message: 'Error when canceling the visit' });
     }
   };
 }
