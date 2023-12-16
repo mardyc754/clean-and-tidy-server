@@ -1,17 +1,10 @@
 import type { Request, Response } from 'express';
 import { Stringified } from 'type-fest';
+import { RequestError } from '~/errors/RequestError';
 
-import {
-  ChangeVisitDateData,
-  ChangeVisitStatusData,
-  VisitPartCreationData
-} from '~/schemas/visit';
+import { ChangeVisitData, VisitPartCreationData } from '~/schemas/visit';
 
-import {
-  validateVisitCreationData,
-  validateVisitDate,
-  validateVisitStatus
-} from '~/middlewares/type-validators/visit';
+import { validateVisitCreationData } from '~/middlewares/type-validators/visit';
 
 import { VisitService } from '~/services';
 
@@ -35,9 +28,9 @@ export default class VisitController extends AbstractController {
     this.router.get('/', this.getAllVisits); // is this needed somewhere?
     this.router.post('/', validateVisitCreationData(), this.createVisit);
     this.router.get('/:id', this.getVisitById);
-    this.router.put('/:id/date', validateVisitDate(), this.changeDate);
+    this.router.put('/:id', this.changeVisitData);
     this.router.delete('/:id', this.deleteVisit);
-    this.router.put('/:id/status', validateVisitStatus(), this.changeStatus);
+    this.router.put('/:id/cancel', this.cancelVisit);
   }
 
   private getAllVisits = async (_: Request, res: Response) => {
@@ -87,21 +80,27 @@ export default class VisitController extends AbstractController {
     }
   };
 
-  private changeDate = async (
-    req: TypedRequest<{ id: string }, ChangeVisitDateData>,
+  private changeVisitData = async (
+    req: TypedRequest<{ id: string }, Pick<ChangeVisitData, 'startDate'>>,
     res: Response
   ) => {
-    const visit = await this.visitService.changeVisitDate({
-      ...req.body,
-      id: parseInt(req.params.id)
-    });
-
-    if (visit) {
-      res.status(200).send({
-        data: visit
+    try {
+      const visit = await this.visitService.changeVisitData({
+        ...req.body,
+        id: parseInt(req.params.id)
       });
-    } else {
-      res.status(400).send({ message: 'Error when updating visit data' });
+
+      if (visit) {
+        return res.status(200).send(visit);
+      }
+      return res
+        .status(400)
+        .send({ message: 'Error when updating visit data' });
+    } catch (error) {
+      if (error instanceof RequestError) {
+        return res.status(400).send({ message: error.message });
+      }
+      return res.status(500).send({ message: 'Unexpected error occured' });
     }
   };
 
@@ -117,26 +116,13 @@ export default class VisitController extends AbstractController {
     }
   };
 
-  // this should be protected
-  private changeStatus = async (
-    req: TypedRequest<{ id: string }, ChangeVisitStatusData>,
-    res: Response
-  ) => {
-    const visit = await this.visitService.changeVisitStatus(
-      parseInt(req.params.id),
-      req.body.employeeId,
-      req.body.status
-    );
+  private cancelVisit = async (req: Request<{ id: string }>, res: Response) => {
+    const visit = await this.visitService.cancelVisit(parseInt(req.params.id));
 
     if (visit) {
-      // res.status(200).send({
-      //   ...visit
-      // });
       res.status(200).send(visit);
     } else {
-      res
-        .status(400)
-        .send({ message: "Error when confirm visit's status  change" });
+      res.status(400).send({ message: 'Error when canceling the visit' });
     }
   };
 }

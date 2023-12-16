@@ -1,21 +1,45 @@
-import { type Employee, type Service, Status, VisitPart } from '@prisma/client';
+import {
+  type Employee,
+  Frequency,
+  type Service,
+  Status,
+  VisitPart
+} from '@prisma/client';
 import { omit, without } from 'lodash';
 
 import { prisma } from '~/db';
 
 import { prismaExclude } from '~/lib/prisma';
 
-import { type EmployeeCreationData } from '~/schemas/employee';
+import {
+  type EmployeeCreationData,
+  EmployeeWorkingHoursOptions,
+  ServicesWorkingHoursOptions
+} from '~/schemas/employee';
 
 import {
+  employeeData,
   includeFullService,
   includeServiceVisitPartsAndReservation,
   includeVisitParts,
   selectEmployee,
-  serviceWithUnit
+  serviceWithUnit,
+  visitPartTimeframe
 } from '~/queries/serviceQuery';
 
+import { isAfterOrSame, isBeforeOrSame } from '~/utils/dateUtils';
+import {
+  calculateEmployeeBusyHours,
+  calculateEmployeeWorkingHours,
+  getEmployeesBusyHours,
+  mergeBusyHours,
+  numberOfWorkingHours
+} from '~/utils/employeeUtils';
 import { executeDatabaseOperation } from '~/utils/queryUtils';
+import {
+  getCyclicDateRanges,
+  getFrequencyHelpers
+} from '~/utils/reservationUtils';
 import { flattenVisitPartsFromServices } from '~/utils/services';
 import { flattenNestedReservationServices } from '~/utils/visits';
 
@@ -272,5 +296,66 @@ export default class EmployeeService {
     }
 
     return null;
+  }
+
+  public async getEmployeesBusyHoursForVisit(
+    options?: EmployeeWorkingHoursOptions
+  ) {
+    const periodParams = options?.period?.split('-');
+
+    console.log(options?.excludeFrom, options?.excludeTo);
+    // not sure if there should be added 1 to the month
+    // in order not to count it from 0
+    const year = periodParams?.[0] ? parseInt(periodParams[0]) : undefined;
+    const month = periodParams?.[1] ? parseInt(periodParams[1]) : undefined;
+
+    const cyclicRanges = getCyclicDateRanges(year, month, options?.frequency);
+
+    const employees = await executeDatabaseOperation(
+      prisma.employee.findMany({
+        where: {
+          services: {
+            some: {
+              visitParts: {
+                // some: {
+                //   id: {
+                //     in: options?.visitIds
+                //   }
+                // }
+                some: { visitId: { in: options?.visitIds } }
+              }
+            }
+          }
+        },
+        select: {
+          ...employeeData,
+          services: {
+            include: {
+              visitParts: {
+                ...visitPartTimeframe(
+                  cyclicRanges,
+                  options?.excludeFrom,
+                  options?.excludeTo
+                )
+                // select: { startDate: true, endDate: true }
+              }
+              // visitParts: true
+            }
+          }
+        }
+      })
+    );
+
+    if (!employees) {
+      return null;
+    }
+
+    const { employeesWithWorkingHours, flattenedEmployeeVisitParts } =
+      getEmployeesBusyHours(employees, cyclicRanges, options);
+
+    return {
+      employees: employeesWithWorkingHours,
+      busyHours: mergeBusyHours(flattenedEmployeeVisitParts)
+    };
   }
 }

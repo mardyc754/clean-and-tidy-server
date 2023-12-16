@@ -12,19 +12,14 @@ export function now() {
   return dayjs(Date.now()); // for safety, it'd be better to change the date to UTC
 }
 
-export function areStartEndDateValid(
+export function isNewStartDateValid(
   startDate: ValidDayjsDate,
-  endDate: ValidDayjsDate,
-  oldStartDate: ValidDayjsDate,
-  oldEndDate: ValidDayjsDate
+  oldStartDate: ValidDayjsDate
 ) {
   return (
-    dayjs(startDate).diff(now(), 'day') > 2 &&
-    dayjs(endDate).diff(now(), 'day') > 2 &&
-    dayjs(startDate).isBefore(dayjs(endDate)) &&
-    dayjs(endDate).diff(dayjs(startDate)) === 0 &&
-    dayjs(startDate).diff(dayjs(oldStartDate)) < 7 &&
-    dayjs(endDate).diff(dayjs(oldEndDate)) < 7
+    // dayjs(startDate).diff(now(), 'day') > 2 &&
+    // dayjs(startDate).diff(now(), 'day') > 1 &&
+    dayjs(startDate).diff(oldStartDate, 'day') < 7
   );
 }
 
@@ -146,3 +141,20 @@ export const getYearFromDate = (date: ValidDayjsDate) => dayjs(date).year();
 
 export const getWeekNumberFromDate = (date: ValidDayjsDate) =>
   dayjs(date).week();
+
+export const startOfMonth = (date: ValidDayjsDate) =>
+  dayjs(date).startOf('month').toDate();
+
+export const endOfMonth = (date: ValidDayjsDate) =>
+  dayjs(date).endOf('month').toDate();
+
+export const dateFromMonthAndYear = (month: number, year: number) => {
+  return dayjs().year(year).month(month).toDate();
+};
+
+export const isAtLeastOneDayBetween = (
+  start: ValidDayjsDate,
+  end: ValidDayjsDate
+) => {
+  return dayjs(end).diff(start, 'hours') >= 24;
+};

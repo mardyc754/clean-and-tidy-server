@@ -12,8 +12,6 @@ import {
 import { checkIsEmployee } from '~/middlewares/auth/checkRole';
 import { validateEmployeeId } from '~/middlewares/type-validators/employee';
 import {
-  // validateFrequency,
-  // validateWeekDay,
   validateReservationCreationData,
   validateStatusChange
 } from '~/middlewares/type-validators/reservation';
@@ -61,6 +59,8 @@ export default class ReservationController extends AbstractController {
       validateEmployeeId(),
       this.confirmReservation
     );
+
+    this.router.put('/:name/cancel', this.cancelReservation);
   }
 
   private getAllReservations = async (
@@ -255,6 +255,25 @@ export default class ReservationController extends AbstractController {
     const reservation = await this.reservationService.confirmReservation(
       req.params.name,
       employeeId
+    );
+
+    if (reservation !== null) {
+      res.status(200).send(reservation);
+    } else {
+      res.status(404).send({
+        message: `Reservation with name=${req.params.name} not found`
+      });
+    }
+  };
+
+  private cancelReservation = async (
+    req: TypedRequest<{ name: string }>,
+    res: Response
+  ) => {
+    const { employeeId } = req.body;
+
+    const reservation = await this.reservationService.cancelReservation(
+      req.params.name
     );
 
     if (reservation !== null) {

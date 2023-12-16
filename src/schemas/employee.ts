@@ -30,10 +30,39 @@ export const employeeQueryOptions = z.object({
 export type EmployeeQueryOptions = z.infer<typeof employeeQueryOptions>;
 
 export const servicesWorkingHours = z.object({
-  from: z.string().datetime().optional(),
-  to: z.string().datetime().optional(),
+  period: z
+    .string()
+    .refine((value) => {
+      return (
+        value.split('-').length === 2 &&
+        value[0]?.length === 4 &&
+        value[1]?.length === 2
+      );
+    })
+    .optional(),
   serviceIds: z.array(z.number()).optional(),
-  frequency: z.nativeEnum(Frequency).optional()
+  frequency: z.nativeEnum(Frequency).optional(),
+  excludeFrom: z.string().datetime().optional(),
+  excludeTo: z.string().datetime().optional()
 });
 
 export type ServicesWorkingHoursOptions = z.infer<typeof servicesWorkingHours>;
+
+export const employeeWorkingHours = z.object({
+  period: z
+    .string()
+    .refine((value) => {
+      return (
+        value.split('-').length === 2 &&
+        value[0]?.length === 4 &&
+        value[1]?.length === 2
+      );
+    })
+    .optional(),
+  frequency: z.nativeEnum(Frequency).optional(),
+  visitIds: z.array(z.number()).optional(),
+  excludeFrom: z.string().datetime().optional(),
+  excludeTo: z.string().datetime().optional()
+});
+
+export type EmployeeWorkingHoursOptions = z.infer<typeof employeeWorkingHours>;

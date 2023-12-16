@@ -23,7 +23,9 @@ import {
 
 import {
   advanceDateByOneYear,
-  extractWeekDayFromDate
+  extractWeekDayFromDate,
+  isAfter,
+  isAtLeastOneDayBetween
 } from '~/utils/dateUtils';
 import {
   executeDatabaseOperation,
@@ -87,40 +89,40 @@ export default class ReservationService {
     name: Reservation['name'],
     options?: ReservationQueryOptions
   ) {
-    if (options?.includeVisits) {
-      const reservationData = await executeDatabaseOperation(
-        prisma.reservation.findUnique({
-          where: { name },
-          include: {
-            // include visits only if the option is true
-            visits: includeAllVisitData,
-            // include address only if the option is true
-            address: options?.includeAddress,
-            services: serviceInclude
-          }
-        })
-      );
-
-      if (!reservationData) {
-        return null;
-      }
-
-      return {
-        ...reservationData,
-        visits: flattenNestedVisits(reservationData.visits),
-        services: flattenNestedReservationServices(reservationData.services)
-      };
-    }
-
-    return await executeDatabaseOperation(
+    // if (options?.includeVisits) {
+    const reservationData = await executeDatabaseOperation(
       prisma.reservation.findUnique({
         where: { name },
         include: {
+          // include visits only if the option is true
+          visits: includeAllVisitData,
           // include address only if the option is true
-          address: options?.includeAddress
+          address: options?.includeAddress,
+          services: serviceInclude
         }
       })
     );
+
+    if (!reservationData) {
+      return null;
+    }
+
+    return {
+      ...reservationData,
+      visits: flattenNestedVisits(reservationData.visits),
+      services: flattenNestedReservationServices(reservationData.services)
+    };
+    // }
+
+    // return await executeDatabaseOperation(
+    //   prisma.reservation.findUnique({
+    //     where: { name },
+    //     include: {
+    //       // include address only if the option is true
+    //       address: options?.includeAddress
+    //     }
+    //   })
+    // );
   }
 
   public async getClientReservations(
@@ -347,7 +349,6 @@ export default class ReservationService {
     return reservation;
   }
 
-  // TODO: To be improved
   public async cancelReservation(name: Reservation['name']) {
     let reservation: Reservation | null = null;
     const oldReservation = await this.getReservationByName(name);
@@ -357,32 +358,62 @@ export default class ReservationService {
 
     const visits = await this.getVisits(oldReservation.name);
 
-    // if (!oldReservation || !visits) {
-    //   return reservation;
-    // }
+    if (!oldReservation || !visits) {
+      return reservation;
+    }
 
-    // const { frequency } = oldReservation;
+    const visitPartsAfterNow = visits
+      .flatMap(({ visitParts }) =>
+        visitParts.filter(({ startDate }) => isAfter(startDate, new Date()))
+      )
+      .map(({ id }) => id);
 
-    // const newVisits = cancelVisits(visits, frequency);
+    try {
+      reservation = await prisma.reservation.update({
+        where: { name },
+        data: {
+          status: Status.CANCELLED,
+          visits: {
+            update: oldReservation.visits.map((visit) => ({
+              where: { id: visit.id },
+              data: {
+                includeDetergents: false,
+                canDateBeChanged: false,
+                visitParts: {
+                  updateMany: visit.visitParts.map((visitPart) => ({
+                    where: { id: { in: visitPartsAfterNow } },
+                    data: {
+                      status: Status.CANCELLED,
+                      cost: isAtLeastOneDayBetween(
+                        new Date(),
+                        visitPart.startDate
+                      )
+                        ? 0
+                        : visitPart.cost.toNumber() / 2
+                    }
+                  }))
+                }
+              }
+            }))
+          }
+        }
+        // TODO: receive reservation details from here
+        // include: {
+        //   visits: includeAllVisitData,
+        //   // include address only if the option is true
+        //   address: true,
+        //   services: serviceInclude
+        // }
+      });
+    } catch (err) {
+      console.error(err);
+    }
 
-    // try {
-    //   reservation = await prisma.reservation.update({
-    //     where: { id },
-    //     data: {
-    //       status: Status.TO_BE_CANCELLED,
-    //       visits: {
-    //         updateMany: {
-    //           where: { reservationId: id },
-    //           data: newVisits
-    //         }
-    //       }
-    //     }
-    //   });
-    // } catch (err) {
-    //   console.error(err);
-    // }
+    if (!reservation) {
+      return null;
+    }
 
-    return reservation;
+    return this.getReservationByName(reservation.name);
   }
 
   public async changeStatus(
