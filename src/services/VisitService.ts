@@ -1,6 +1,7 @@
 import { Status, type Visit, VisitPart } from '@prisma/client';
 import { omit } from 'lodash';
 import type { RequireAtLeastOne } from 'type-fest';
+import { RequestError } from '~/errors/RequestError';
 
 import { prisma } from '~/db';
 
@@ -71,17 +72,20 @@ export default class VisitService {
     );
   }
 
-  public async getVisitById(id: VisitPart['id']) {
+  public async getVisitById(id: VisitPart['id'], options?: VisitQueryOptions) {
     const visit = await executeDatabaseOperation(
       prisma.visit.findFirst({
         where: { id },
         include: {
-          visitParts: true
+          // visitParts: options?.includeEmployee
+          //   ? visitPartWithEmployee
+          //   : undefined
+          visitParts: visitPartWithEmployee
         }
       })
     );
 
-    return visit;
+    return visit ? flattenNestedVisit(visit) : null;
   }
 
   // TODO FIXME: this is not working
@@ -120,16 +124,28 @@ export default class VisitService {
 
     const newOldStartDateDifference = minutesBetween(oldStartDate, startDate);
 
-    console.log(oldStartDate, startDate, newOldStartDateDifference);
+    if (!oldVisitData.canDateBeChanged && newOldStartDateDifference !== 0) {
+      throw new RequestError(
+        'Cannot change the date of a visit because it has been already changed'
+      );
+    }
+
     if (!isNewStartDateValid(startDate, oldStartDate)) {
       return null;
     }
-    advanceDateByMinutes;
 
     const visit = await executeDatabaseOperation(
       prisma.visit.update({
         where: { id },
         data: {
+          canDateBeChanged:
+            oldVisitData.canDateBeChanged &&
+            newOldStartDateDifference === 0 &&
+            !oldVisitData.visitParts.every(
+              (visitPart) =>
+                visitPart.status === Status.CLOSED ||
+                visitPart.status === Status.CANCELLED
+            ),
           visitParts: {
             update: oldVisitData.visitParts.map((visitPart) => {
               const newStartDate = advanceDateByMinutes(
@@ -201,6 +217,7 @@ export default class VisitService {
         where: { id },
         data: {
           includeDetergents: false,
+          canDateBeChanged: false,
           visitParts: {
             update: oldVisitData.visitParts.map((visitPart) => {
               return {

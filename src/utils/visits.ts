@@ -2,6 +2,7 @@ import type {
   ReservationService,
   Service,
   Unit,
+  Visit,
   VisitPart
 } from '@prisma/client';
 import { omit } from 'lodash';
@@ -12,7 +13,7 @@ type ReservationServiceNested = ReservationService & {
   service: Service & { unit: Unit | null };
 };
 
-type VisitQueryResult = {
+type VisitQueryResult = Visit & {
   visitParts: Array<VisitPart & { employeeService: EmployeeNested }>;
 };
 

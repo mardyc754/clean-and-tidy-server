@@ -43,7 +43,8 @@ model Visit {
   includeDetergents             Boolean 
   reservation                   Reservation                   @relation(fields: [reservationId], references: [id], onDelete: Cascade)
   reservationId                 Int                          
-  visitParts                    VisitPart[]                                 
+  visitParts                    VisitPart[]  
+  canDateBeChanged              Boolean                       @default(true)
 }
 
 model Reservation {

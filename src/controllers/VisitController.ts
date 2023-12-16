@@ -1,17 +1,10 @@
 import type { Request, Response } from 'express';
 import { Stringified } from 'type-fest';
+import { RequestError } from '~/errors/RequestError';
 
-import {
-  ChangeVisitData,
-  ChangeVisitStatusData,
-  VisitPartCreationData
-} from '~/schemas/visit';
+import { ChangeVisitData, VisitPartCreationData } from '~/schemas/visit';
 
-import {
-  validateVisitCreationData,
-  validateVisitDate,
-  validateVisitStatus
-} from '~/middlewares/type-validators/visit';
+import { validateVisitCreationData } from '~/middlewares/type-validators/visit';
 
 import { VisitService } from '~/services';
 
@@ -58,7 +51,7 @@ export default class VisitController extends AbstractController {
     >,
     res: Response
   ) => {
-    const visit = await this.visitService.getVisitPartById(
+    const visit = await this.visitService.getVisitById(
       parseInt(req.params.id),
       { includeEmployee: queryParamToBoolean(req.query.includeEmployee) }
     );
@@ -91,15 +84,23 @@ export default class VisitController extends AbstractController {
     req: TypedRequest<{ id: string }, Pick<ChangeVisitData, 'startDate'>>,
     res: Response
   ) => {
-    const visit = await this.visitService.changeVisitData({
-      ...req.body,
-      id: parseInt(req.params.id)
-    });
+    try {
+      const visit = await this.visitService.changeVisitData({
+        ...req.body,
+        id: parseInt(req.params.id)
+      });
 
-    if (visit) {
-      res.status(200).send(visit);
-    } else {
-      res.status(400).send({ message: 'Error when updating visit data' });
+      if (visit) {
+        return res.status(200).send(visit);
+      }
+      return res
+        .status(400)
+        .send({ message: 'Error when updating visit data' });
+    } catch (error) {
+      if (error instanceof RequestError) {
+        return res.status(400).send({ message: error.message });
+      }
+      return res.status(500).send({ message: 'Unexpected error occured' });
     }
   };
 

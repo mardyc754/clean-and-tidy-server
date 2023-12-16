@@ -130,6 +130,7 @@ export function createVisits(
       return [
         {
           name: `${reservationName}-1`,
+          canDateBeChanged: true,
           includeDetergents,
           visitParts: {
             create: visitParts.map((visitPart, index) => ({
