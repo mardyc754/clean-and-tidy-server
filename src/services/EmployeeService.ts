@@ -153,23 +153,21 @@ export default class EmployeeService {
   }
 
   // admin only
-  public async createEmployee(data: EmployeeCreationData) {
-    let employee: Employee | null = null;
-
-    try {
-      employee = await prisma.employee.create({
+  public async createEmployee(
+    data: Omit<EmployeeCreationData, 'confirmPassword'>
+  ) {
+    return await executeDatabaseOperation(
+      prisma.employee.create({
         data: {
           ...data,
           isAdmin: false,
           services: {
             create: data.services?.map((id) => ({ serviceId: id })) ?? []
           }
-        }
-      });
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
-    }
-    return employee;
+        },
+        ...selectEmployee
+      })
+    );
   }
 
   // delete employee account when the employee does not have any visits

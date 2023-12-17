@@ -9,6 +9,7 @@ import { JWT_SECRET, UserRole } from '~/constants';
 import { LoginData } from '~/schemas/auth';
 import { UserUpdateData } from '~/schemas/common';
 
+import { checkIfUserExisits } from '~/middlewares/auth/checkIfUserExists';
 import {
   checkLoginData,
   checkRegisterData
@@ -35,7 +36,12 @@ export default class AuthController extends AbstractController {
   }
 
   public createRouters() {
-    this.router.post('/register', checkRegisterData(), this.register);
+    this.router.post(
+      '/register',
+      checkRegisterData(),
+      checkIfUserExisits,
+      this.register
+    );
     this.router.post('/login', checkLoginData(), this.login);
     this.router.post('/logout', this.logout);
     this.router.get('/user', this.getCurrentUser);
@@ -44,34 +50,6 @@ export default class AuthController extends AbstractController {
 
   private register = async (req: Request, res: Response) => {
     const { username, email, password } = req.body;
-
-    let userExists = Boolean(
-      await this.clientService.getClientByUsername(username)
-    );
-
-    if (userExists) {
-      return res.status(409).send({
-        message: 'User with given username already exists',
-        affectedField: 'username',
-        hasError: true
-      });
-    }
-
-    userExists = Boolean(await this.clientService.getClientByEmail(email));
-
-    if (!userExists) {
-      userExists = Boolean(
-        await this.employeeService.getEmployeeByEmail(email)
-      );
-    }
-
-    if (userExists) {
-      return res.status(409).send({
-        message: 'User with given email already exists',
-        affectedField: 'email',
-        hasError: true
-      });
-    }
 
     const hashedPassword = await bcrypt.hash(password, 8);
     const user = await this.clientService.createClient({
