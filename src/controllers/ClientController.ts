@@ -1,15 +1,10 @@
 import type { Client, Status } from '@prisma/client';
 import type { Request, Response } from 'express';
-import { omit } from 'lodash';
 import type { Stringified } from 'type-fest';
 
-import { ClientUpdateData, CreateAnonymousClientData } from '~/schemas/client';
+import { CreateAnonymousClientData } from '~/schemas/client';
 
-import { checkAccessToClientData } from '~/middlewares/auth/checkRole';
-import {
-  validateClientUpdateData,
-  validateCreateAnonymousClientData
-} from '~/middlewares/type-validators/client';
+import { validateCreateAnonymousClientData } from '~/middlewares/type-validators/client';
 
 import { ClientService, EmployeeService } from '~/services';
 
@@ -40,7 +35,6 @@ export default class ClientController extends AbstractController {
       this.getClientReservations
     );
     this.router.get('/:id/addresses', this.getClientAddresses);
-    this.router.put('/:id', validateClientUpdateData(), this.changeClientData);
     this.router.delete('/:id', this.deleteClientData);
   }
 
@@ -134,24 +128,6 @@ export default class ClientController extends AbstractController {
 
     if (addresses !== null) {
       res.status(200).send({ data: addresses });
-    } else {
-      res
-        .status(404)
-        .send({ message: `Client with id=${req.params.id} not found` });
-    }
-  };
-
-  private changeClientData = async (
-    req: Request<Stringified<Pick<Client, 'id'>>, ClientUpdateData>,
-    res: Response
-  ) => {
-    const newData = await this.userService.changeClientData({
-      id: parseInt(req.params.id),
-      ...req.body
-    });
-
-    if (newData !== null) {
-      res.status(200).send({ data: newData });
     } else {
       res
         .status(404)

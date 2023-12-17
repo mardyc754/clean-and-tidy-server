@@ -7,6 +7,7 @@ import { omit } from 'lodash';
 import { JWT_SECRET, UserRole } from '~/constants';
 
 import { LoginData } from '~/schemas/auth';
+import { UserUpdateData } from '~/schemas/common';
 
 import {
   checkLoginData,
@@ -38,6 +39,7 @@ export default class AuthController extends AbstractController {
     this.router.post('/login', checkLoginData(), this.login);
     this.router.post('/logout', this.logout);
     this.router.get('/user', this.getCurrentUser);
+    this.router.put('/user', this.changeCurrentUserData);
   }
 
   private register = async (req: Request, res: Response) => {
@@ -182,7 +184,53 @@ export default class AuthController extends AbstractController {
       }
 
       return res.status(200).send({
-        ...omit(user, ['password', 'isAdmin']),
+        ...omit(user, ['password', 'isAdmin', 'username']),
+        role
+      });
+    } catch (err) {
+      res.status(200).send({});
+    }
+  };
+
+  private changeCurrentUserData = async (
+    req: TypedRequest<DefaultParamsType, UserUpdateData>,
+    res: Response
+  ) => {
+    try {
+      const decoded = jwt.verify(
+        req.cookies.authToken,
+        JWT_SECRET
+      ) as jwt.JwtPayload;
+
+      const { userId, role } = decoded;
+
+      const { firstName, lastName, phone } = req.body;
+
+      let user: Omit<Client, 'password'> | Omit<Employee, 'password'> | null =
+        null;
+
+      if (role === UserRole.CLIENT) {
+        user = await this.clientService.changeClientData(userId, {
+          firstName,
+          lastName,
+          phone
+        });
+      } else if (role === UserRole.EMPLOYEE || role === UserRole.ADMIN) {
+        user = await this.employeeService.changeEmployeeData(userId, {
+          firstName,
+          lastName,
+          phone
+        });
+      }
+
+      if (!user) {
+        return res.status(404).send({
+          message: `User with id=${userId} and role=${role} does not exist`
+        });
+      }
+
+      return res.status(200).send({
+        ...omit(user, ['password', 'isAdmin', 'username']),
         role
       });
     } catch (err) {

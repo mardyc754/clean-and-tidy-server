@@ -26,3 +26,14 @@ export const ISOString = z.string().datetime();
 export const stringifiedBoolean = z
   .string()
   .refine((value) => value === 'true' || value === 'false');
+
+export const userUpdateDataSchema = z
+  .object({
+    firstName: z.string().max(50),
+    lastName: z.string().max(50),
+    phone: z.string().max(15).nullish() // TODO improve validator for phone
+  })
+  .strict()
+  .partial();
+
+export type UserUpdateData = z.infer<typeof userUpdateDataSchema>;
