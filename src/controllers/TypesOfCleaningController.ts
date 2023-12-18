@@ -4,11 +4,15 @@ import { Stringified } from 'type-fest';
 
 import { ServicesWorkingHoursOptions } from '~/schemas/employee';
 import type {
-  ChangeServicePriceData,
+  ChangeServiceData,
   CreateServiceData
 } from '~/schemas/typesOfCleaning';
 
-import { validateServiceCreationData } from '~/middlewares/type-validators/typesOfCleaning';
+import { checkIsAdmin } from '~/middlewares/auth/checkRole';
+import {
+  validateServiceChangeData,
+  validateServiceCreationData
+} from '~/middlewares/type-validators/typesOfCleaning';
 
 import { TypesOfCleaningService } from '~/services';
 
@@ -35,10 +39,20 @@ export default class TypesOfCleaningController extends AbstractController {
 
   public createRouters() {
     this.router.get('/', this.getAllServices);
-    this.router.post('/', validateServiceCreationData(), this.createService);
+    this.router.post(
+      '/',
+      checkIsAdmin(),
+      validateServiceCreationData(),
+      this.createService
+    );
     this.router.get('/busy-hours', this.getAllServicesBusyHours);
     this.router.get('/:id', this.getServiceById);
-    this.router.put('/:id', this.changeServicePrice);
+    this.router.put(
+      '/:id',
+      checkIsAdmin(),
+      validateServiceChangeData(),
+      this.changeServicePrice
+    );
     this.router.delete('/:id', this.deleteService);
     this.router.post(
       '/:primaryServiceId/connect/:secondaryServiceId',
@@ -113,18 +127,20 @@ export default class TypesOfCleaningController extends AbstractController {
   };
 
   private changeServicePrice = async (
-    req: TypedRequest<{ id: string }, Pick<ChangeServicePriceData, 'price'>>,
+    req: TypedRequest<{ id: string }, ChangeServiceData>,
     res: Response
   ) => {
-    const { price } = req.body;
+    const { unit } = req.body;
 
-    const service = await this.typesOfCleaningService.changeServicePrice({
-      id: parseInt(req.params.id),
-      price
-    });
+    const service = await this.typesOfCleaningService.changeServicePrice(
+      parseInt(req.params.id),
+      {
+        unit
+      }
+    );
 
     if (service !== null) {
-      res.status(200).send({ data: service });
+      res.status(200).send(service);
     } else {
       res.status(400).send({ message: "Error when changing service's price" });
     }

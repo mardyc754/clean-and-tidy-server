@@ -1,11 +1,12 @@
 import { z } from 'zod';
 
-export const changeServicePriceSchema = z.object({
-  id: z.number().int(),
-  price: z.number().max(300)
+export const changeServiceDataSchema = z.object({
+  unit: z.object({
+    price: z.number().max(9999)
+  })
 });
 
-export type ChangeServicePriceData = z.infer<typeof changeServicePriceSchema>;
+export type ChangeServiceData = z.infer<typeof changeServiceDataSchema>;
 
 export const createServiceSchema = z.object({
   name: z.string().max(100),

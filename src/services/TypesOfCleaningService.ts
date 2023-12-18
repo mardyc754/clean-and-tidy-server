@@ -7,7 +7,7 @@ import { prismaExclude } from '~/lib/prisma';
 
 import type { ServicesWorkingHoursOptions } from '~/schemas/employee';
 import {
-  ChangeServicePriceData,
+  ChangeServiceData,
   CreateServiceData,
   PrimarySecondaryIds
 } from '~/schemas/typesOfCleaning';
@@ -121,18 +121,30 @@ export default class TypesOfCleaningService {
   }
 
   // admin only
-  public async changeServicePrice(data: ChangeServicePriceData) {
-    const { id, price } = data;
-    return await executeDatabaseOperation(
+  public async changeServicePrice(id: Service['id'], data: ChangeServiceData) {
+    const {
+      unit: { price }
+    } = data;
+    const service = await executeDatabaseOperation(
       prisma.service.update({
         where: { id },
         data: {
           unit: {
             update: { price }
           }
+        },
+        include: {
+          ...serviceUnit
+          // employees: serviceEmployees
         }
       })
     );
+
+    if (!service) {
+      return null;
+    }
+
+    return getResponseServiceData(service);
   }
 
   public async linkPrimaryAndSecondaryService(data: PrimarySecondaryIds) {
