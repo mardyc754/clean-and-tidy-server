@@ -6,7 +6,8 @@ import {
   EmployeeController,
   ReservationController,
   TypesOfCleaningController,
-  VisitController
+  VisitController,
+  VisitPartController
 } from '~/controllers';
 
 import App from './App';
@@ -22,7 +23,8 @@ const app = new App(
     new VisitController(),
     new ReservationController(),
     new AddressController(),
-    new DateController()
+    new DateController(),
+    new VisitPartController()
   ],
   port
 );

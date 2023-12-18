@@ -7,3 +7,4 @@ export { default as ReservationController } from './ReservationController';
 export { default as VisitController } from './VisitController';
 export { default as AddressController } from './AddressController';
 export { default as DateController } from './DateController';
+export { default as VisitPartController } from './VisitPartController';
