@@ -120,7 +120,7 @@ export default class TypesOfCleaningController extends AbstractController {
     const service = await this.typesOfCleaningService.createService(data);
 
     if (service !== null) {
-      res.status(201).send({ data: service });
+      res.status(201).send(service);
     } else {
       res.status(400).send({ message: 'Error when creating a new service' });
     }

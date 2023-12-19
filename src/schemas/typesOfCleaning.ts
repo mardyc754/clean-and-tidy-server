@@ -2,7 +2,10 @@ import { z } from 'zod';
 
 export const changeServiceDataSchema = z.object({
   unit: z.object({
-    price: z.number().max(9999)
+    price: z
+      .number()
+      .min(0.01, { message: 'Price must be greater than 0' })
+      .max(9999.99, { message: 'Price must be less than 10000' })
   })
 });
 
@@ -18,7 +21,8 @@ export const createServiceSchema = z.object({
       price: z.number().max(300),
       duration: z.number().max(480)
     })
-    .optional()
+    .optional(),
+  secondaryServices: z.number().int().array().optional()
 });
 
 export type CreateServiceData = z.infer<typeof createServiceSchema>;

@@ -1,9 +1,6 @@
-import { Frequency, type Service } from '@prisma/client';
-import { omit } from 'lodash';
+import { type Service } from '@prisma/client';
 
 import { prisma } from '~/db';
-
-import { prismaExclude } from '~/lib/prisma';
 
 import type { ServicesWorkingHoursOptions } from '~/schemas/employee';
 import {
@@ -15,35 +12,16 @@ import {
 import {
   employeeData,
   getSingleServiceData,
-  selectEmployee,
   serviceEmployees,
   serviceUnit,
   visitPartTimeframe
 } from '~/queries/serviceQuery';
 
 import {
-  advanceDateByWeeks,
-  getYearFromDate,
-  isAfter,
-  isAfterOrSame,
-  isBeforeOrSame,
-  startOfDay
-} from '~/utils/dateUtils';
-import {
-  Timeslot,
-  addBreaksToWorkingHours,
   calculateBusyHours,
-  calculateEmployeeBusyHours,
-  calculateEmployeeWorkingHours,
-  getEmployeeWithWorkingHours,
-  getEmployeesBusyHours,
-  mergeBusyHours,
-  numberOfWorkingHours
+  getEmployeesBusyHours
 } from '~/utils/employeeUtils';
-import {
-  getCyclicDateRanges,
-  getFrequencyHelpers
-} from '~/utils/reservationUtils';
+import { getCyclicDateRanges } from '~/utils/reservationUtils';
 import { getResponseServiceData } from '~/utils/services';
 
 import { executeDatabaseOperation } from '../utils/queryUtils';
@@ -100,7 +78,7 @@ export default class TypesOfCleaningService {
 
   // admin only
   public async createService(data: CreateServiceData) {
-    const { unit, ...otherData } = data;
+    const { unit, secondaryServices, ...otherData } = data;
 
     const unitCreationQuery = unit
       ? {
@@ -114,7 +92,10 @@ export default class TypesOfCleaningService {
       prisma.service.create({
         data: {
           ...otherData,
-          ...unitCreationQuery
+          ...unitCreationQuery,
+          secondaryServices: {
+            connect: secondaryServices?.map((id) => ({ id })) ?? []
+          }
         }
       })
     );
