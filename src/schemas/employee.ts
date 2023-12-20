@@ -5,13 +5,29 @@ import { stringifiedBoolean } from './common';
 
 export const employeeCreationSchema = z
   .object({
-    startHour: z.string().datetime(),
-    endHour: z.string().datetime(),
-    firstName: z.string(),
-    lastName: z.string(),
+    firstName: z
+      .string()
+      .min(1, { message: 'First name is required' })
+      .max(50, { message: 'First name is too long' }),
+    lastName: z
+      .string()
+      .min(1, { message: 'Last name is required' })
+      .max(50, { message: 'Last name is too long' }),
     email: z.string().email(),
-    password: z.string(),
-    services: z.array(z.number()).nullish()
+    password: z
+      .string()
+      .min(8, { message: 'Password must be atleast 8 characters' })
+      .max(32, { message: 'Password is too long' }),
+    confirmPassword: z
+      .string()
+      .min(8, { message: 'Password must be atleast 8 characters' })
+      .max(32, { message: 'Password is too long' }),
+    phone: z
+      .string()
+      .min(9, { message: 'Phone number must have at least 9 digits' })
+      .max(15, { message: 'Phone number is too long' })
+      .nullish(),
+    services: z.array(z.number()).optional()
   })
   .strict();
 

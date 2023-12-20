@@ -1,22 +1,23 @@
 import { Frequency, Status } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import type { Response } from 'express';
+import { omit } from 'lodash';
 import { Stringified } from 'type-fest';
 
 import type {
   EmployeeCreationData,
   EmployeeQueryOptions,
-  EmployeeWorkingHoursOptions,
-  ServicesWorkingHoursOptions
+  EmployeeWorkingHoursOptions
 } from '~/schemas/employee';
 
+import { checkIfUserExisits } from '~/middlewares/auth/checkIfUserExists';
 import { checkIsAdmin, checkIsEmployee } from '~/middlewares/auth/checkRole';
 import {
   validateEmployeeCreationData,
   validateEmployeeQueryOptions
 } from '~/middlewares/type-validators/employee';
 
-import { EmployeeService } from '~/services';
+import { ClientService, EmployeeService } from '~/services';
 
 import { queryParamToBoolean } from '~/utils/general';
 
@@ -26,6 +27,7 @@ import AbstractController from './AbstractController';
 
 export default class EmployeeController extends AbstractController {
   private employeeService = new EmployeeService();
+  private clientService = new ClientService();
 
   constructor() {
     super('/employees');
@@ -39,7 +41,12 @@ export default class EmployeeController extends AbstractController {
       validateEmployeeQueryOptions(),
       this.getAllEmployees
     );
-    this.router.post('/', validateEmployeeCreationData(), this.createEmployee);
+    this.router.post(
+      '/',
+      validateEmployeeCreationData(),
+      checkIfUserExisits,
+      this.createEmployee
+    );
     this.router.get('/busy-hours', this.getEmployeesBusyHours);
     this.router.get('/:id', this.getEmployeeById);
     this.router.get('/:id/visits', checkIsEmployee(), this.getEmployeeVisits);
@@ -150,29 +157,37 @@ export default class EmployeeController extends AbstractController {
     req: TypedRequest<DefaultParamsType, EmployeeCreationData>,
     res: Response
   ) => {
-    const { email, password } = req.body;
+    const { email, password, confirmPassword } = req.body;
+
+    if (password !== confirmPassword) {
+      res.status(400).send({
+        message: 'Password and confirm password do not match',
+        affectedField: 'confirmPassword'
+      });
+      return;
+    }
+
     const hashedPassword = await bcrypt.hash(password, 8);
 
     const user = await this.employeeService.getEmployeeByEmail(email);
 
     if (user !== null) {
-      res
-        .status(409)
-        .send({ message: 'Employee with given email already exists' });
+      res.status(409).send({
+        message: 'Employee with given email already exists',
+        affectedField: 'email'
+      });
       return;
     }
 
     const employee = await this.employeeService.createEmployee({
-      ...req.body,
+      ...omit(req.body, 'confirmPassword', 'password'),
       password: hashedPassword
     });
 
     if (employee) {
-      res.status(201).send(employee);
+      res.status(201).send(omit(employee, 'password'));
     } else {
-      res
-        .status(404)
-        .send({ message: `Employee with id=${req.params.id} not found` });
+      res.status(400).send({ message: `Error when creating new employee` });
     }
   };
 

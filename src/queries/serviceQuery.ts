@@ -142,7 +142,11 @@ export const includeVisitParts = Prisma.validator<
     employeeService: includeFullService,
     visit: {
       include: {
-        reservation: true
+        reservation: {
+          include: {
+            address: true
+          }
+        }
       }
     }
   },

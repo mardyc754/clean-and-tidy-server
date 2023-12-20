@@ -1,7 +1,18 @@
-import { Address, Client, Reservation, Status, Visit } from '@prisma/client';
+import {
+  Address,
+  Client,
+  Prisma,
+  Reservation,
+  Status,
+  Visit
+} from '@prisma/client';
 import type { RequireAtLeastOne } from 'type-fest';
 
 import { prisma } from '~/db';
+
+import { prismaExclude } from '~/lib/prisma';
+
+import { UserUpdateData } from '~/schemas/common';
 
 import {
   serviceInclude,
@@ -138,24 +149,20 @@ export default class ClientService {
   }
 
   public async changeClientData(
-    userData: Pick<Client, 'id'> &
-      RequireAtLeastOne<Client, 'firstName' | 'lastName' | 'phone'>
+    clientId: Client['id'],
+    userData: UserUpdateData
   ) {
-    const { id, ...rest } = userData;
-    let newClientData: Client | null = null;
-
-    try {
-      newClientData = await prisma.client.update({
-        where: { id },
+    return await executeDatabaseOperation(
+      prisma.client.update({
+        where: { id: clientId },
         data: {
-          ...rest
+          ...userData
+        },
+        select: {
+          ...prismaExclude('Client', ['password'])
         }
-      });
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
-    }
-
-    return newClientData;
+      })
+    );
   }
 
   // delete user - user can be deleted only when one does not have any active reservations

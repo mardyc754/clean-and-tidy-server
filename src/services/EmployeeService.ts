@@ -1,20 +1,12 @@
-import {
-  type Employee,
-  Frequency,
-  type Service,
-  Status,
-  VisitPart
-} from '@prisma/client';
+import { type Employee, type Service, Status, VisitPart } from '@prisma/client';
 import { omit, without } from 'lodash';
 
 import { prisma } from '~/db';
 
-import { prismaExclude } from '~/lib/prisma';
-
+import { UserUpdateData } from '~/schemas/common';
 import {
   type EmployeeCreationData,
-  EmployeeWorkingHoursOptions,
-  ServicesWorkingHoursOptions
+  EmployeeWorkingHoursOptions
 } from '~/schemas/employee';
 
 import {
@@ -27,19 +19,9 @@ import {
   visitPartTimeframe
 } from '~/queries/serviceQuery';
 
-import { isAfterOrSame, isBeforeOrSame } from '~/utils/dateUtils';
-import {
-  calculateEmployeeBusyHours,
-  calculateEmployeeWorkingHours,
-  getEmployeesBusyHours,
-  mergeBusyHours,
-  numberOfWorkingHours
-} from '~/utils/employeeUtils';
+import { getEmployeesBusyHours, mergeBusyHours } from '~/utils/employeeUtils';
 import { executeDatabaseOperation } from '~/utils/queryUtils';
-import {
-  getCyclicDateRanges,
-  getFrequencyHelpers
-} from '~/utils/reservationUtils';
+import { getCyclicDateRanges } from '~/utils/reservationUtils';
 import { flattenVisitPartsFromServices } from '~/utils/services';
 import { flattenNestedReservationServices } from '~/utils/visits';
 
@@ -82,8 +64,7 @@ export default class EmployeeService {
   public async getAllEmployees(options?: EmployeeFilterOptions) {
     const employees = await executeDatabaseOperation(
       prisma.employee.findMany({
-        select: {
-          ...prismaExclude('Employee', ['password']),
+        include: {
           services: includeServiceVisitPartsAndReservation
         }
       })
@@ -172,45 +153,21 @@ export default class EmployeeService {
   }
 
   // admin only
-  public async createEmployee(data: EmployeeCreationData) {
-    let employee: Employee | null = null;
-
-    try {
-      employee = await prisma.employee.create({
+  public async createEmployee(
+    data: Omit<EmployeeCreationData, 'confirmPassword'>
+  ) {
+    return await executeDatabaseOperation(
+      prisma.employee.create({
         data: {
           ...data,
           isAdmin: false,
           services: {
             create: data.services?.map((id) => ({ serviceId: id })) ?? []
           }
-        }
-      });
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
-    }
-    return employee;
-  }
-
-  // before finishing this function implementation,
-  // we need to create function for checking available hours
-  public async changeWorkingHours(
-    employeeData: Pick<Employee, 'id' | 'startHour' | 'endHour'>
-  ) {
-    const { id, ...rest } = employeeData;
-    let newEmployeeData: Employee | null = null;
-
-    try {
-      newEmployeeData = await prisma.employee.update({
-        where: { id },
-        data: {
-          ...rest
-        }
-      });
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
-    }
-
-    return newEmployeeData;
+        },
+        ...selectEmployee
+      })
+    );
   }
 
   // delete employee account when the employee does not have any visits
@@ -233,6 +190,19 @@ export default class EmployeeService {
     // }
 
     return deleteEmployee;
+  }
+
+  public async changeEmployeeData(
+    employeeId: Employee['id'],
+    userData: UserUpdateData
+  ) {
+    return await prisma.employee.update({
+      where: { id: employeeId },
+      data: {
+        ...userData
+      },
+      ...selectEmployee
+    });
   }
 
   public async changeEmployeeServiceAssignment(
