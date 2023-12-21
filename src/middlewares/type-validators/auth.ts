@@ -7,7 +7,9 @@ export const checkLoginData = () => {
 };
 
 export const checkRegisterData = () => {
-  return validateTypes({ bodyParser: registerSchema });
+  return validateTypes({
+    bodyParser: registerSchema
+  });
 };
 
 export const checkCurrentUserData = () => {

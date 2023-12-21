@@ -4,6 +4,7 @@ import type { Stringified } from 'type-fest';
 
 import { CreateAnonymousClientData } from '~/schemas/client';
 
+import { checkIfUserExisits } from '~/middlewares/auth/checkIfUserExists';
 import { validateCreateAnonymousClientData } from '~/middlewares/type-validators/client';
 
 import { ClientService, EmployeeService } from '~/services';
@@ -26,6 +27,7 @@ export default class ClientController extends AbstractController {
     this.router.post(
       '/',
       validateCreateAnonymousClientData(),
+      checkIfUserExisits,
       this.createAnonymousClient
     );
     this.router.get('/:id', this.getClientById);
@@ -35,7 +37,6 @@ export default class ClientController extends AbstractController {
       this.getClientReservations
     );
     this.router.get('/:id/addresses', this.getClientAddresses);
-    this.router.delete('/:id', this.deleteClientData);
   }
 
   private getAllClients = async (_: Request, res: Response) => {
@@ -55,16 +56,6 @@ export default class ClientController extends AbstractController {
     res: Response
   ) => {
     const { email } = req.body;
-
-    let userExists =
-      Boolean(await this.userService.getClientByEmail(email)) ||
-      Boolean(await this.employeeService.getEmployeeByEmail(email));
-
-    if (userExists) {
-      return res.status(409).send({
-        message: 'The user with given email already exists'
-      });
-    }
 
     const user = await this.userService.createClient({ email });
 
@@ -128,23 +119,6 @@ export default class ClientController extends AbstractController {
 
     if (addresses !== null) {
       res.status(200).send({ data: addresses });
-    } else {
-      res
-        .status(404)
-        .send({ message: `Client with id=${req.params.id} not found` });
-    }
-  };
-
-  private deleteClientData = async (
-    req: Request<Stringified<Pick<Client, 'id'>>>,
-    res: Response
-  ) => {
-    const deletedClient = await this.userService.deleteClient(
-      parseInt(req.params.id)
-    );
-
-    if (deletedClient !== null) {
-      res.status(200).send({ data: deletedClient });
     } else {
       res
         .status(404)

@@ -49,11 +49,10 @@ export default class AuthController extends AbstractController {
   }
 
   private register = async (req: Request, res: Response) => {
-    const { username, email, password } = req.body;
+    const { email, password } = req.body;
 
     const hashedPassword = await bcrypt.hash(password, 8);
     const user = await this.clientService.createClient({
-      username,
       email,
       password: hashedPassword
     });
@@ -61,7 +60,6 @@ export default class AuthController extends AbstractController {
     if (user) {
       res.status(201).send({
         id: user.id,
-        username: user.username,
         email: user.email,
         message: 'Client created succesfully'
       });

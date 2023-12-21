@@ -41,17 +41,8 @@ export default class ReservationController extends AbstractController {
       validateReservationCreationData(),
       this.createReservation
     );
-    // this.router.get('/:id', this.getReservationById);
     this.router.get('/:name', this.getReservationByName);
     this.router.get('/:id/visits', this.getVisits);
-
-    // TODO: The methods below needs to be improved
-    // this.router.put(
-    //   '/:id/frequency',
-    //   validateFrequency(),
-    //   this.changeFrequency
-    // );
-    // this.router.put('/:id/weekDay', validateWeekDay(), this.changeWeekDay);
     this.router.put('/:id/status', validateStatusChange(), this.changeStatus);
     this.router.put(
       '/:name/confirm',
@@ -59,8 +50,6 @@ export default class ReservationController extends AbstractController {
       validateEmployeeId(),
       this.confirmReservation
     );
-
-    this.router.put('/:name/cancel', this.cancelReservation);
   }
 
   private getAllReservations = async (
@@ -71,9 +60,7 @@ export default class ReservationController extends AbstractController {
     >,
     res: Response
   ) => {
-    const reservations = await this.reservationService.getAllReservations({
-      includeVisits: queryParamToBoolean(req.query.includeVisits)
-    });
+    const reservations = await this.reservationService.getAllReservations();
 
     if (reservations !== null) {
       res.status(200).send(reservations);
@@ -83,44 +70,6 @@ export default class ReservationController extends AbstractController {
         .send({ message: 'Error when receiving all reservations' });
     }
   };
-
-  // private getReservationById = async (
-  //   req: TypedRequest<
-  //     { id: string },
-  //     DefaultBodyType,
-  //     Stringified<ReservationQueryOptions>
-  //   >,
-  //   res: Response
-  // ) => {
-  //   const parsedId = parseInt(req.params.id);
-
-  //   const parsedQueryParams = {
-  //     includeVisits: queryParamToBoolean(req.query.includeVisits),
-  //     includeServices: queryParamToBoolean(req.query.includeServices),
-  //     includeAddress: queryParamToBoolean(req.query.includeAddress)
-  //   };
-
-  //   const reservation = isNaN(parsedId)
-  //     ? await this.reservationService.getReservationByName(
-  //         req.params.id,
-  //         parsedQueryParams
-  //       )
-  //     : await this.reservationService.getReservationById(
-  //         parsedId,
-  //         parsedQueryParams
-  //       );
-
-  //   if (reservation !== null) {
-  //     res.status(200).send({
-  //       ...reservation
-  //     });
-  //   } else {
-  //     res.status(404).send({
-  //       message: `Reservation with id=${req.params.id} not found`,
-  //       hasError: true
-  //     });
-  //   }
-  // };
 
   private getReservationByName = async (
     req: TypedRequest<
@@ -184,47 +133,6 @@ export default class ReservationController extends AbstractController {
     }
   };
 
-  private changeFrequency = async (
-    req: TypedRequest<{ id: string }, FrequencyChangeData>,
-    res: Response
-  ) => {
-    const reservation = this.reservationService.changeFrequency({
-      id: parseInt(req.params.id),
-      frequency: req.body.frequency
-    });
-
-    if (reservation) {
-      res.status(200).send({
-        data: reservation
-      });
-    } else {
-      res.status(404).send({
-        message: `Reservation with id=${req.params.id} not found`
-      });
-    }
-  };
-
-  private changeWeekDay = async (
-    req: TypedRequest<{ id: string }, WeekDayChangeData>,
-    res: Response
-  ) => {
-    const reservation = this.reservationService.changeWeekDay({
-      id: parseInt(req.params.id),
-      weekDay: req.body.weekDay,
-      frequency: req.body.frequency
-    });
-
-    if (reservation) {
-      res.status(200).send({
-        ...reservation
-      });
-    } else {
-      res.status(404).send({
-        message: `Reservation with id=${req.params.id} not found`
-      });
-    }
-  };
-
   private changeStatus = async (
     req: TypedRequest<{ id: string }, StatusChangeData>,
     res: Response
@@ -265,30 +173,4 @@ export default class ReservationController extends AbstractController {
       });
     }
   };
-
-  private cancelReservation = async (
-    req: TypedRequest<{ name: string }>,
-    res: Response
-  ) => {
-    const { employeeId } = req.body;
-
-    const reservation = await this.reservationService.cancelReservation(
-      req.params.name
-    );
-
-    if (reservation !== null) {
-      res.status(200).send(reservation);
-    } else {
-      res.status(404).send({
-        message: `Reservation with name=${req.params.name} not found`
-      });
-    }
-  };
-
-  // private getReservationAvailability = async (
-  //   req: TypedRequest<{ id: string }, { data: Omit<Reservation, 'id'> }>,
-  //   res: Response
-  // ) => {};
-
-  // private deleteReservation = async (req: Request, res: Response) => {};
 }

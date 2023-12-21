@@ -1,24 +1,14 @@
-import {
-  Address,
-  Client,
-  Prisma,
-  Reservation,
-  Status,
-  Visit
-} from '@prisma/client';
-import type { RequireAtLeastOne } from 'type-fest';
+import { Address, Client, Status } from '@prisma/client';
+import { SetOptional } from 'type-fest';
 
 import { prisma } from '~/db';
 
 import { prismaExclude } from '~/lib/prisma';
 
+import { RegisterData } from '~/schemas/auth';
 import { UserUpdateData } from '~/schemas/common';
 
-import {
-  serviceInclude,
-  serviceWithUnit,
-  visitPartWithEmployee
-} from '~/queries/serviceQuery';
+import { serviceInclude, visitPartWithEmployee } from '~/queries/serviceQuery';
 
 import {
   flattenNestedReservationServices,
@@ -27,13 +17,8 @@ import {
 
 import { executeDatabaseOperation } from '../utils/queryUtils';
 
-type ClientCreationData = Pick<Client, 'email'> & {
-  username?: Client['username'];
-  password?: Client['password'];
-};
-
 export default class ClientService {
-  public async createClient(data: ClientCreationData) {
+  public async createClient(data: SetOptional<RegisterData, 'password'>) {
     {
       return await executeDatabaseOperation(
         prisma.client.create({
@@ -41,20 +26,6 @@ export default class ClientService {
         })
       );
     }
-  }
-
-  public async getClientByUsername(username: Client['username']) {
-    if (!username) return null;
-    let user: Client | null = null;
-
-    try {
-      user = await prisma.client.findUnique({
-        where: { username }
-      });
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
-    }
-    return user;
   }
 
   public async getClientByEmail(email: Client['email']) {
@@ -163,27 +134,5 @@ export default class ClientService {
         }
       })
     );
-  }
-
-  // delete user - user can be deleted only when one does not have any active reservations
-  public async deleteClient(clientId: Client['id']) {
-    let deleteClient: Client | null = null;
-
-    const userActiveVisits = await this.getClientReservations(
-      clientId,
-      Status.ACTIVE
-    );
-
-    // if (!userActiveVisits || userActiveVisits.visits.length === 0) {
-    //   try {
-    //     deleteClient = await prisma.client.delete({
-    //       where: { id: clientId }
-    //     });
-    //   } catch (err) {
-    //     console.error(`Something went wrong: ${err}`);
-    //   }
-    // }
-
-    return deleteClient;
   }
 }

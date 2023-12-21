@@ -5,7 +5,6 @@ import {
   type Reservation,
   Status
 } from '@prisma/client';
-import { omit } from 'lodash';
 import short from 'short-uuid';
 import type { RequireAtLeastOne } from 'type-fest';
 
@@ -15,29 +14,20 @@ import type { ReservationCreationData } from '~/schemas/reservation';
 
 import {
   includeAllVisitData,
-  selectEmployee,
   serviceInclude,
-  serviceWithUnit,
   visitPartWithEmployee
 } from '~/queries/serviceQuery';
 
 import {
   advanceDateByOneYear,
-  extractWeekDayFromDate,
   isAfter,
   isAtLeastOneDayBetween
 } from '~/utils/dateUtils';
 import {
   executeDatabaseOperation,
-  includeIfTrue,
   includeWithOtherDataIfTrue
 } from '~/utils/queryUtils';
-import {
-  cancelVisits,
-  changeVisitFrequency,
-  changeWeekDay,
-  createVisits
-} from '~/utils/reservationUtils';
+import { createVisits } from '~/utils/reservationUtils';
 import {
   flattenNestedReservationServices,
   flattenNestedVisits
@@ -51,7 +41,7 @@ export type ReservationQueryOptions = RequireAtLeastOne<{
 }>;
 
 export default class ReservationService {
-  public async getAllReservations(options?: ReservationQueryOptions) {
+  public async getAllReservations() {
     return await executeDatabaseOperation(
       prisma.reservation.findMany({
         include: {
@@ -89,7 +79,6 @@ export default class ReservationService {
     name: Reservation['name'],
     options?: ReservationQueryOptions
   ) {
-    // if (options?.includeVisits) {
     const reservationData = await executeDatabaseOperation(
       prisma.reservation.findUnique({
         where: { name },
@@ -112,17 +101,6 @@ export default class ReservationService {
       visits: flattenNestedVisits(reservationData.visits),
       services: flattenNestedReservationServices(reservationData.services)
     };
-    // }
-
-    // return await executeDatabaseOperation(
-    //   prisma.reservation.findUnique({
-    //     where: { name },
-    //     include: {
-    //       // include address only if the option is true
-    //       address: options?.includeAddress
-    //     }
-    //   })
-    // );
   }
 
   public async getClientReservations(
@@ -211,10 +189,8 @@ export default class ReservationService {
       reservation = await prisma.reservation.create({
         data: {
           status: Status.TO_BE_CONFIRMED,
-          weekDay: extractWeekDayFromDate(endDate),
           visits: {
             create: createVisits(
-              reservationGroupName,
               { visitParts, includeDetergents },
               frequency,
               endDate
@@ -222,8 +198,6 @@ export default class ReservationService {
           },
           name: reservationGroupName,
           frequency,
-          endDate, // not sure if end date should be set on the
-          // frontend or on the backend side
           bookerFirstName,
           bookerLastName,
           address: {
@@ -253,98 +227,6 @@ export default class ReservationService {
       console.error(err);
       reservation = null;
     }
-
-    return reservation;
-  }
-
-  // TODO: To be improved
-  public async changeFrequency(data: Pick<Reservation, 'id' | 'frequency'>) {
-    const { id, frequency } = data;
-    let reservation: Reservation | null = null;
-
-    // const visits = await this.getVisits(id);
-
-    // const oldReservation = await this.getReservationById(id);
-
-    // if (!visits || !oldReservation) {
-    //   return reservation;
-    // }
-
-    // const { frequency: oldFrequency } = oldReservation;
-
-    // if (
-    //   oldFrequency !== frequency &&
-    //   oldFrequency !== Frequency.ONCE &&
-    //   frequency !== Frequency.ONCE
-    // ) {
-    //   const newVisits = changeVisitFrequency(
-    //     visits,
-    //     frequency,
-    //     oldReservation.name
-    //   );
-
-    //   try {
-    //     reservation = await prisma.reservation.update({
-    //       where: { id },
-    //       data: {
-    //         frequency,
-    //         status: Status.TO_BE_CONFIRMED,
-    //         visits: {
-    //           createMany: {
-    //             // updateMany may not work because that function updates already existing records only
-    //             // recommendation - create new reservations based on new ones
-    //             // and after confirmation remove old ones
-    //             data: newVisits.map((visit) => ({
-    //               name: visit.name,
-    //               startDate: visit.startDate,
-    //               endDate: visit.endDate,
-    //               includeDetergents: visit.includeDetergents,
-    //               cost: visit.cost,
-    //               status: visit.status
-    //             }))
-    //           }
-    //         }
-    //       }
-    //     });
-    //   } catch (err) {
-    //     console.error(err);
-    //   }
-    // }
-
-    return reservation;
-  }
-
-  // TODO: To be improved
-  public async changeWeekDay(
-    data: Pick<Reservation, 'id' | 'weekDay' | 'frequency'>
-  ) {
-    const { id, weekDay, frequency } = data;
-    let reservation: Reservation | null = null;
-
-    // const visits = await this.getVisits(id);
-
-    // if (!visits) {
-    //   return reservation;
-    // }
-
-    // const newVisits = changeWeekDay(visits, weekDay, frequency);
-
-    // try {
-    //   reservation = await prisma.reservation.update({
-    //     where: { id },
-    //     data: {
-    //       status: Status.TO_BE_CONFIRMED,
-    //       visits: {
-    //         updateMany: {
-    //           where: { reservationId: id },
-    //           data: newVisits
-    //         }
-    //       }
-    //     }
-    //   });
-    // } catch (err) {
-    //   console.error(err);
-    // }
 
     return reservation;
   }
@@ -436,7 +318,6 @@ export default class ReservationService {
     return reservation;
   }
 
-  // TODO This should work but test it
   public async confirmReservation(
     reservationName: Reservation['name'],
     employeeId: Employee['id']
@@ -479,37 +360,5 @@ export default class ReservationService {
     }
 
     return reservation;
-  }
-
-  // TODO FIXME: this is not working
-  public async autoCloseReservation(id: Reservation['id']) {
-    let reservationToClose: Reservation | null = null;
-
-    // const visits = await this.getVisits(id);
-
-    // if (!visits) {
-    //   return reservationToClose;
-    // }
-
-    // const finishedVisits = visits.filter((visit) =>
-    //   visit.employees.every(
-    //     ({ status }) => status === Status.CANCELLED || status === Status.CLOSED
-    //   )
-    // );
-
-    // if (finishedVisits.length === visits.length) {
-    //   try {
-    //     reservationToClose = await prisma.reservation.update({
-    //       where: { id },
-    //       data: {
-    //         status: Status.CLOSED
-    //       }
-    //     });
-    //   } catch (err) {
-    //     console.error(`Something went wrong: ${err}`);
-    //   }
-    // }
-
-    return reservationToClose;
   }
 }
