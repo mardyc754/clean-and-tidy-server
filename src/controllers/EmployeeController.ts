@@ -5,6 +5,7 @@ import { omit } from 'lodash';
 import { Stringified } from 'type-fest';
 
 import type {
+  EmployeeChangeData,
   EmployeeCreationData,
   EmployeeQueryOptions,
   EmployeeWorkingHoursOptions
@@ -13,6 +14,7 @@ import type {
 import { checkIfUserExisits } from '~/middlewares/auth/checkIfUserExists';
 import { checkIsAdmin, checkIsEmployee } from '~/middlewares/auth/checkRole';
 import {
+  validateEmployeeChangeData,
   validateEmployeeCreationData,
   validateEmployeeQueryOptions
 } from '~/middlewares/type-validators/employee';
@@ -55,11 +57,11 @@ export default class EmployeeController extends AbstractController {
       checkIsEmployee(),
       this.getEmployeeReservations
     );
-    this.router.get('/:id/services', this.getEmployeeServices);
 
     this.router.put(
-      '/:employeeId/services',
-      this.changeEmployeeServiceAssignment
+      '/:employeeId',
+      validateEmployeeChangeData(),
+      this.changeEmployeeData
     );
     this.router.delete('/:id', this.deleteEmployeeData);
     this.router.get('/services/:id', this.getEmployeesOfferingService);
@@ -69,9 +71,7 @@ export default class EmployeeController extends AbstractController {
     req: TypedRequest<DefaultParamsType, DefaultBodyType, EmployeeQueryOptions>,
     res: Response
   ) => {
-    const employees = await this.employeeService.getAllEmployees({
-      includeVisits: queryParamToBoolean(req.query.includeVisits)
-    });
+    const employees = await this.employeeService.getAllEmployees();
 
     if (employees !== null) {
       res.status(200).send(employees);
@@ -81,17 +81,37 @@ export default class EmployeeController extends AbstractController {
   };
 
   private getEmployeeById = async (
-    req: TypedRequest<{ id: string }>,
+    req: TypedRequest<
+      { id: string },
+      DefaultBodyType,
+      { includeServices?: string }
+    >,
     res: Response
   ) => {
+    const includeEmployees = queryParamToBoolean(req.query.includeServices);
+
+    if (includeEmployees) {
+      const employee = await this.employeeService.getEmployeeWithServices(
+        parseInt(req.params.id)
+      );
+
+      if (employee) {
+        return res.status(200).send(employee);
+      } else {
+        return res
+          .status(404)
+          .send({ message: `Employee with id=${req.params.id} not found` });
+      }
+    }
+
     const employee = await this.employeeService.getEmployeeById(
       parseInt(req.params.id)
     );
 
     if (employee) {
-      res.status(200).send(employee);
+      return res.status(200).send(employee);
     } else {
-      res
+      return res
         .status(404)
         .send({ message: `Employee with id=${req.params.id} not found` });
     }
@@ -133,23 +153,6 @@ export default class EmployeeController extends AbstractController {
       res.status(404).send({
         message: `Employee with id=${req.params.id} not found`
       });
-    }
-  };
-
-  private getEmployeeServices = async (
-    req: TypedRequest<{ id: string }>,
-    res: Response
-  ) => {
-    const services = await this.employeeService.getEmployeeServices(
-      parseInt(req.params.id)
-    );
-
-    if (services !== null) {
-      res.status(200).send(services);
-    } else {
-      res
-        .status(404)
-        .send({ message: `Employee with id=${req.params.id} not found` });
     }
   };
 
@@ -208,15 +211,14 @@ export default class EmployeeController extends AbstractController {
     }
   };
 
-  private changeEmployeeServiceAssignment = async (
-    req: TypedRequest<{ employeeId: string }, { serviceIds: number[] }>,
+  private changeEmployeeData = async (
+    req: TypedRequest<{ employeeId: string }, EmployeeChangeData>,
     res: Response
   ) => {
-    const newLinkedServices =
-      await this.employeeService.changeEmployeeServiceAssignment(
-        parseInt(req.params.employeeId),
-        req.body.serviceIds
-      );
+    const newLinkedServices = await this.employeeService.changeEmployeeData(
+      parseInt(req.params.employeeId),
+      req.body
+    );
 
     if (newLinkedServices !== null) {
       res.status(200).send(newLinkedServices);

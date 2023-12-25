@@ -37,7 +37,7 @@ model Client {
 }
 
 model Visit {
-  id                            Int                           @id @default(autoincrement()) // maybe it should be UUID
+  id                            Int                           @id @default(autoincrement())
   includeDetergents             Boolean 
   reservation                   Reservation                   @relation(fields: [reservationId], references: [id], onDelete: Cascade)
   reservationId                 Int                          
@@ -46,7 +46,7 @@ model Visit {
 }
 
 model Reservation {
-  id                            Int                           @id @default(autoincrement()) // maybe it should be UUID
+  id                            Int                           @id @default(autoincrement())
   name                          String                        @db.VarChar(100) @unique
   frequency                     Frequency
   status                        Status
@@ -66,7 +66,7 @@ model Address {
   street                        String                        @db.VarChar(40)
   houseNumber                   String                        @db.VarChar(6)        
   postCode                      String                        @db.VarChar(6)
-  city                          String                        @db.VarChar(40)
+  // city                          String                        @db.VarChar(40)
   reservations                  Reservation[]
 }
 

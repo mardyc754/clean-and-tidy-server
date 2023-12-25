@@ -26,7 +26,6 @@ CREATE TABLE IF NOT EXISTS public."Client"
     id integer NOT NULL DEFAULT nextval('"Client_id_seq"'::regclass),
     "firstName" character varying(50) COLLATE pg_catalog."default",
     "lastName" character varying(50) COLLATE pg_catalog."default",
-    username character varying(30) COLLATE pg_catalog."default",
     email character varying(40) COLLATE pg_catalog."default" NOT NULL,
     password character varying(60) COLLATE pg_catalog."default",
     phone character varying(15) COLLATE pg_catalog."default",
@@ -40,10 +39,16 @@ CREATE TABLE IF NOT EXISTS public."Employee"
     "lastName" character varying(50) COLLATE pg_catalog."default" NOT NULL,
     email character varying(40) COLLATE pg_catalog."default" NOT NULL,
     password character varying(60) COLLATE pg_catalog."default" NOT NULL,
-    "startHour" time without time zone NOT NULL,
-    "endHour" time without time zone NOT NULL,
     "isAdmin" boolean NOT NULL DEFAULT false,
+    phone character varying(15) COLLATE pg_catalog."default",
     CONSTRAINT "Employee_pkey" PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS public."EmployeeService"
+(
+    "employeeId" integer NOT NULL,
+    "serviceId" integer NOT NULL,
+    CONSTRAINT "EmployeeService_pkey" PRIMARY KEY ("employeeId", "serviceId")
 );
 
 CREATE TABLE IF NOT EXISTS public."Reservation"
@@ -51,8 +56,6 @@ CREATE TABLE IF NOT EXISTS public."Reservation"
     id integer NOT NULL DEFAULT nextval('"Reservation_id_seq"'::regclass),
     name character varying(100) COLLATE pg_catalog."default" NOT NULL,
     frequency "Frequency" NOT NULL,
-    "endDate" timestamp(3) without time zone NOT NULL,
-    "weekDay" smallint NOT NULL,
     status "Status" NOT NULL,
     "bookerEmail" text COLLATE pg_catalog."default" NOT NULL,
     "addressId" integer NOT NULL,
@@ -67,7 +70,6 @@ CREATE TABLE IF NOT EXISTS public."ReservationService"
     "reservationId" integer NOT NULL,
     "serviceId" integer NOT NULL,
     "isMainServiceForReservation" boolean NOT NULL DEFAULT false,
-    "numberOfUnits" integer NOT NULL DEFAULT 1,
     CONSTRAINT "ReservationService_pkey" PRIMARY KEY ("reservationId", "serviceId")
 );
 
@@ -95,30 +97,27 @@ CREATE TABLE IF NOT EXISTS public."Unit"
 CREATE TABLE IF NOT EXISTS public."Visit"
 (
     id integer NOT NULL DEFAULT nextval('"Visit_id_seq"'::regclass),
-    name character varying(100) COLLATE pg_catalog."default" NOT NULL,
-    "startDate" timestamp(3) without time zone NOT NULL,
-    "endDate" timestamp(3) without time zone NOT NULL,
     "includeDetergents" boolean NOT NULL,
-    cost money NOT NULL,
     "reservationId" integer NOT NULL,
+    "canDateBeChanged" boolean NOT NULL DEFAULT true,
     CONSTRAINT "Visit_pkey" PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS public."VisitEmployee"
+CREATE TABLE IF NOT EXISTS public."VisitPart"
 (
     "visitId" integer NOT NULL,
+    "serviceId" integer NOT NULL,
     "employeeId" integer NOT NULL,
-    status "Status" NOT NULL,
-    CONSTRAINT "VisitEmployee_pkey" PRIMARY KEY ("visitId", "employeeId")
+    "startDate" timestamp(3) without time zone NOT NULL,
+    "numberOfUnits" integer NOT NULL,
+    status "Status" NOT NULL DEFAULT 'TO_BE_CONFIRMED'::"Status",
+    cost money NOT NULL,
+    "endDate" timestamp(3) without time zone NOT NULL,
+    id integer NOT NULL DEFAULT nextval('"VisitPart_id_seq"'::regclass),
+    CONSTRAINT "VisitPart_pkey" PRIMARY KEY (id)
 );
 
 CREATE TABLE IF NOT EXISTS public."_CleaningFrequencyToService"
-(
-    "A" integer NOT NULL,
-    "B" integer NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS public."_EmployeeToService"
 (
     "A" integer NOT NULL,
     "B" integer NOT NULL
@@ -129,6 +128,20 @@ CREATE TABLE IF NOT EXISTS public."_PrimarySecondaryService"
     "A" integer NOT NULL,
     "B" integer NOT NULL
 );
+
+ALTER TABLE IF EXISTS public."EmployeeService"
+    ADD CONSTRAINT "EmployeeService_employeeId_fkey" FOREIGN KEY ("employeeId")
+    REFERENCES public."Employee" (id) MATCH SIMPLE
+    ON UPDATE CASCADE
+    ON DELETE RESTRICT;
+
+
+ALTER TABLE IF EXISTS public."EmployeeService"
+    ADD CONSTRAINT "EmployeeService_serviceId_fkey" FOREIGN KEY ("serviceId")
+    REFERENCES public."Service" (id) MATCH SIMPLE
+    ON UPDATE CASCADE
+    ON DELETE RESTRICT;
+
 
 ALTER TABLE IF EXISTS public."Reservation"
     ADD CONSTRAINT "Reservation_addressId_fkey" FOREIGN KEY ("addressId")
@@ -174,15 +187,15 @@ ALTER TABLE IF EXISTS public."Visit"
     ON DELETE CASCADE;
 
 
-ALTER TABLE IF EXISTS public."VisitEmployee"
-    ADD CONSTRAINT "VisitEmployee_employeeId_fkey" FOREIGN KEY ("employeeId")
-    REFERENCES public."Employee" (id) MATCH SIMPLE
+ALTER TABLE IF EXISTS public."VisitPart"
+    ADD CONSTRAINT "VisitPart_employeeId_serviceId_fkey" FOREIGN KEY ("employeeId", "serviceId")
+    REFERENCES public."EmployeeService" ("employeeId", "serviceId") MATCH SIMPLE
     ON UPDATE CASCADE
     ON DELETE CASCADE;
 
 
-ALTER TABLE IF EXISTS public."VisitEmployee"
-    ADD CONSTRAINT "VisitEmployee_visitId_fkey" FOREIGN KEY ("visitId")
+ALTER TABLE IF EXISTS public."VisitPart"
+    ADD CONSTRAINT "VisitPart_visitId_fkey" FOREIGN KEY ("visitId")
     REFERENCES public."Visit" (id) MATCH SIMPLE
     ON UPDATE CASCADE
     ON DELETE CASCADE;
@@ -202,22 +215,6 @@ ALTER TABLE IF EXISTS public."_CleaningFrequencyToService"
     ON DELETE CASCADE;
 CREATE INDEX IF NOT EXISTS "_CleaningFrequencyToService_B_index"
     ON public."_CleaningFrequencyToService"("B");
-
-
-ALTER TABLE IF EXISTS public."_EmployeeToService"
-    ADD CONSTRAINT "_EmployeeToService_A_fkey" FOREIGN KEY ("A")
-    REFERENCES public."Employee" (id) MATCH SIMPLE
-    ON UPDATE CASCADE
-    ON DELETE CASCADE;
-
-
-ALTER TABLE IF EXISTS public."_EmployeeToService"
-    ADD CONSTRAINT "_EmployeeToService_B_fkey" FOREIGN KEY ("B")
-    REFERENCES public."Service" (id) MATCH SIMPLE
-    ON UPDATE CASCADE
-    ON DELETE CASCADE;
-CREATE INDEX IF NOT EXISTS "_EmployeeToService_B_index"
-    ON public."_EmployeeToService"("B");
 
 
 ALTER TABLE IF EXISTS public."_PrimarySecondaryService"

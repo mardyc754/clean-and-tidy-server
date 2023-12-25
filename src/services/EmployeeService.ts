@@ -3,8 +3,8 @@ import { omit, without } from 'lodash';
 
 import { prisma } from '~/db';
 
-import { UserUpdateData } from '~/schemas/common';
 import {
+  EmployeeChangeData,
   type EmployeeCreationData,
   EmployeeWorkingHoursOptions
 } from '~/schemas/employee';
@@ -15,7 +15,6 @@ import {
   includeServiceVisitPartsAndReservation,
   includeVisitParts,
   selectEmployee,
-  serviceWithUnit,
   visitPartTimeframe
 } from '~/queries/serviceQuery';
 
@@ -61,12 +60,13 @@ export default class EmployeeService {
     return employee;
   }
 
-  public async getAllEmployees(options?: EmployeeFilterOptions) {
+  public async getAllEmployees() {
     const employees = await executeDatabaseOperation(
       prisma.employee.findMany({
         include: {
           services: includeServiceVisitPartsAndReservation
-        }
+        },
+        orderBy: { id: 'asc' }
       })
     );
 
@@ -133,23 +133,25 @@ export default class EmployeeService {
     );
   }
 
-  public async getEmployeeServices(employeeId: Employee['id']) {
-    let services: Service[] | null = null;
-
+  public async getEmployeeWithServices(employeeId: Employee['id']) {
     try {
       const employeeWithServices = await prisma.employee.findUnique({
         where: { id: employeeId },
-        include: {
+        select: {
+          ...employeeData,
           services: includeFullService
         }
       });
 
-      services =
-        employeeWithServices?.services.flatMap(({ service }) => service) ?? [];
+      return {
+        ...omit(employeeWithServices, 'services'),
+        services:
+          employeeWithServices?.services.flatMap(({ service }) => service) ?? []
+      };
     } catch (err) {
       console.error(`Something went wrong: ${err}`);
+      return null;
     }
-    return services;
   }
 
   // admin only
@@ -194,28 +196,19 @@ export default class EmployeeService {
 
   public async changeEmployeeData(
     employeeId: Employee['id'],
-    userData: UserUpdateData
+    data: Partial<EmployeeChangeData>
   ) {
-    return await prisma.employee.update({
-      where: { id: employeeId },
-      data: {
-        ...userData
-      },
-      ...selectEmployee
-    });
-  }
+    const employeeServices = await this.getEmployeeWithServices(employeeId);
 
-  public async changeEmployeeServiceAssignment(
-    employeeId: Employee['id'],
-    serviceIds: Array<Service['id']>
-  ) {
-    const employeeServices = await this.getEmployeeServices(employeeId);
+    const serviceIds = data.services ?? [];
 
     if (employeeServices === null) {
       return null;
     }
 
-    const employeeServicesIds = employeeServices.map((service) => service.id);
+    const employeeServicesIds = employeeServices.services.map(
+      (service) => service.id
+    );
     const removedServiceIds = without(employeeServicesIds, ...serviceIds);
     const createdServiceIds = without(serviceIds, ...employeeServicesIds);
 
@@ -223,6 +216,10 @@ export default class EmployeeService {
       const updatedEmployee = await prisma.employee.update({
         where: { id: employeeId },
         data: {
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phone: data.phone,
+          isAdmin: data.isAdmin ?? false,
           services: {
             deleteMany: removedServiceIds.map((id) => ({ serviceId: id })),
             createMany: {
@@ -230,16 +227,10 @@ export default class EmployeeService {
             }
           }
         },
-        select: {
-          services: {
-            include: {
-              service: serviceWithUnit
-            }
-          }
-        }
+        ...selectEmployee
       });
 
-      return updatedEmployee.services.map(({ service }) => service);
+      return updatedEmployee;
     } catch (err) {
       console.error(`Something went wrong: ${err}`);
     }
