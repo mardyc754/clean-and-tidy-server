@@ -7,10 +7,9 @@ const FrequencySchema = z.nativeEnum(Frequency);
 
 export const address = z
   .object({
-    street: z.string().max(40),
+    street: z.string().max(100),
     houseNumber: z.string().max(6),
-    postCode: z.string().length(6),
-    city: z.string().max(40)
+    postCode: z.string().length(6)
   })
   .strict();
 
@@ -69,7 +68,6 @@ export const StatusChangeSchema = z.object({
 });
 
 // types
-
 export type ReservationService = z.infer<typeof reservationServiceSchema>;
 
 export type ReservationCreationData = z.infer<typeof reservationCreationSchema>;

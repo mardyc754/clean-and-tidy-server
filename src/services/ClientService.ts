@@ -141,4 +141,15 @@ export default class ClientService {
       })
     );
   }
+
+  public async deleteClient(clientId: Client['id']) {
+    return await executeDatabaseOperation(
+      prisma.client.delete({
+        where: { id: clientId },
+        select: {
+          ...prismaExclude('Client', ['password'])
+        }
+      })
+    );
+  }
 }

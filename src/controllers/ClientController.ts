@@ -7,7 +7,7 @@ import { CreateAnonymousClientData } from '~/schemas/client';
 import { checkIfUserExisits } from '~/middlewares/auth/checkIfUserExists';
 import { validateCreateAnonymousClientData } from '~/middlewares/type-validators/client';
 
-import { ClientService, EmployeeService } from '~/services';
+import { ClientService } from '~/services';
 
 import type { DefaultBodyType, DefaultParamsType, TypedRequest } from '~/types';
 
@@ -15,7 +15,6 @@ import AbstractController from './AbstractController';
 
 export default class ClientController extends AbstractController {
   private clientService = new ClientService();
-  private employeeService = new EmployeeService();
 
   constructor() {
     super('/clients');
@@ -37,6 +36,7 @@ export default class ClientController extends AbstractController {
       this.getClientReservations
     );
     this.router.get('/:id/addresses', this.getClientAddresses);
+    this.router.delete('/:id', this.deleteClient);
   }
 
   private getAllClients = async (_: Request, res: Response) => {
@@ -121,6 +121,23 @@ export default class ClientController extends AbstractController {
 
     if (addresses !== null) {
       res.status(200).send({ data: addresses });
+    } else {
+      res
+        .status(404)
+        .send({ message: `Client with id=${req.params.id} not found` });
+    }
+  };
+
+  private deleteClient = async (
+    req: Request<Stringified<Pick<Client, 'id'>>>,
+    res: Response
+  ) => {
+    const deletedClient = await this.clientService.deleteClient(
+      parseInt(req.params.id)
+    );
+
+    if (deletedClient !== null) {
+      res.status(200).send(deletedClient);
     } else {
       res
         .status(404)

@@ -50,8 +50,8 @@ model Reservation {
   name                          String                        @db.VarChar(100) @unique
   frequency                     Frequency
   status                        Status
-  client                        Client                        @relation(fields: [bookerEmail], references: [email], onDelete: Cascade)
-  bookerEmail                   String                          
+  client                        Client?                       @relation(fields: [bookerEmail], references: [email])
+  bookerEmail                   String?                          
   visits                        Visit[]
   address                       Address                       @relation(fields: [addressId], references: [id])
   addressId                     Int                          
@@ -63,10 +63,9 @@ model Reservation {
 
 model Address {
   id                            Int                           @id @default(autoincrement())
-  street                        String                        @db.VarChar(40)
+  street                        String                        @db.VarChar(100)
   houseNumber                   String                        @db.VarChar(6)        
   postCode                      String                        @db.VarChar(6)
-  // city                          String                        @db.VarChar(40)
   reservations                  Reservation[]
 }
 

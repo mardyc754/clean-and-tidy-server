@@ -3,10 +3,8 @@ import { Stringified } from 'type-fest';
 
 import { EmployeeIdData } from '~/schemas/employee';
 import {
-  FrequencyChangeData,
   ReservationCreationData,
-  StatusChangeData,
-  WeekDayChangeData
+  StatusChangeData
 } from '~/schemas/reservation';
 
 import { checkIsEmployee } from '~/middlewares/auth/checkRole';
@@ -89,9 +87,6 @@ export default class ReservationController extends AbstractController {
     );
 
     if (reservation !== null) {
-      // res.status(200).send({
-      //   ...reservation
-      // });
       res.status(200).send(reservation);
     } else {
       res.status(404).send({
