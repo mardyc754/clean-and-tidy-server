@@ -14,7 +14,7 @@ import type { DefaultBodyType, DefaultParamsType, TypedRequest } from '~/types';
 import AbstractController from './AbstractController';
 
 export default class ClientController extends AbstractController {
-  private userService = new ClientService();
+  private clientService = new ClientService();
   private employeeService = new EmployeeService();
 
   constructor() {
@@ -40,7 +40,7 @@ export default class ClientController extends AbstractController {
   }
 
   private getAllClients = async (_: Request, res: Response) => {
-    const users = await this.userService.getAllClients();
+    const users = await this.clientService.getAllClients();
 
     if (users !== null) {
       res.status(200).send({
@@ -57,7 +57,7 @@ export default class ClientController extends AbstractController {
   ) => {
     const { email } = req.body;
 
-    const user = await this.userService.createClient({ email });
+    const user = await this.clientService.createClient({ email });
 
     if (user) {
       res.status(201).send({
@@ -74,7 +74,9 @@ export default class ClientController extends AbstractController {
     req: TypedRequest<{ id: string }>,
     res: Response
   ) => {
-    const user = await this.userService.getClientById(parseInt(req.params.id));
+    const user = await this.clientService.getClientById(
+      parseInt(req.params.id)
+    );
 
     if (user) {
       res.status(200).send({
@@ -95,7 +97,7 @@ export default class ClientController extends AbstractController {
     >,
     res: Response
   ) => {
-    const reservations = await this.userService.getClientReservations(
+    const reservations = await this.clientService.getClientReservations(
       parseInt(req.params.id),
       req.query.status as Status | undefined
     );
@@ -113,7 +115,7 @@ export default class ClientController extends AbstractController {
     req: Request<Stringified<Pick<Client, 'id'>>>,
     res: Response
   ) => {
-    const addresses = await this.userService.getClientAddresses(
+    const addresses = await this.clientService.getClientAddresses(
       parseInt(req.params.id)
     );
 

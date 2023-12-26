@@ -21,8 +21,14 @@ export default class ClientService {
   public async createClient(data: SetOptional<RegisterData, 'password'>) {
     {
       return await executeDatabaseOperation(
-        prisma.client.create({
-          data
+        prisma.client.upsert({
+          where: { email: data.email },
+          update: {
+            ...data
+          },
+          create: {
+            ...data
+          }
         })
       );
     }
