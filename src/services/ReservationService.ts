@@ -177,11 +177,13 @@ export default class ReservationService {
       if (typeof address === 'number') {
         addressId = address;
       } else {
-        const addressRecord = await prisma.address.create({
-          data: {
-            ...address
-          }
+        const addressRecord = await prisma.address.findFirst({
+          where: { ...address }
         });
+
+        if (!addressRecord) {
+          return null;
+        }
 
         addressId = addressRecord.id;
       }
