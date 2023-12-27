@@ -41,9 +41,10 @@ export type ReservationQueryOptions = RequireAtLeastOne<{
 }>;
 
 export default class ReservationService {
-  public async getAllReservations() {
+  public async getAllReservations(status?: Reservation['status']) {
     return await executeDatabaseOperation(
       prisma.reservation.findMany({
+        where: { status },
         include: {
           visits: {
             include: {
@@ -300,24 +301,68 @@ export default class ReservationService {
     return this.getReservationByName(reservation.name);
   }
 
-  public async changeStatus(
-    reservationId: Reservation['id'],
-    employeeId: Employee['id'],
-    newStatus: Status
-  ) {
+  public async closeReservation(reservationId: Reservation['id']) {
     let reservation: Reservation | null = null;
+
+    const visitParts = await executeDatabaseOperation(
+      prisma.visitPart.findMany({
+        where: {
+          status: Status.ACTIVE,
+          visit: {
+            reservationId
+          }
+        }
+      })
+    );
+
+    if ((visitParts?.length ?? 0) > 0) {
+      return null;
+    }
 
     try {
       reservation = await prisma.reservation.update({
         where: { id: reservationId },
         data: {
-          status: newStatus
+          status: Status.CLOSED
         }
       });
     } catch (err) {
       console.error(err);
     }
     return reservation;
+  }
+
+  public async closeReservations(reservationIds: Array<Reservation['id']>) {
+    let reservationUpdateCount = 0;
+
+    const visitParts = await executeDatabaseOperation(
+      prisma.visitPart.findMany({
+        where: {
+          status: Status.ACTIVE,
+          visit: {
+            reservationId: { in: reservationIds }
+          }
+        }
+      })
+    );
+
+    if ((visitParts?.length ?? 0) > 0) {
+      return null;
+    }
+
+    try {
+      const payload = await prisma.reservation.updateMany({
+        where: { id: { in: reservationIds } },
+        data: {
+          status: Status.CLOSED
+        }
+      });
+
+      reservationUpdateCount = payload.count;
+    } catch (err) {
+      console.error(err);
+    }
+    return reservationUpdateCount;
   }
 
   public async confirmReservation(
