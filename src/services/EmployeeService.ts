@@ -263,8 +263,6 @@ export default class EmployeeService {
     options?: EmployeeWorkingHoursOptions
   ) {
     const periodParams = options?.period?.split('-');
-
-    console.log(options?.excludeFrom, options?.excludeTo);
     // not sure if there should be added 1 to the month
     // in order not to count it from 0
     const year = periodParams?.[0] ? parseInt(periodParams[0]) : undefined;

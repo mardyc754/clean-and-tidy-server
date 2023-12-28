@@ -3,6 +3,8 @@ import type { Request, Response } from 'express';
 import { Stringified } from 'type-fest';
 import { RequestError } from '~/errors/RequestError';
 
+import { Scheduler } from '~/lib/Scheduler';
+
 import { ChangeVisitData, VisitPartCreationData } from '~/schemas/visit';
 
 import { validateVisitCreationData } from '~/middlewares/type-validators/visit';
@@ -11,7 +13,6 @@ import { VisitPartService, VisitService } from '~/services';
 
 import { VisitQueryOptions } from '~/services/VisitService';
 
-import { Scheduler } from '~/utils/Scheduler';
 import { queryParamToBoolean } from '~/utils/general';
 
 import { DefaultBodyType, DefaultParamsType, TypedRequest } from '~/types';

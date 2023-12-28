@@ -18,8 +18,8 @@ import {
 } from '~/queries/serviceQuery';
 
 import {
-  calculateBusyHours,
-  getEmployeesBusyHours
+  getEmployeesBusyHours,
+  intersectBusyHours
 } from '~/utils/employeeUtils';
 import { getCyclicDateRanges } from '~/utils/reservationUtils';
 import { getResponseServiceData } from '~/utils/services';
@@ -196,12 +196,23 @@ export default class TypesOfCleaningService {
       return null;
     }
 
+    // console.log('employees', employees?.map((e) => e.services));
+    // employees?.map((e) =>
+    //   e.services.map((s) =>
+    //     s.visitParts.map(({ startDate, endDate, status }) => {
+    //       console.log('service', s.serviceId, { startDate, endDate, status });
+    //     })
+    //   )
+    // );
+
+    // return employees;
+
     const { employeesWithWorkingHours, flattenedEmployeeVisitParts } =
       getEmployeesBusyHours(employees, cyclicRanges, options);
 
     return {
       employees: employeesWithWorkingHours,
-      busyHours: calculateBusyHours(flattenedEmployeeVisitParts)
+      busyHours: intersectBusyHours(flattenedEmployeeVisitParts)
     };
   }
 }

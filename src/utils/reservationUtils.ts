@@ -10,15 +10,18 @@ import { ReservationCreationData } from '~/schemas/reservation';
 
 import {
   ValidDayjsDate,
+  advanceDateByDays,
   advanceDateByMonths,
   advanceDateByOneYear,
   advanceDateByWeeks,
   dateFromMonthAndYear,
   endOfMonth,
+  isTheSameDay,
   numberOfMonthsBetween,
   numberOfWeeksBetween,
   startOfMonth
 } from './dateUtils';
+import { getHolidayBusyHours } from './holidays';
 
 function createWeeklyVisits(
   visitData: Pick<ReservationCreationData, 'visitParts' | 'includeDetergents'>,
@@ -29,6 +32,15 @@ function createWeeklyVisits(
 
   const firstVisitPartStartDate = visitParts[0]?.startDate;
 
+  const holidayBusyHours = firstVisitPartStartDate
+    ? getHolidayBusyHours([
+        {
+          startDate: new Date(firstVisitPartStartDate),
+          endDate: new Date(endDate)
+        }
+      ])
+    : [];
+
   const numberOfWeeks =
     numberOfWeeksBetween(endDate, firstVisitPartStartDate) + 1;
 
@@ -37,16 +49,34 @@ function createWeeklyVisits(
   ].map((_, i) => i * weekSpan);
 
   return Prisma.validator<Prisma.VisitCreateWithoutReservationInput[]>()(
-    weekNumbers.map((week, i) => ({
+    weekNumbers.map((week) => ({
       includeDetergents,
       visitParts: {
-        create: visitParts.map((visitPart, index) => ({
-          ...visitPart,
-          // name: `${reservationName}-${i + 1}-${index + 1}`,
-          status: Status.TO_BE_CONFIRMED,
-          startDate: advanceDateByWeeks(visitPart.startDate, week),
-          endDate: advanceDateByWeeks(visitPart.endDate, week)
-        }))
+        create: visitParts.map((visitPart) => {
+          let visitPartStartDate = new Date(
+            advanceDateByWeeks(visitPart.startDate, week)
+          );
+          let visitPartEndDate = new Date(
+            advanceDateByWeeks(visitPart.endDate, week)
+          );
+
+          // if the visit part is on a holiday, move it to the closest non-holiday day
+          while (
+            holidayBusyHours.some(({ startDate }) =>
+              isTheSameDay(startDate, visitPartStartDate)
+            )
+          ) {
+            visitPartStartDate = advanceDateByDays(visitPartStartDate, 1);
+            visitPartEndDate = advanceDateByDays(visitPartEndDate, 1);
+          }
+
+          return {
+            ...visitPart,
+            status: Status.TO_BE_CONFIRMED,
+            startDate: visitPartStartDate,
+            endDate: visitPartEndDate
+          };
+        })
       }
     }))
   );
@@ -60,31 +90,49 @@ function createMonthlyVisits(
 
   const firstVisitPartStartDate = visitParts[0]?.startDate;
 
+  const holidayBusyHours = firstVisitPartStartDate
+    ? getHolidayBusyHours([
+        {
+          startDate: new Date(firstVisitPartStartDate),
+          endDate: new Date(endDate)
+        }
+      ])
+    : [];
+
   const numberOfMonths =
     numberOfMonthsBetween(endDate, firstVisitPartStartDate) + 1;
 
   const monthNumbers = [...Array<unknown>(numberOfMonths)].map((_, i) => i);
 
-  // return monthNumbers.map((week, i) => ({
-  //   cost,
-  //   includeDetergents,
-  //   startDate: advanceDateByMonths(firstVisitStartDate, week),
-  //   endDate: advanceDateByMonths(firstVisitEndDate, week),
-  //   status: Status.TO_BE_CONFIRMED,
-  //   name: `${reservationName}-${i + 1}`
-  // })
-
   return Prisma.validator<Prisma.VisitCreateWithoutReservationInput[]>()(
-    monthNumbers.map((month, i) => ({
+    monthNumbers.map((month) => ({
       includeDetergents,
       visitParts: {
-        create: visitParts.map((visitPart, index) => ({
-          ...visitPart,
-          // name: `${reservationName}-${i + 1}-${index + 1}`,
-          status: Status.TO_BE_CONFIRMED,
-          startDate: advanceDateByMonths(visitPart.startDate, month),
-          endDate: advanceDateByMonths(visitPart.endDate, month)
-        }))
+        create: visitParts.map((visitPart) => {
+          let visitPartStartDate = new Date(
+            advanceDateByMonths(visitPart.startDate, month)
+          );
+          let visitPartEndDate = new Date(
+            advanceDateByMonths(visitPart.endDate, month)
+          );
+
+          // if the visit part is on a holiday, move it to the closest non-holiday day
+          while (
+            holidayBusyHours.some(({ startDate }) =>
+              isTheSameDay(startDate, visitPartStartDate)
+            )
+          ) {
+            visitPartStartDate = advanceDateByDays(visitPartStartDate, 1);
+            visitPartEndDate = advanceDateByDays(visitPartEndDate, 1);
+          }
+
+          return {
+            ...visitPart,
+            status: Status.TO_BE_CONFIRMED,
+            startDate: visitPartStartDate,
+            endDate: visitPartEndDate
+          };
+        })
       }
     }))
   );
@@ -207,8 +255,6 @@ export const getCyclicDateRanges = (
     return null;
   }
 
-  console.log({ year, month, frequency });
-
   const queryDate = dateFromMonthAndYear(month, year);
   const start = new Date(startOfMonth(queryDate));
   const end = new Date(endOfMonth(queryDate));
@@ -247,6 +293,7 @@ export const getCyclicDateRanges = (
   ].map((_, i) => i * step);
 
   console.log(
+    'unitIndices',
     unitIndices.map((unitIndex) => ({
       startDate: new Date(advanceDateCallback(start, unitIndex)),
       endDate: new Date(advanceDateCallback(end, unitIndex))

@@ -1,8 +1,8 @@
 import type { Response } from 'express';
 
-import { VisitPartService } from '~/services';
+import { Scheduler } from '~/lib/Scheduler';
 
-import { Scheduler } from '~/utils/Scheduler';
+import { VisitPartService } from '~/services';
 
 import { TypedRequest } from '~/types';
 

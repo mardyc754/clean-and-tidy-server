@@ -4,7 +4,6 @@ import {
   Status,
   type VisitPart
 } from '@prisma/client';
-import { Stringified } from 'type-fest';
 
 import {
   EmployeeWorkingHoursOptions,
@@ -26,6 +25,7 @@ import {
   startOfWeek
 } from '~/utils/dateUtils';
 
+import { getHolidayBusyHours } from './holidays';
 import { getFrequencyHelpers } from './reservationUtils';
 
 export type Timeslot = {
@@ -54,7 +54,7 @@ type EmployeeWithServicesAndVisitParts = Omit<Employee, 'password'> & {
  * @param allEmployeeWorkingHours the working hours of all employees
  * @returns the list with time intervals when all employees are busy
  */
-export const calculateBusyHours = (allEmployeeWorkingHours: Timeslot[][]) => {
+export const intersectBusyHours = (allEmployeeWorkingHours: Timeslot[][]) => {
   let busyHours = allEmployeeWorkingHours[0] ?? [];
 
   allEmployeeWorkingHours.slice(1).forEach((singleEmployeeWorkingHours) => {
@@ -254,15 +254,22 @@ export const calculateEmployeeWorkingHours = (timeslots: Timeslot[]) => {
  * then the whole day is marked as busy
  */
 export const calculateEmployeeBusyHours = (timeslots: Timeslot[]) => {
+  const holidayBusyHours = getHolidayBusyHours(timeslots);
   const uniqueDays = Array.from(
-    new Set(timeslots.map((timeslot) => startOfDay(timeslot.startDate)))
+    new Set([
+      ...timeslots.map((timeslot) => startOfDay(timeslot.startDate)),
+      ...holidayBusyHours.map((timeslot) => startOfDay(timeslot.startDate))
+    ])
   );
 
   uniqueDays.sort((a, b) => getTime(a) - getTime(b));
 
   const busyHours: Timeslot[] = [];
 
-  const workingHours = mergeBusyHours([addBreaksToWorkingHours(timeslots)]);
+  const workingHours = mergeBusyHours([
+    addBreaksToWorkingHours(timeslots),
+    holidayBusyHours
+  ]);
 
   uniqueDays.forEach((day) => {
     const dayTimeslots = workingHours.filter((timeslot) =>
@@ -339,6 +346,7 @@ export const getEmployeesBusyHours = (
   // employees working hours calculation
   const employeesWithWorkingHours = employees.map((employee) => {
     // add half an hour before and after the visit
+    // and include holidays as busy hours
     const employeeWorkingHours = calculateEmployeeBusyHours(
       employee.services.flatMap((service) =>
         service.visitParts
@@ -365,11 +373,62 @@ export const getEmployeesBusyHours = (
             isBeforeOrSame(visitPart.endDate, endDate)
         );
 
+        const holidaysInTimeRange = getHolidayBusyHours(
+          employeeVisitsInTimeRange
+        ).map((holiday) => holiday.startDate);
+
         const { step, advanceDateCallback } = getFrequencyHelpers(
           options?.frequency as Frequency
         );
 
-        return employeeVisitsInTimeRange.map((visitPart) => {
+        const employeeBusyHoursInTimerange: Timeslot[] = [];
+
+        employeeVisitsInTimeRange.forEach((visitPart) => {
+          const visitPartStartDate = visitPart.startDate;
+          const isHoliday = holidaysInTimeRange.some((holiday) =>
+            isTheSameDay(holiday, visitPart.startDate)
+          );
+
+          if (!isHoliday) {
+            employeeBusyHoursInTimerange.push(visitPart);
+            return;
+          }
+
+          // if the visit part starts on a holiday, then consider visit part from the next day which is not a holiday
+          // and then treat the visit part as if it started on the previous day
+          let dayIncrement = 1;
+          let nextDay = startOfDay(
+            advanceDateByDays(visitPartStartDate, dayIncrement)
+          );
+          while (
+            holidaysInTimeRange.some((holiday) =>
+              isTheSameDay(holiday, nextDay)
+            )
+          ) {
+            dayIncrement++;
+            nextDay = startOfDay(
+              advanceDateByDays(visitPartStartDate, dayIncrement)
+            );
+          }
+
+          const nextDayBusyHours = employeeVisitsInTimeRange.filter(
+            (visitPart) => isTheSameDay(visitPart.startDate, nextDay)
+          );
+
+          nextDayBusyHours.sort(
+            (a, b) => getTime(a.startDate) - getTime(b.startDate)
+          );
+
+          nextDayBusyHours.forEach((visitPart) => {
+            const newVisitPart = {
+              startDate: advanceDateByDays(visitPart.startDate, -dayIncrement),
+              endDate: advanceDateByDays(visitPart.endDate, -dayIncrement)
+            };
+            employeeBusyHoursInTimerange.push(newVisitPart);
+          });
+        });
+
+        return employeeBusyHoursInTimerange.map((visitPart) => {
           // flatten visit parts to single range
           return {
             startDate: new Date(
@@ -405,6 +464,8 @@ export const getEmployeesBusyHours = (
       )
     };
   });
+
+  console.log('employeesWithWorkingHours', employeesWithWorkingHours);
 
   // flatten visit parts to single range
   const flattenedEmployeeVisitParts = employeesWithWorkingHours.map(

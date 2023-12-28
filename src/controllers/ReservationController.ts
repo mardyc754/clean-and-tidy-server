@@ -2,6 +2,8 @@ import { Reservation, Status } from '@prisma/client';
 import type { Request, Response } from 'express';
 import { Stringified } from 'type-fest';
 
+import { Scheduler } from '~/lib/Scheduler';
+
 import { EmployeeIdData } from '~/schemas/employee';
 import { ReservationCreationData } from '~/schemas/reservation';
 
@@ -13,7 +15,6 @@ import { ReservationService, VisitPartService } from '~/services';
 
 import type { ReservationQueryOptions } from '~/services/ReservationService';
 
-import { Scheduler } from '~/utils/Scheduler';
 import { isAfter, isAfterOrSame } from '~/utils/dateUtils';
 import { queryParamToBoolean } from '~/utils/general';
 
