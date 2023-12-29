@@ -28,16 +28,10 @@ export type AllServicesQueryOptions = {
   includeEmployees: boolean;
 };
 
-export type ServiceQueryOptions = {
-  includeSecondaryServices: boolean;
-  includePrimaryServices: boolean;
-  includeCleaningFrequencies: boolean;
-};
-
 export default class TypesOfCleaningService {
-  public async getServiceById(id: Service['id'], options?: ServiceQueryOptions) {
+  public async getServiceById(id: Service['id']) {
     const service = await executeDatabaseOperation(
-      prisma.service.findUnique(getSingleServiceData(id, options))
+      prisma.service.findUnique(getSingleServiceData(id))
     );
 
     if (!service) {
@@ -110,7 +104,6 @@ export default class TypesOfCleaningService {
         },
         include: {
           ...serviceUnit
-          // employees: serviceEmployees
         }
       })
     );
@@ -120,25 +113,6 @@ export default class TypesOfCleaningService {
     }
 
     return getResponseServiceData(service);
-  }
-
-  public async linkPrimaryAndSecondaryService(data: PrimarySecondaryIds) {
-    const { primaryServiceId, secondaryServiceId } = data;
-
-    return await executeDatabaseOperation(
-      prisma.service.update({
-        where: { id: primaryServiceId },
-        data: {
-          secondaryServices: {
-            connect: { id: secondaryServiceId }
-          }
-        },
-        include: {
-          secondaryServices: true
-          // primaryServices: true
-        }
-      })
-    );
   }
 
   // admin only

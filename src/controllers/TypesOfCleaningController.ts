@@ -3,10 +3,7 @@ import type { Response } from 'express';
 import { Stringified } from 'type-fest';
 
 import { ServicesWorkingHoursOptions } from '~/schemas/employee';
-import type {
-  ChangeServiceData,
-  CreateServiceData
-} from '~/schemas/typesOfCleaning';
+import type { ChangeServiceData, CreateServiceData } from '~/schemas/typesOfCleaning';
 
 import { checkIsAdmin } from '~/middlewares/auth/checkRole';
 import {
@@ -39,33 +36,15 @@ export default class TypesOfCleaningController extends AbstractController {
 
   public createRouters() {
     this.router.get('/', this.getAllServices);
-    this.router.post(
-      '/',
-      checkIsAdmin(),
-      validateServiceCreationData(),
-      this.createService
-    );
+    this.router.post('/', checkIsAdmin(), validateServiceCreationData(), this.createService);
     this.router.get('/busy-hours', this.getAllServicesBusyHours);
     this.router.get('/:id', this.getServiceById);
-    this.router.put(
-      '/:id',
-      checkIsAdmin(),
-      validateServiceChangeData(),
-      this.changeServicePrice
-    );
+    this.router.put('/:id', checkIsAdmin(), validateServiceChangeData(), this.changeServicePrice);
     this.router.delete('/:id', this.deleteService);
-    this.router.post(
-      '/:primaryServiceId/connect/:secondaryServiceId',
-      this.linkPrimaryAndSecondaryService
-    );
   }
 
   private getAllServices = async (
-    req: TypedRequest<
-      DefaultParamsType,
-      DefaultBodyType,
-      Stringified<AllServicesQueryOptions>
-    >,
+    req: TypedRequest<DefaultParamsType, DefaultBodyType, Stringified<AllServicesQueryOptions>>,
     res: Response
   ) => {
     const services = await this.typesOfCleaningService.getAllServices({
@@ -81,34 +60,15 @@ export default class TypesOfCleaningController extends AbstractController {
   };
 
   private getServiceById = async (
-    req: TypedRequest<
-      { id: string },
-      DefaultBodyType,
-      GetServiceByIdQueryParams
-    >,
+    req: TypedRequest<{ id: string }, DefaultBodyType, GetServiceByIdQueryParams>,
     res: Response
   ) => {
-    const service = await this.typesOfCleaningService.getServiceById(
-      parseInt(req.params.id),
-      {
-        includeSecondaryServices: queryParamToBoolean(
-          req.query.includeSecondaryServices
-        ),
-        includePrimaryServices: queryParamToBoolean(
-          req.query.includePrimaryServices
-        ),
-        includeCleaningFrequencies: queryParamToBoolean(
-          req.query.includeCleaningFrequencies
-        )
-      }
-    );
+    const service = await this.typesOfCleaningService.getServiceById(parseInt(req.params.id));
 
     if (service !== null) {
       res.status(200).send(service);
     } else {
-      res
-        .status(400)
-        .send({ message: 'Error when fetching single service data' });
+      res.status(400).send({ message: 'Error when fetching single service data' });
     }
   };
 
@@ -132,12 +92,9 @@ export default class TypesOfCleaningController extends AbstractController {
   ) => {
     const { unit } = req.body;
 
-    const service = await this.typesOfCleaningService.changeServicePrice(
-      parseInt(req.params.id),
-      {
-        unit
-      }
-    );
+    const service = await this.typesOfCleaningService.changeServicePrice(parseInt(req.params.id), {
+      unit
+    });
 
     if (service !== null) {
       res.status(200).send(service);
@@ -146,13 +103,8 @@ export default class TypesOfCleaningController extends AbstractController {
     }
   };
 
-  private deleteService = async (
-    req: TypedRequest<{ id: string }>,
-    res: Response
-  ) => {
-    const service = await this.typesOfCleaningService.deleteService(
-      parseInt(req.params.id)
-    );
+  private deleteService = async (req: TypedRequest<{ id: string }>, res: Response) => {
+    const service = await this.typesOfCleaningService.deleteService(parseInt(req.params.id));
 
     if (service !== null) {
       res.status(200).send({ data: service });
@@ -161,32 +113,8 @@ export default class TypesOfCleaningController extends AbstractController {
     }
   };
 
-  private linkPrimaryAndSecondaryService = async (
-    req: TypedRequest<{ primaryServiceId: string; secondaryServiceId: string }>,
-    res: Response
-  ) => {
-    const { primaryServiceId, secondaryServiceId } = req.params;
-    const primaryService =
-      await this.typesOfCleaningService.linkPrimaryAndSecondaryService({
-        primaryServiceId: parseInt(primaryServiceId),
-        secondaryServiceId: parseInt(secondaryServiceId)
-      });
-
-    if (primaryService !== null) {
-      res.status(200).send({ ...primaryService });
-    } else {
-      res
-        .status(400)
-        .send({ message: 'Error when linking primary and secondary service' });
-    }
-  };
-
   private getAllServicesBusyHours = async (
-    req: TypedRequest<
-      DefaultParamsType,
-      DefaultBodyType,
-      Stringified<ServicesWorkingHoursOptions>
-    >,
+    req: TypedRequest<DefaultParamsType, DefaultBodyType, Stringified<ServicesWorkingHoursOptions>>,
     res: Response
   ) => {
     const services = await this.typesOfCleaningService.getAllServicesBusyHours({

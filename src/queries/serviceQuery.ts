@@ -4,7 +4,7 @@ import { prisma } from '~/db';
 
 import { prismaExclude } from '~/lib/prisma';
 
-import { AllServicesQueryOptions, ServiceQueryOptions } from '~/services/TypesOfCleaningService';
+import { AllServicesQueryOptions } from '~/services/TypesOfCleaningService';
 
 import { Timeslot } from '~/utils/timeslotUtils';
 
@@ -60,24 +60,19 @@ export const getAllServicesData = (options?: AllServicesQueryOptions) => {
     where: options?.primaryOnly ? { isPrimary: true } : undefined,
     include: {
       ...serviceUnit,
-      // employees: options?.includeEmployees
-      //   ? getServiceEmployees(!!options?.includeEmployees)
-      //   : undefined
       employees: options?.includeEmployees ? serviceEmployees : undefined
     }
   });
 };
 
-export const getSingleServiceData = (id: Service['id'], options?: ServiceQueryOptions) => {
+export const getSingleServiceData = (id: Service['id']) => {
   return Prisma.validator<Prisma.ServiceFindUniqueArgs>()({
     where: { id },
     include: {
       ...serviceUnit,
       primaryServices: serviceWithUnit,
       secondaryServices: serviceWithUnit,
-      cleaningFrequencies: options?.includeCleaningFrequencies
-        ? { select: { name: true, value: true } }
-        : undefined
+      cleaningFrequencies: { select: { name: true, value: true } }
     }
   });
 };
