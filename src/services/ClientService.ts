@@ -1,8 +1,7 @@
 import { Address, Client, Status } from '@prisma/client';
 import { SetOptional } from 'type-fest';
 
-import { prisma } from '~/db';
-
+import { prisma } from '~/lib/prisma';
 import { prismaExclude } from '~/lib/prisma';
 
 import { RegisterData } from '~/schemas/auth';
@@ -10,10 +9,7 @@ import { UserUpdateData } from '~/schemas/common';
 
 import { serviceInclude, visitPartWithEmployee } from '~/queries/serviceQuery';
 
-import {
-  flattenNestedReservationServices,
-  flattenNestedVisits
-} from '~/utils/visits';
+import { flattenNestedReservationServices, flattenNestedVisits } from '~/utils/visits';
 
 import { executeDatabaseOperation } from '../utils/queryUtils';
 
@@ -117,18 +113,14 @@ export default class ClientService {
         }
       });
 
-      addresses =
-        userWithVisits?.reservations.flatMap((group) => group.address) ?? null;
+      addresses = userWithVisits?.reservations.flatMap((group) => group.address) ?? null;
     } catch (err) {
       console.error(`Something went wrong: ${err}`);
     }
     return addresses;
   }
 
-  public async changeClientData(
-    clientId: Client['id'],
-    userData: UserUpdateData
-  ) {
+  public async changeClientData(clientId: Client['id'], userData: UserUpdateData) {
     return await executeDatabaseOperation(
       prisma.client.update({
         where: { id: clientId },

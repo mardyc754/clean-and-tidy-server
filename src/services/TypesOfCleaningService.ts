@@ -1,6 +1,6 @@
 import { type Service } from '@prisma/client';
 
-import { prisma } from '~/db';
+import { prisma } from '~/lib/prisma';
 
 import type { ServicesWorkingHoursOptions } from '~/schemas/employee';
 import {

@@ -2,7 +2,7 @@ import { Reservation, Status, type Visit, VisitPart } from '@prisma/client';
 import { omit } from 'lodash';
 import type { RequireAtLeastOne } from 'type-fest';
 
-import { prisma } from '~/db';
+import { prisma } from '~/lib/prisma';
 
 import { isAtLeastOneDayBetween } from '~/utils/dateUtils';
 
@@ -111,10 +111,7 @@ export default class VisitPartService {
     );
   }
 
-  public async getVisitPartsByVisitId(
-    visitId: Visit['id'],
-    status?: VisitPart['status']
-  ) {
+  public async getVisitPartsByVisitId(visitId: Visit['id'], status?: VisitPart['status']) {
     return await executeDatabaseOperation(
       prisma.visitPart.findMany({
         where: { visitId, status },

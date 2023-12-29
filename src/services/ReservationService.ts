@@ -1,34 +1,17 @@
-import {
-  type Client,
-  Employee,
-  Frequency,
-  type Reservation,
-  Status
-} from '@prisma/client';
+import { type Client, Employee, Frequency, type Reservation, Status } from '@prisma/client';
 import short from 'short-uuid';
 import type { RequireAtLeastOne } from 'type-fest';
 
-import { prisma } from '~/db';
+import { prisma } from '~/lib/prisma';
 
 import type { ReservationCreationData } from '~/schemas/reservation';
 
-import {
-  includeAllVisitData,
-  serviceInclude,
-  visitPartWithEmployee
-} from '~/queries/serviceQuery';
+import { includeAllVisitData, serviceInclude, visitPartWithEmployee } from '~/queries/serviceQuery';
 
-import {
-  advanceDateByOneYear,
-  isAfter,
-  isAtLeastOneDayBetween
-} from '~/utils/dateUtils';
+import { advanceDateByOneYear, isAfter, isAtLeastOneDayBetween } from '~/utils/dateUtils';
 import { executeDatabaseOperation } from '~/utils/queryUtils';
 import { createVisits } from '~/utils/reservationUtils';
-import {
-  flattenNestedReservationServices,
-  flattenNestedVisits
-} from '~/utils/visits';
+import { flattenNestedReservationServices, flattenNestedVisits } from '~/utils/visits';
 
 export type ReservationQueryOptions = RequireAtLeastOne<{
   includeVisits: boolean;
@@ -55,10 +38,7 @@ export default class ReservationService {
     );
   }
 
-  public async getReservationByName(
-    name: Reservation['name'],
-    options?: ReservationQueryOptions
-  ) {
+  public async getReservationByName(name: Reservation['name'], options?: ReservationQueryOptions) {
     const reservationData = await executeDatabaseOperation(
       prisma.reservation.findUnique({
         where: { name },
@@ -83,10 +63,7 @@ export default class ReservationService {
     };
   }
 
-  public async getClientReservations(
-    clientEmail: Client['email'],
-    status?: Status
-  ) {
+  public async getClientReservations(clientEmail: Client['email'], status?: Status) {
     return await executeDatabaseOperation(
       prisma.reservation.findMany({
         where: { bookerEmail: clientEmail },
@@ -146,10 +123,7 @@ export default class ReservationService {
       return null;
     }
 
-    const endDate =
-      frequency !== Frequency.ONCE
-        ? advanceDateByOneYear(lastEndDate)
-        : lastEndDate;
+    const endDate = frequency !== Frequency.ONCE ? advanceDateByOneYear(lastEndDate) : lastEndDate;
 
     try {
       let addressId: number;
@@ -172,11 +146,7 @@ export default class ReservationService {
         data: {
           status: Status.TO_BE_CONFIRMED,
           visits: {
-            create: createVisits(
-              { visitParts, includeDetergents },
-              frequency,
-              endDate
-            )
+            create: createVisits({ visitParts, includeDetergents }, frequency, endDate)
           },
           name: reservationGroupName,
           frequency,
@@ -248,10 +218,7 @@ export default class ReservationService {
                     where: { id: { in: visitPartsAfterNow } },
                     data: {
                       status: Status.CANCELLED,
-                      cost: isAtLeastOneDayBetween(
-                        new Date(),
-                        visitPart.startDate
-                      )
+                      cost: isAtLeastOneDayBetween(new Date(), visitPart.startDate)
                         ? 0
                         : visitPart.cost.toNumber() / 2
                     }

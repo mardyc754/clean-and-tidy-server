@@ -1,7 +1,7 @@
 import type { Address } from '@prisma/client';
 import { RequireAtLeastOne } from 'type-fest';
 
-import { prisma } from '~/db';
+import { prisma } from '~/lib/prisma';
 
 import { executeDatabaseOperation } from '~/utils/queryUtils';
 

@@ -1,7 +1,6 @@
 import { Prisma, Service } from '@prisma/client';
 
-import { prisma } from '~/db';
-
+import { prisma } from '~/lib/prisma';
 import { prismaExclude } from '~/lib/prisma';
 
 import { AllServicesQueryOptions } from '~/services/TypesOfCleaningService';
