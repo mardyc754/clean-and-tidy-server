@@ -3,11 +3,7 @@ import { type Service } from '@prisma/client';
 import { prisma } from '~/lib/prisma';
 
 import type { ServicesWorkingHoursOptions } from '~/schemas/employee';
-import {
-  ChangeServiceData,
-  CreateServiceData,
-  PrimarySecondaryIds
-} from '~/schemas/typesOfCleaning';
+import { ChangeServiceData, CreateServiceData } from '~/schemas/typesOfCleaning';
 
 import {
   employeeData,
@@ -113,20 +109,6 @@ export default class TypesOfCleaningService {
     }
 
     return getResponseServiceData(service);
-  }
-
-  // admin only
-  public async deleteService(id: Service['id']) {
-    let service: Service | null = null;
-
-    try {
-      service = await prisma.service.delete({
-        where: { id }
-      });
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
-    }
-    return service;
   }
 
   public async getAllServicesBusyHours(options?: ServicesWorkingHoursOptions) {

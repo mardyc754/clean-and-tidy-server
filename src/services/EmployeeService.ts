@@ -1,4 +1,4 @@
-import { type Employee, Frequency, type Service, Status, VisitPart } from '@prisma/client';
+import { type Employee, Frequency, Status, VisitPart } from '@prisma/client';
 import { omit, without } from 'lodash';
 
 import { prisma } from '~/lib/prisma';
@@ -194,27 +194,6 @@ export default class EmployeeService {
       });
 
       return updatedEmployee;
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
-    }
-
-    return null;
-  }
-
-  public async getEmployeesOfferingService(id: Service['id']) {
-    try {
-      const service = await prisma.service.findUnique({
-        where: { id },
-        include: {
-          employees: {
-            include: {
-              employee: selectEmployee
-            }
-          }
-        }
-      });
-
-      return service?.employees.flatMap(({ employee }) => employee) ?? null;
     } catch (err) {
       console.error(`Something went wrong: ${err}`);
     }

@@ -1,4 +1,4 @@
-import { Address, Client, Status } from '@prisma/client';
+import { Client, Status } from '@prisma/client';
 import { SetOptional } from 'type-fest';
 
 import { prisma } from '~/lib/prisma';
@@ -96,28 +96,6 @@ export default class ClientService {
         services: flattenNestedReservationServices(reservation.services)
       })) ?? null
     );
-  }
-
-  public async getClientAddresses(clientId: Client['id']) {
-    let addresses: Address[] | null = null;
-
-    try {
-      const userWithVisits = await prisma.client.findUnique({
-        where: { id: clientId },
-        include: {
-          reservations: {
-            include: {
-              address: true
-            }
-          }
-        }
-      });
-
-      addresses = userWithVisits?.reservations.flatMap((group) => group.address) ?? null;
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
-    }
-    return addresses;
   }
 
   public async changeClientData(clientId: Client['id'], userData: UserUpdateData) {

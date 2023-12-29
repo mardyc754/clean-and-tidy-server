@@ -40,7 +40,6 @@ export default class TypesOfCleaningController extends AbstractController {
     this.router.get('/busy-hours', this.getAllServicesBusyHours);
     this.router.get('/:id', this.getServiceById);
     this.router.put('/:id', checkIsAdmin(), validateServiceChangeData(), this.changeServicePrice);
-    this.router.delete('/:id', this.deleteService);
   }
 
   private getAllServices = async (
@@ -100,16 +99,6 @@ export default class TypesOfCleaningController extends AbstractController {
       res.status(200).send(service);
     } else {
       res.status(400).send({ message: "Error when changing service's price" });
-    }
-  };
-
-  private deleteService = async (req: TypedRequest<{ id: string }>, res: Response) => {
-    const service = await this.typesOfCleaningService.deleteService(parseInt(req.params.id));
-
-    if (service !== null) {
-      res.status(200).send({ data: service });
-    } else {
-      res.status(400).send({ message: 'Error when deleting service' });
     }
   };
 

@@ -1,7 +1,5 @@
 import { type Employee, Frequency, Status, type VisitPart } from '@prisma/client';
 
-import { EmployeeWorkingHoursOptions, ServicesWorkingHoursOptions } from '~/schemas/employee';
-
 import {
   ValidDayjsDate,
   advanceDateByDays,

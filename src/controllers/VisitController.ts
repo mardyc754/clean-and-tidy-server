@@ -31,7 +31,7 @@ export default class VisitController extends AbstractController {
   }
 
   public createRouters() {
-    this.router.get('/', this.getAllVisits); // is this needed somewhere?
+    this.router.get('/', this.getAllVisits);
     this.router.post('/', validateVisitCreationData(), this.createVisit);
     this.router.get('/:id', this.getVisitById);
     this.router.put('/:id', this.changeVisitData);
@@ -49,17 +49,12 @@ export default class VisitController extends AbstractController {
   };
 
   private getVisitById = async (
-    req: TypedRequest<
-      { id: string },
-      DefaultBodyType,
-      Stringified<VisitQueryOptions>
-    >,
+    req: TypedRequest<{ id: string }, DefaultBodyType, Stringified<VisitQueryOptions>>,
     res: Response
   ) => {
-    const visit = await this.visitService.getVisitById(
-      parseInt(req.params.id),
-      { includeEmployee: queryParamToBoolean(req.query.includeEmployee) }
-    );
+    const visit = await this.visitService.getVisitById(parseInt(req.params.id), {
+      includeEmployee: queryParamToBoolean(req.query.includeEmployee)
+    });
 
     if (visit) {
       res.status(200).send(visit);
@@ -102,9 +97,7 @@ export default class VisitController extends AbstractController {
         });
         return res.status(200).send(visit);
       }
-      return res
-        .status(400)
-        .send({ message: 'Error when updating visit data' });
+      return res.status(400).send({ message: 'Error when updating visit data' });
     } catch (error) {
       if (error instanceof RequestError) {
         return res.status(400).send({ message: error.message });
@@ -117,9 +110,7 @@ export default class VisitController extends AbstractController {
     const visit = await this.visitService.cancelVisit(parseInt(req.params.id));
 
     if (visit) {
-      const visitParts = visit.visitParts.filter(
-        ({ status }) => status === Status.CANCELLED
-      );
+      const visitParts = visit.visitParts.filter(({ status }) => status === Status.CANCELLED);
 
       visitParts.forEach(({ id }) => {
         this.scheduler.cancelVisitPartJob(id);

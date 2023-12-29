@@ -12,15 +12,9 @@ function checkRole(data?: AuthenticationData) {
     }
 
     try {
-      const decoded = jwt.verify(
-        req.cookies.authToken,
-        JWT_SECRET
-      ) as jwt.JwtPayload;
+      const decoded = jwt.verify(req.cookies.authToken, JWT_SECRET) as jwt.JwtPayload;
 
-      if (
-        data?.acceptableRoles &&
-        !data.acceptableRoles.includes(decoded.role)
-      ) {
+      if (data?.acceptableRoles && !data.acceptableRoles.includes(decoded.role)) {
         return res.status(403).send({
           message: 'Cannot access resource with given permissions'
         });
