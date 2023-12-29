@@ -1,4 +1,4 @@
-import { type Employee, type Service, Status, VisitPart } from '@prisma/client';
+import { type Employee, Frequency, type Service, Status, VisitPart } from '@prisma/client';
 import { omit, without } from 'lodash';
 
 import { prisma } from '~/db';
@@ -18,18 +18,14 @@ import {
   visitPartTimeframe
 } from '~/queries/serviceQuery';
 
-import { getEmployeesBusyHours, mergeBusyHours } from '~/utils/employeeUtils';
 import { executeDatabaseOperation } from '~/utils/queryUtils';
-import { getCyclicDateRanges } from '~/utils/reservationUtils';
 import { flattenVisitPartsFromServices } from '~/utils/services';
+import { getCyclicDateRanges } from '~/utils/timeslotUtils';
+import { getEmployeesBusyHoursData, sumOfTimeslots } from '~/utils/timeslotUtils';
 import { flattenNestedReservationServices } from '~/utils/visits';
 
 type EmployeeReservationQueryOptions = {
   status: Status;
-};
-
-type EmployeeFilterOptions = {
-  includeVisits?: boolean;
 };
 
 export default class EmployeeService {
@@ -78,10 +74,7 @@ export default class EmployeeService {
       : null;
   }
 
-  public async getEmployeeVisits(
-    employeeId: Employee['id'],
-    status?: VisitPart['status']
-  ) {
+  public async getEmployeeVisits(employeeId: Employee['id'], status?: VisitPart['status']) {
     const visits = await executeDatabaseOperation(
       prisma.visitPart.findMany({
         where: {
@@ -145,8 +138,7 @@ export default class EmployeeService {
 
       return {
         ...omit(employeeWithServices, 'services'),
-        services:
-          employeeWithServices?.services.flatMap(({ service }) => service) ?? []
+        services: employeeWithServices?.services.flatMap(({ service }) => service) ?? []
       };
     } catch (err) {
       console.error(`Something went wrong: ${err}`);
@@ -155,9 +147,7 @@ export default class EmployeeService {
   }
 
   // admin only
-  public async createEmployee(
-    data: Omit<EmployeeCreationData, 'confirmPassword'>
-  ) {
+  public async createEmployee(data: Omit<EmployeeCreationData, 'confirmPassword'>) {
     return await executeDatabaseOperation(
       prisma.employee.create({
         data: {
@@ -172,32 +162,7 @@ export default class EmployeeService {
     );
   }
 
-  // delete employee account when the employee does not have any visits
-  public async deleteEmployee(employeeId: Employee['id']) {
-    let deleteEmployee: Employee | null = null;
-
-    const employeeActiveVisits = await this.getEmployeeVisits(
-      employeeId,
-      Status.ACTIVE
-    );
-
-    // if (!employeeActiveVisits || employeeActiveVisits.length === 0) {
-    //   try {
-    //     deleteEmployee = await prisma.employee.delete({
-    //       where: { id: employeeId }
-    //     });
-    //   } catch (err) {
-    //     console.error(`Something went wrong: ${err}`);
-    //   }
-    // }
-
-    return deleteEmployee;
-  }
-
-  public async changeEmployeeData(
-    employeeId: Employee['id'],
-    data: Partial<EmployeeChangeData>
-  ) {
+  public async changeEmployeeData(employeeId: Employee['id'], data: Partial<EmployeeChangeData>) {
     const employeeServices = await this.getEmployeeWithServices(employeeId);
 
     const serviceIds = data.services ?? [];
@@ -206,9 +171,7 @@ export default class EmployeeService {
       return null;
     }
 
-    const employeeServicesIds = employeeServices.services.map(
-      (service) => service.id
-    );
+    const employeeServicesIds = employeeServices.services.map((service) => service.id);
     const removedServiceIds = without(employeeServicesIds, ...serviceIds);
     const createdServiceIds = without(serviceIds, ...employeeServicesIds);
 
@@ -259,9 +222,7 @@ export default class EmployeeService {
     return null;
   }
 
-  public async getEmployeesBusyHoursForVisit(
-    options?: EmployeeWorkingHoursOptions
-  ) {
+  public async getEmployeesBusyHoursForVisit(options?: EmployeeWorkingHoursOptions) {
     const periodParams = options?.period?.split('-');
     // not sure if there should be added 1 to the month
     // in order not to count it from 0
@@ -276,11 +237,6 @@ export default class EmployeeService {
           services: {
             some: {
               visitParts: {
-                // some: {
-                //   id: {
-                //     in: options?.visitIds
-                //   }
-                // }
                 some: { visitId: { in: options?.visitIds } }
               }
             }
@@ -291,14 +247,8 @@ export default class EmployeeService {
           services: {
             include: {
               visitParts: {
-                ...visitPartTimeframe(
-                  cyclicRanges,
-                  options?.excludeFrom,
-                  options?.excludeTo
-                )
-                // select: { startDate: true, endDate: true }
+                ...visitPartTimeframe(cyclicRanges, options?.excludeFrom, options?.excludeTo)
               }
-              // visitParts: true
             }
           }
         }
@@ -309,12 +259,15 @@ export default class EmployeeService {
       return null;
     }
 
-    const { employeesWithWorkingHours, flattenedEmployeeVisitParts } =
-      getEmployeesBusyHours(employees, cyclicRanges, options);
+    const { employeesWithWorkingHours, flattenedEmployeeVisitParts } = getEmployeesBusyHoursData(
+      employees,
+      cyclicRanges,
+      options?.frequency ?? Frequency.ONCE
+    );
 
     return {
       employees: employeesWithWorkingHours,
-      busyHours: mergeBusyHours(flattenedEmployeeVisitParts)
+      busyHours: sumOfTimeslots(flattenedEmployeeVisitParts)
     };
   }
 }

@@ -1,13 +1,7 @@
-import type {
-  ReservationService,
-  Service,
-  Unit,
-  Visit,
-  VisitPart
-} from '@prisma/client';
+import type { ReservationService, Service, Unit, Visit, VisitPart } from '@prisma/client';
 import { omit } from 'lodash';
 
-import type { EmployeeNested } from './employeeUtils';
+import type { EmployeeNested } from './timeslotUtils';
 
 type ReservationServiceNested = ReservationService & {
   service: Service & { unit: Unit | null };
@@ -30,9 +24,7 @@ export function flattenNestedVisits(visits: VisitQueryResult[]) {
 const visitStartDate = (visit: ReturnType<typeof flattenNestedVisit>) =>
   visit.visitParts[0]!.startDate.getTime();
 
-export function flattenNestedReservationServices(
-  services: ReservationServiceNested[]
-) {
+export function flattenNestedReservationServices(services: ReservationServiceNested[]) {
   return services.map((service) => ({
     ...omit(service, 'serviceId', 'service'),
     ...service.service

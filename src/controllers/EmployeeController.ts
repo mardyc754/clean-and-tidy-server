@@ -63,7 +63,6 @@ export default class EmployeeController extends AbstractController {
       validateEmployeeChangeData(),
       this.changeEmployeeData
     );
-    this.router.delete('/:id', this.deleteEmployeeData);
     this.router.get('/services/:id', this.getEmployeesOfferingService);
   }
 
@@ -191,23 +190,6 @@ export default class EmployeeController extends AbstractController {
       res.status(201).send(omit(employee, 'password'));
     } else {
       res.status(400).send({ message: `Error when creating new employee` });
-    }
-  };
-
-  private deleteEmployeeData = async (
-    req: TypedRequest<{ id: string }>,
-    res: Response
-  ) => {
-    const deletedEmployee = await this.employeeService.deleteEmployee(
-      parseInt(req.params.id)
-    );
-
-    if (deletedEmployee !== null) {
-      res.status(200).send(deletedEmployee);
-    } else {
-      res
-        .status(404)
-        .send({ message: `Employee with id=${req.params.id} not found` });
     }
   };
 

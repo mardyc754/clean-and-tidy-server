@@ -1,25 +1,14 @@
-import {
-  Frequency,
-  Prisma,
-  type Reservation,
-  Status,
-  type Visit
-} from '@prisma/client';
+import { Frequency, Prisma, type Reservation, Status, type Visit } from '@prisma/client';
 
 import { ReservationCreationData } from '~/schemas/reservation';
 
 import {
-  ValidDayjsDate,
   advanceDateByDays,
   advanceDateByMonths,
-  advanceDateByOneYear,
   advanceDateByWeeks,
-  dateFromMonthAndYear,
-  endOfMonth,
   isTheSameDay,
   numberOfMonthsBetween,
-  numberOfWeeksBetween,
-  startOfMonth
+  numberOfWeeksBetween
 } from './dateUtils';
 import { getHolidayBusyHours } from './holidays';
 
@@ -41,30 +30,23 @@ function createWeeklyVisits(
       ])
     : [];
 
-  const numberOfWeeks =
-    numberOfWeeksBetween(endDate, firstVisitPartStartDate) + 1;
+  const numberOfWeeks = numberOfWeeksBetween(endDate, firstVisitPartStartDate) + 1;
 
-  const weekNumbers = [
-    ...Array<unknown>(Math.ceil(numberOfWeeks / weekSpan))
-  ].map((_, i) => i * weekSpan);
+  const weekNumbers = [...Array<unknown>(Math.ceil(numberOfWeeks / weekSpan))].map(
+    (_, i) => i * weekSpan
+  );
 
   return Prisma.validator<Prisma.VisitCreateWithoutReservationInput[]>()(
     weekNumbers.map((week) => ({
       includeDetergents,
       visitParts: {
         create: visitParts.map((visitPart) => {
-          let visitPartStartDate = new Date(
-            advanceDateByWeeks(visitPart.startDate, week)
-          );
-          let visitPartEndDate = new Date(
-            advanceDateByWeeks(visitPart.endDate, week)
-          );
+          let visitPartStartDate = new Date(advanceDateByWeeks(visitPart.startDate, week));
+          let visitPartEndDate = new Date(advanceDateByWeeks(visitPart.endDate, week));
 
           // if the visit part is on a holiday, move it to the closest non-holiday day
           while (
-            holidayBusyHours.some(({ startDate }) =>
-              isTheSameDay(startDate, visitPartStartDate)
-            )
+            holidayBusyHours.some(({ startDate }) => isTheSameDay(startDate, visitPartStartDate))
           ) {
             visitPartStartDate = advanceDateByDays(visitPartStartDate, 1);
             visitPartEndDate = advanceDateByDays(visitPartEndDate, 1);
@@ -99,8 +81,7 @@ function createMonthlyVisits(
       ])
     : [];
 
-  const numberOfMonths =
-    numberOfMonthsBetween(endDate, firstVisitPartStartDate) + 1;
+  const numberOfMonths = numberOfMonthsBetween(endDate, firstVisitPartStartDate) + 1;
 
   const monthNumbers = [...Array<unknown>(numberOfMonths)].map((_, i) => i);
 
@@ -109,18 +90,12 @@ function createMonthlyVisits(
       includeDetergents,
       visitParts: {
         create: visitParts.map((visitPart) => {
-          let visitPartStartDate = new Date(
-            advanceDateByMonths(visitPart.startDate, month)
-          );
-          let visitPartEndDate = new Date(
-            advanceDateByMonths(visitPart.endDate, month)
-          );
+          let visitPartStartDate = new Date(advanceDateByMonths(visitPart.startDate, month));
+          let visitPartEndDate = new Date(advanceDateByMonths(visitPart.endDate, month));
 
           // if the visit part is on a holiday, move it to the closest non-holiday day
           while (
-            holidayBusyHours.some(({ startDate }) =>
-              isTheSameDay(startDate, visitPartStartDate)
-            )
+            holidayBusyHours.some(({ startDate }) => isTheSameDay(startDate, visitPartStartDate))
           ) {
             visitPartStartDate = advanceDateByDays(visitPartStartDate, 1);
             visitPartEndDate = advanceDateByDays(visitPartEndDate, 1);
@@ -182,14 +157,8 @@ export function createVisits(
   }
 }
 
-export function shouldChangeVisitFrequency(
-  oldFrequency: Frequency,
-  newFrequency: Frequency
-) {
-  return (
-    oldFrequency !== newFrequency &&
-    ![oldFrequency, newFrequency].includes(Frequency.ONCE)
-  );
+export function shouldChangeVisitFrequency(oldFrequency: Frequency, newFrequency: Frequency) {
+  return oldFrequency !== newFrequency && ![oldFrequency, newFrequency].includes(Frequency.ONCE);
 }
 
 export function changeStatus(visit: Visit, newStatus: Status) {
@@ -205,103 +174,3 @@ export function changeMultipleVisitsStatus(visits: Visit[], newStatus: Status) {
     status: newStatus
   }));
 }
-
-export const getFrequencyHelpers = (frequency: Frequency | undefined) => {
-  let step: number;
-  let unit: 'week' | 'month' | undefined = undefined;
-  let numberOfUnitsBetweenStartEndCallback:
-    | ((endDate: ValidDayjsDate, startDate: ValidDayjsDate) => number)
-    | undefined = undefined;
-  let advanceDateCallback:
-    | ((date: ValidDayjsDate, step: number) => ValidDayjsDate)
-    | undefined = undefined;
-  switch (frequency) {
-    case Frequency.ONCE_A_WEEK:
-      step = 1;
-      unit = 'week';
-      numberOfUnitsBetweenStartEndCallback = numberOfWeeksBetween;
-      advanceDateCallback = advanceDateByWeeks;
-      break;
-    case Frequency.ONCE_A_MONTH:
-      step = 1;
-      unit = 'month';
-      numberOfUnitsBetweenStartEndCallback = numberOfMonthsBetween;
-      advanceDateCallback = advanceDateByMonths;
-      break;
-    case Frequency.EVERY_TWO_WEEKS:
-      step = 2;
-      unit = 'week';
-      numberOfUnitsBetweenStartEndCallback = numberOfWeeksBetween;
-      advanceDateCallback = advanceDateByWeeks;
-      break;
-    default:
-      step = 0;
-  }
-
-  return {
-    step,
-    unit,
-    numberOfUnitsBetweenStartEndCallback,
-    advanceDateCallback
-  };
-};
-
-export const getCyclicDateRanges = (
-  year?: number,
-  month?: number,
-  frequency?: Frequency
-) => {
-  if (month === undefined || year === undefined) {
-    return null;
-  }
-
-  const queryDate = dateFromMonthAndYear(month, year);
-  const start = new Date(startOfMonth(queryDate));
-  const end = new Date(endOfMonth(queryDate));
-
-  if (
-    !(
-      [
-        Frequency.EVERY_TWO_WEEKS,
-        Frequency.ONCE_A_MONTH,
-        Frequency.ONCE_A_WEEK
-      ] as (Frequency | undefined)[]
-    ).includes(frequency)
-  ) {
-    return [
-      {
-        startDate: start,
-        endDate: end
-      }
-    ];
-  }
-
-  const finalDate = advanceDateByOneYear(end);
-
-  const { step, unit } = getFrequencyHelpers(frequency);
-
-  const numberOfUnitsBetweenStartEnd =
-    unit === 'week'
-      ? numberOfWeeksBetween(finalDate, start)
-      : numberOfMonthsBetween(finalDate, start);
-
-  const advanceDateCallback =
-    unit === 'week' ? advanceDateByWeeks : advanceDateByMonths;
-
-  const unitIndices = [
-    ...Array<unknown>(Math.ceil((numberOfUnitsBetweenStartEnd + 1) / step))
-  ].map((_, i) => i * step);
-
-  console.log(
-    'unitIndices',
-    unitIndices.map((unitIndex) => ({
-      startDate: new Date(advanceDateCallback(start, unitIndex)),
-      endDate: new Date(advanceDateCallback(end, unitIndex))
-    }))
-  );
-
-  return unitIndices.map((unitIndex) => ({
-    startDate: new Date(advanceDateCallback(start, unitIndex)),
-    endDate: new Date(advanceDateCallback(end, unitIndex))
-  }));
-};

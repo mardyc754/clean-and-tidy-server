@@ -1,27 +1,17 @@
 import Holidays from 'date-holidays';
 
 import { endOfDay, startOfDay } from './dateUtils';
-import { Timeslot } from './employeeUtils';
+import { Timeslot } from './timeslotUtils';
 
 export function getHolidaysForYear(year: number) {
   // we can think about using tsyringe to register the holidays class as a singleton
   // maybe it will be useful ffor testing the holidays
   const holidays = new Holidays('PL');
 
-  return (
-    holidays
-      .getHolidays(year)
-      .filter(
-        // for some reason, date-holidays thinks that the Zielone Świątki (easter 49)
-        // are the public holidays in Poland but they aren't
-        (holiday) => holiday.type === 'public' && holiday.rule !== 'easter 49'
-      )
-      // .map((holiday) => ({
-      //   startDate: holiday.start.toISOString(),
-      //   endDate: holiday.end.toISOString()
-      // }));
-      .map((holiday) => holiday.start.toISOString())
-  );
+  return holidays
+    .getHolidays(year)
+    .filter((holiday) => holiday.type === 'public' && holiday.rule !== 'easter 49')
+    .map((holiday) => holiday.start.toISOString());
 }
 
 export function getHolidayBusyHours(timeframe: Timeslot[]) {

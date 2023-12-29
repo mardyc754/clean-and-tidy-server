@@ -17,12 +17,9 @@ import {
   visitPartTimeframe
 } from '~/queries/serviceQuery';
 
-import {
-  getEmployeesBusyHours,
-  intersectBusyHours
-} from '~/utils/employeeUtils';
-import { getCyclicDateRanges } from '~/utils/reservationUtils';
 import { getResponseServiceData } from '~/utils/services';
+import { getCyclicDateRanges } from '~/utils/timeslotUtils';
+import { getEmployeesBusyHoursData, timeslotsIntersection } from '~/utils/timeslotUtils';
 
 import { executeDatabaseOperation } from '../utils/queryUtils';
 
@@ -38,10 +35,7 @@ export type ServiceQueryOptions = {
 };
 
 export default class TypesOfCleaningService {
-  public async getServiceById(
-    id: Service['id'],
-    options?: ServiceQueryOptions
-  ) {
+  public async getServiceById(id: Service['id'], options?: ServiceQueryOptions) {
     const service = await executeDatabaseOperation(
       prisma.service.findUnique(getSingleServiceData(id, options))
     );
@@ -179,12 +173,7 @@ export default class TypesOfCleaningService {
           services: {
             include: {
               visitParts: {
-                ...visitPartTimeframe(
-                  cyclicRanges,
-                  options?.excludeFrom,
-                  options?.excludeTo
-                )
-                // select: { startDate: true, endDate: true }
+                ...visitPartTimeframe(cyclicRanges, options?.excludeFrom, options?.excludeTo)
               }
             }
           }
@@ -196,23 +185,15 @@ export default class TypesOfCleaningService {
       return null;
     }
 
-    // console.log('employees', employees?.map((e) => e.services));
-    // employees?.map((e) =>
-    //   e.services.map((s) =>
-    //     s.visitParts.map(({ startDate, endDate, status }) => {
-    //       console.log('service', s.serviceId, { startDate, endDate, status });
-    //     })
-    //   )
-    // );
-
-    // return employees;
-
-    const { employeesWithWorkingHours, flattenedEmployeeVisitParts } =
-      getEmployeesBusyHours(employees, cyclicRanges, options);
+    const { employeesWithWorkingHours, flattenedEmployeeVisitParts } = getEmployeesBusyHoursData(
+      employees,
+      cyclicRanges,
+      options?.frequency
+    );
 
     return {
       employees: employeesWithWorkingHours,
-      busyHours: intersectBusyHours(flattenedEmployeeVisitParts)
+      busyHours: timeslotsIntersection(flattenedEmployeeVisitParts)
     };
   }
 }

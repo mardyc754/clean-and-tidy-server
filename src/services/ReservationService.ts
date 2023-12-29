@@ -23,10 +23,7 @@ import {
   isAfter,
   isAtLeastOneDayBetween
 } from '~/utils/dateUtils';
-import {
-  executeDatabaseOperation,
-  includeWithOtherDataIfTrue
-} from '~/utils/queryUtils';
+import { executeDatabaseOperation } from '~/utils/queryUtils';
 import { createVisits } from '~/utils/reservationUtils';
 import {
   flattenNestedReservationServices,
@@ -53,24 +50,6 @@ export default class ReservationService {
             }
           },
           services: serviceInclude
-        }
-      })
-    );
-  }
-
-  public async getReservationById(
-    id: Reservation['id'],
-    options?: ReservationQueryOptions
-  ) {
-    return await executeDatabaseOperation(
-      prisma.reservation.findUnique({
-        where: { id },
-        include: {
-          ...includeWithOtherDataIfTrue(
-            'visits',
-            'employees',
-            options?.includeVisits
-          )
         }
       })
     );
