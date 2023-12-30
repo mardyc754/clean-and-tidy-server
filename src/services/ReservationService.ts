@@ -21,10 +21,10 @@ export type ReservationQueryOptions = RequireAtLeastOne<{
 }>;
 
 export default class ReservationService {
-  public async getAllReservations(status?: Reservation['status']) {
-    return await executeDatabaseOperation(
+  public async getAllReservations(statuses?: Reservation['status'][]) {
+    const allReservations = await executeDatabaseOperation(
       prisma.reservation.findMany({
-        where: { status },
+        where: { status: { in: statuses } },
         include: {
           visits: {
             include: {
@@ -35,6 +35,14 @@ export default class ReservationService {
           services: serviceInclude
         }
       })
+    );
+
+    return (
+      allReservations?.map((reservation) => ({
+        ...reservation,
+        visits: flattenNestedVisits(reservation.visits),
+        services: flattenNestedReservationServices(reservation.services)
+      })) ?? null
     );
   }
 

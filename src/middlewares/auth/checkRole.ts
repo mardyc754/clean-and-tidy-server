@@ -29,6 +29,10 @@ function checkRole(data?: AuthenticationData) {
   };
 }
 
+export function checkIsClient() {
+  return checkRole({ acceptableRoles: [UserRole.CLIENT] });
+}
+
 export function checkAccessToClientData() {
   return checkRole({ acceptableRoles: [UserRole.CLIENT, UserRole.ADMIN] });
 }

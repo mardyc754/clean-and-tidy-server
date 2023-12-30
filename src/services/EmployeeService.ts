@@ -241,7 +241,7 @@ export default class EmployeeService {
     const { employeesWithWorkingHours, flattenedEmployeeVisitParts } = getEmployeesBusyHoursData(
       employees,
       cyclicRanges,
-      options?.frequency ?? Frequency.ONCE
+      options?.frequency
     );
 
     return {
