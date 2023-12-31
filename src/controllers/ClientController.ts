@@ -59,9 +59,7 @@ export default class ClientController extends AbstractController {
     const user = await this.clientService.createClient({ email });
 
     if (user) {
-      res.status(201).send({
-        data: user
-      });
+      res.status(201).send(user);
     } else {
       res.status(400).send({ message: 'Error when creating new user', hasError: true });
     }
@@ -71,9 +69,7 @@ export default class ClientController extends AbstractController {
     const user = await this.clientService.getClientById(parseInt(req.params.id));
 
     if (user) {
-      res.status(200).send({
-        data: user
-      });
+      res.status(200).send(user);
     } else {
       res.status(404).send({ message: `Client with id=${req.params.id} not found` });
     }

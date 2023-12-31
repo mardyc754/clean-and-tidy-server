@@ -2,7 +2,7 @@ import { Reservation, Status, type Visit, VisitPart } from '@prisma/client';
 import { omit } from 'lodash';
 import type { RequireAtLeastOne } from 'type-fest';
 
-import { prisma } from '~/lib/prisma';
+import prisma from '~/lib/prisma';
 
 import { isAtLeastOneDayBetween } from '~/utils/dateUtils';
 

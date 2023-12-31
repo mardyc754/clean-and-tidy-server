@@ -2,7 +2,7 @@ import { type Client, Employee, Frequency, type Reservation, Status } from '@pri
 import short from 'short-uuid';
 import type { RequireAtLeastOne } from 'type-fest';
 
-import { prisma } from '~/lib/prisma';
+import prisma from '~/lib/prisma';
 
 import type { ReservationCreationData } from '~/schemas/reservation';
 

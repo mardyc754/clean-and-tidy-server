@@ -1,8 +1,8 @@
 import { Client, Status } from '@prisma/client';
 import { SetOptional } from 'type-fest';
 
-import { prisma } from '~/lib/prisma';
-import { prismaExclude } from '~/lib/prisma';
+import prisma from '~/lib/prisma';
+import { prismaExclude } from '~/lib/prismaExclude';
 
 import { RegisterData } from '~/schemas/auth';
 import { UserUpdateData } from '~/schemas/common';

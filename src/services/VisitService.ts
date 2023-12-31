@@ -3,7 +3,7 @@ import { omit } from 'lodash';
 import type { RequireAtLeastOne } from 'type-fest';
 import { RequestError } from '~/errors/RequestError';
 
-import { prisma } from '~/lib/prisma';
+import prisma from '~/lib/prisma';
 
 import { ChangeVisitData, VisitPartCreationData } from '~/schemas/visit';
 

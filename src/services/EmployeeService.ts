@@ -1,7 +1,7 @@
 import { type Employee, Frequency, Status, VisitPart } from '@prisma/client';
 import { omit, without } from 'lodash';
 
-import { prisma } from '~/lib/prisma';
+import prisma from '~/lib/prisma';
 
 import {
   EmployeeChangeData,
