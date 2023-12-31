@@ -43,7 +43,7 @@ type EmployeeWithServicesAndVisitParts = Omit<Employee, 'password'> & {
   }>;
 };
 
-const getFrequencyHelpers = (frequency: Frequency | undefined) => {
+export const getFrequencyHelpers = (frequency: Frequency | undefined) => {
   let step: number;
   let unit: 'week' | 'month' | undefined = undefined;
   let numberOfUnitsBetweenStartEndCallback:

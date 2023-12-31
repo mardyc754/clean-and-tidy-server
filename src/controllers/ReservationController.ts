@@ -104,12 +104,7 @@ export default class ReservationController extends AbstractController {
 
   public createRouters() {
     this.router.get('/', this.getAllReservations);
-    this.router.post(
-      '/',
-      checkIsClient(),
-      validateReservationCreationData(),
-      this.createReservation
-    );
+    this.router.post('/', validateReservationCreationData(), this.createReservation);
     this.router.get('/:name', this.getReservationByName);
     this.router.put(
       '/:name/confirm',
