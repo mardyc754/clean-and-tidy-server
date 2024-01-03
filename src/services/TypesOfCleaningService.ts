@@ -3,7 +3,10 @@ import { type Service } from '@prisma/client';
 import prisma from '~/lib/prisma';
 
 import type { ServicesWorkingHoursOptions } from '~/schemas/employee';
-import { ChangeServiceData, CreateServiceData } from '~/schemas/typesOfCleaning';
+import {
+  ChangeServiceData,
+  CreateServiceData
+} from '~/schemas/typesOfCleaning';
 
 import {
   employeeData,
@@ -15,7 +18,10 @@ import {
 
 import { getResponseServiceData } from '~/utils/services';
 import { getCyclicDateRanges } from '~/utils/timeslotUtils';
-import { getEmployeesBusyHoursData, timeslotsIntersection } from '~/utils/timeslotUtils';
+import {
+  getEmployeesBusyHoursData,
+  timeslotsIntersection
+} from '~/utils/timeslotUtils';
 
 import { executeDatabaseOperation } from '../utils/queryUtils';
 
@@ -129,7 +135,7 @@ export default class TypesOfCleaningService {
           services: {
             include: {
               visitParts: {
-                ...visitPartTimeframe(cyclicRanges, options?.excludeFrom, options?.excludeTo)
+                ...visitPartTimeframe(cyclicRanges)
               }
             }
           }
@@ -141,11 +147,8 @@ export default class TypesOfCleaningService {
       return null;
     }
 
-    const { employeesWithWorkingHours, flattenedEmployeeVisitParts } = getEmployeesBusyHoursData(
-      employees,
-      cyclicRanges,
-      options?.frequency
-    );
+    const { employeesWithWorkingHours, flattenedEmployeeVisitParts } =
+      getEmployeesBusyHoursData(employees, cyclicRanges, options?.frequency);
 
     return {
       employees: employeesWithWorkingHours,

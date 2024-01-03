@@ -9,7 +9,10 @@ import { UserUpdateData } from '~/schemas/common';
 
 import { serviceInclude, visitPartWithEmployee } from '~/queries/serviceQuery';
 
-import { flattenNestedReservationServices, flattenNestedVisits } from '~/utils/visits';
+import {
+  flattenNestedReservationServices,
+  flattenNestedVisits
+} from '~/utils/visits';
 
 import { executeDatabaseOperation } from '../utils/queryUtils';
 
@@ -98,7 +101,10 @@ export default class ClientService {
     );
   }
 
-  public async changeClientData(clientId: Client['id'], userData: UserUpdateData) {
+  public async changeClientData(
+    clientId: Client['id'],
+    userData: UserUpdateData
+  ) {
     return await executeDatabaseOperation(
       prisma.client.update({
         where: { id: clientId },

@@ -9,7 +9,10 @@ import { JWT_SECRET, UserRole } from '~/constants';
 import { LoginData } from '~/schemas/auth';
 import { UserUpdateData } from '~/schemas/common';
 
-import { checkLoginData, checkRegisterData } from '~/middlewares/type-validators/auth';
+import {
+  checkLoginData,
+  checkRegisterData
+} from '~/middlewares/type-validators/auth';
 
 import { ClientService, EmployeeService } from '~/services';
 
@@ -86,16 +89,22 @@ export default class AuthController extends AbstractController {
         message: 'Client created succesfully'
       });
     } else {
-      res.status(400).send({ message: 'Error when creating new user', hasError: true });
+      res
+        .status(400)
+        .send({ message: 'Error when creating new user', hasError: true });
     }
   };
 
-  private login = async (req: TypedRequest<DefaultParamsType, LoginData>, res: Response) => {
+  private login = async (
+    req: TypedRequest<DefaultParamsType, LoginData>,
+    res: Response
+  ) => {
     const { email, password } = req.body;
 
     let role: UserRole | null = null;
 
-    let user: Employee | Client | null = await this.employeeService.getEmployeeByEmail(email);
+    let user: Employee | Client | null =
+      await this.employeeService.getEmployeeByEmail(email);
 
     if (!user) {
       user = await this.clientService.getClientByEmail(email);
@@ -111,7 +120,9 @@ export default class AuthController extends AbstractController {
     const passwordsMatch = await bcrypt.compare(password, user.password);
 
     if (!passwordsMatch) {
-      return res.status(400).send({ message: 'Invalid password', affectedField: 'password' });
+      return res
+        .status(400)
+        .send({ message: 'Invalid password', affectedField: 'password' });
     }
 
     if ('isAdmin' in user) {
@@ -145,12 +156,17 @@ export default class AuthController extends AbstractController {
 
   private logout = (_: Request, res: Response) => {
     res.cookie('authToken', '', { expires: new Date(0) });
-    res.status(200).send({ message: 'Logged out successfully', isAuthenticated: false });
+    res
+      .status(200)
+      .send({ message: 'Logged out successfully', isAuthenticated: false });
   };
 
   private getCurrentUser = async (req: TypedRequest, res: Response) => {
     try {
-      const decoded = jwt.verify(req.cookies.authToken, JWT_SECRET) as jwt.JwtPayload;
+      const decoded = jwt.verify(
+        req.cookies.authToken,
+        JWT_SECRET
+      ) as jwt.JwtPayload;
 
       const { userId, role } = decoded;
 
@@ -182,13 +198,17 @@ export default class AuthController extends AbstractController {
     res: Response
   ) => {
     try {
-      const decoded = jwt.verify(req.cookies.authToken, JWT_SECRET) as jwt.JwtPayload;
+      const decoded = jwt.verify(
+        req.cookies.authToken,
+        JWT_SECRET
+      ) as jwt.JwtPayload;
 
       const { userId, role } = decoded;
 
       const { firstName, lastName, phone } = req.body;
 
-      let user: Omit<Client, 'password'> | Omit<Employee, 'password'> | null = null;
+      let user: Omit<Client, 'password'> | Omit<Employee, 'password'> | null =
+        null;
 
       if (role === UserRole.CLIENT) {
         user = await this.clientService.changeClientData(userId, {

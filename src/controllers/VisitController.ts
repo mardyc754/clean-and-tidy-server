@@ -5,9 +5,7 @@ import { RequestError } from '~/errors/RequestError';
 
 import { Scheduler } from '~/lib/Scheduler';
 
-import { ChangeVisitData, VisitPartCreationData } from '~/schemas/visit';
-
-import { validateVisitCreationData } from '~/middlewares/type-validators/visit';
+import { ChangeVisitData } from '~/schemas/visit';
 
 import { VisitPartService, VisitService } from '~/services';
 
@@ -15,7 +13,7 @@ import { VisitQueryOptions } from '~/services/VisitService';
 
 import { queryParamToBoolean } from '~/utils/general';
 
-import { DefaultBodyType, DefaultParamsType, TypedRequest } from '~/types';
+import { DefaultBodyType, TypedRequest } from '~/types';
 
 import AbstractController from './AbstractController';
 
@@ -31,52 +29,30 @@ export default class VisitController extends AbstractController {
   }
 
   public createRouters() {
-    this.router.get('/', this.getAllVisits);
-    this.router.post('/', validateVisitCreationData(), this.createVisit);
     this.router.get('/:id', this.getVisitById);
     this.router.put('/:id', this.changeVisitData);
     this.router.put('/:id/cancel', this.cancelVisit);
   }
 
-  private getAllVisits = async (_: Request, res: Response) => {
-    const visits = await this.visitService.getAllVisits();
-
-    if (visits !== null) {
-      res.status(200).send(visits);
-    } else {
-      res.status(400).send({ message: 'Error when receiving all visits' });
-    }
-  };
-
   private getVisitById = async (
-    req: TypedRequest<{ id: string }, DefaultBodyType, Stringified<VisitQueryOptions>>,
+    req: TypedRequest<
+      { id: string },
+      DefaultBodyType,
+      Stringified<VisitQueryOptions>
+    >,
     res: Response
   ) => {
-    const visit = await this.visitService.getVisitById(parseInt(req.params.id), {
-      includeEmployee: queryParamToBoolean(req.query.includeEmployee)
-    });
+    const visit = await this.visitService.getVisitById(
+      parseInt(req.params.id),
+      {
+        includeEmployee: queryParamToBoolean(req.query.includeEmployee)
+      }
+    );
 
     if (visit) {
       res.status(200).send(visit);
     } else {
       res.status(404).send({ message: 'Visit not found' });
-    }
-  };
-
-  private createVisit = async (
-    req: TypedRequest<DefaultParamsType, VisitPartCreationData>,
-    res: Response
-  ) => {
-    const data = req.body;
-
-    const visit = await this.visitService.createVisit(data);
-
-    if (visit) {
-      res.status(201).send({
-        data: visit
-      });
-    } else {
-      res.status(400).send({ message: 'Error when creating the visit' });
     }
   };
 
@@ -97,7 +73,9 @@ export default class VisitController extends AbstractController {
         });
         return res.status(200).send(visit);
       }
-      return res.status(400).send({ message: 'Error when updating visit data' });
+      return res
+        .status(400)
+        .send({ message: 'Error when updating visit data' });
     } catch (error) {
       if (error instanceof RequestError) {
         return res.status(400).send({ message: error.message });
@@ -110,7 +88,9 @@ export default class VisitController extends AbstractController {
     const visit = await this.visitService.cancelVisit(parseInt(req.params.id));
 
     if (visit) {
-      const visitParts = visit.visitParts.filter(({ status }) => status === Status.CANCELLED);
+      const visitParts = visit.visitParts.filter(
+        ({ status }) => status === Status.CANCELLED
+      );
 
       visitParts.forEach(({ id }) => {
         this.scheduler.cancelVisitPartJob(id);

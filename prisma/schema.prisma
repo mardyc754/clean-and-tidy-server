@@ -84,16 +84,16 @@ model Employee {
 model Service {
   id                            Int                           @id @default(autoincrement())
   name                          String                        @db.VarChar(100)
-  unit                          Unit?                         @relation(fields: [unitId], references: [id], onDelete: Cascade)
-  unitId                        Int?                          @unique
   isPrimary                     Boolean                       @default(false)
-  employees                     EmployeeService[]
-  primaryServices               Service[]                     @relation("PrimarySecondaryService")
-  secondaryServices             Service[]                     @relation("PrimarySecondaryService")
-  cleaningFrequencies           CleaningFrequency[]
-  reservations                  ReservationService[]
   minNumberOfUnitsIfPrimary     Int?
   minCostIfPrimary              Decimal?                      @db.Money        
+  unitId                        Int?                          @unique
+  unit                          Unit?                         @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  employees                     EmployeeService[]
+  cleaningFrequencies           CleaningFrequency[]
+  reservations                  ReservationService[]
+  primaryServices               Service[]                     @relation("PrimarySecondaryService")
+  secondaryServices             Service[]                     @relation("PrimarySecondaryService")
 }
 
 model Unit {

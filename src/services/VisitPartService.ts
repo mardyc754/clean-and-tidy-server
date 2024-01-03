@@ -111,7 +111,10 @@ export default class VisitPartService {
     );
   }
 
-  public async getVisitPartsByVisitId(visitId: Visit['id'], status?: VisitPart['status']) {
+  public async getVisitPartsByVisitId(
+    visitId: Visit['id'],
+    status?: VisitPart['status']
+  ) {
     return await executeDatabaseOperation(
       prisma.visitPart.findMany({
         where: { visitId, status },

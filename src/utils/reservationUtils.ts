@@ -1,4 +1,10 @@
-import { Frequency, Prisma, type Reservation, Status, type Visit } from '@prisma/client';
+import {
+  Frequency,
+  Prisma,
+  type Reservation,
+  Status,
+  type Visit
+} from '@prisma/client';
 
 import { ReservationCreationData } from '~/schemas/reservation';
 
@@ -38,9 +44,9 @@ export function createVisits(
     ? numberOfUnitsBetweenStartEndCallback(endDate, firstVisitPartStartDate) + 1
     : 1;
 
-  const unitSteps = [...Array<unknown>(Math.ceil(numberOfVisits / (step || 1)))].map(
-    (_, i) => i * step
-  );
+  const unitSteps = [
+    ...Array<unknown>(Math.ceil(numberOfVisits / (step || 1)))
+  ].map((_, i) => i * step);
 
   return Prisma.validator<Prisma.VisitCreateWithoutReservationInput[]>()(
     unitSteps.map((unit) => ({
@@ -56,7 +62,9 @@ export function createVisits(
 
           // if the visit part is on a holiday, move it to the closest non-holiday day
           while (
-            holidayBusyHours.some(({ startDate }) => isTheSameDay(startDate, visitPartStartDate))
+            holidayBusyHours.some(({ startDate }) =>
+              isTheSameDay(startDate, visitPartStartDate)
+            )
           ) {
             visitPartStartDate = advanceDateByDays(visitPartStartDate, 1);
             visitPartEndDate = advanceDateByDays(visitPartEndDate, 1);
@@ -74,8 +82,14 @@ export function createVisits(
   );
 }
 
-export function shouldChangeVisitFrequency(oldFrequency: Frequency, newFrequency: Frequency) {
-  return oldFrequency !== newFrequency && ![oldFrequency, newFrequency].includes(Frequency.ONCE);
+export function shouldChangeVisitFrequency(
+  oldFrequency: Frequency,
+  newFrequency: Frequency
+) {
+  return (
+    oldFrequency !== newFrequency &&
+    ![oldFrequency, newFrequency].includes(Frequency.ONCE)
+  );
 }
 
 export function changeStatus(visit: Visit, newStatus: Status) {

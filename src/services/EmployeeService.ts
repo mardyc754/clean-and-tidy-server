@@ -1,4 +1,4 @@
-import { type Employee, Frequency, Status, VisitPart } from '@prisma/client';
+import { type Employee, Status, VisitPart } from '@prisma/client';
 import { omit, without } from 'lodash';
 
 import prisma from '~/lib/prisma';
@@ -21,7 +21,10 @@ import {
 import { executeDatabaseOperation } from '~/utils/queryUtils';
 import { flattenVisitPartsFromServices } from '~/utils/services';
 import { getCyclicDateRanges } from '~/utils/timeslotUtils';
-import { getEmployeesBusyHoursData, sumOfTimeslots } from '~/utils/timeslotUtils';
+import {
+  getEmployeesBusyHoursData,
+  sumOfTimeslots
+} from '~/utils/timeslotUtils';
 import { flattenNestedReservationServices } from '~/utils/visits';
 
 type EmployeeReservationQueryOptions = {
@@ -74,7 +77,10 @@ export default class EmployeeService {
       : null;
   }
 
-  public async getEmployeeVisits(employeeId: Employee['id'], status?: VisitPart['status']) {
+  public async getEmployeeVisits(
+    employeeId: Employee['id'],
+    status?: VisitPart['status']
+  ) {
     const visits = await executeDatabaseOperation(
       prisma.visitPart.findMany({
         where: {
@@ -138,7 +144,8 @@ export default class EmployeeService {
 
       return {
         ...omit(employeeWithServices, 'services'),
-        services: employeeWithServices?.services.flatMap(({ service }) => service) ?? []
+        services:
+          employeeWithServices?.services.flatMap(({ service }) => service) ?? []
       };
     } catch (err) {
       console.error(`Something went wrong: ${err}`);
@@ -147,7 +154,9 @@ export default class EmployeeService {
   }
 
   // admin only
-  public async createEmployee(data: Omit<EmployeeCreationData, 'confirmPassword'>) {
+  public async createEmployee(
+    data: Omit<EmployeeCreationData, 'confirmPassword'>
+  ) {
     return await executeDatabaseOperation(
       prisma.employee.create({
         data: {
@@ -162,7 +171,10 @@ export default class EmployeeService {
     );
   }
 
-  public async changeEmployeeData(employeeId: Employee['id'], data: Partial<EmployeeChangeData>) {
+  public async changeEmployeeData(
+    employeeId: Employee['id'],
+    data: Partial<EmployeeChangeData>
+  ) {
     const employeeServices = await this.getEmployeeWithServices(employeeId);
 
     const serviceIds = data.services ?? [];
@@ -171,7 +183,9 @@ export default class EmployeeService {
       return null;
     }
 
-    const employeeServicesIds = employeeServices.services.map((service) => service.id);
+    const employeeServicesIds = employeeServices.services.map(
+      (service) => service.id
+    );
     const removedServiceIds = without(employeeServicesIds, ...serviceIds);
     const createdServiceIds = without(serviceIds, ...employeeServicesIds);
 
@@ -201,7 +215,9 @@ export default class EmployeeService {
     return null;
   }
 
-  public async getEmployeesBusyHoursForVisit(options?: EmployeeWorkingHoursOptions) {
+  public async getEmployeesBusyHoursForVisit(
+    options?: EmployeeWorkingHoursOptions
+  ) {
     const periodParams = options?.period?.split('-');
     // not sure if there should be added 1 to the month
     // in order not to count it from 0
@@ -226,7 +242,11 @@ export default class EmployeeService {
           services: {
             include: {
               visitParts: {
-                ...visitPartTimeframe(cyclicRanges, options?.excludeFrom, options?.excludeTo)
+                ...visitPartTimeframe(
+                  cyclicRanges,
+                  options?.excludeFrom,
+                  options?.excludeTo
+                )
               }
             }
           }
@@ -238,11 +258,8 @@ export default class EmployeeService {
       return null;
     }
 
-    const { employeesWithWorkingHours, flattenedEmployeeVisitParts } = getEmployeesBusyHoursData(
-      employees,
-      cyclicRanges,
-      options?.frequency
-    );
+    const { employeesWithWorkingHours, flattenedEmployeeVisitParts } =
+      getEmployeesBusyHoursData(employees, cyclicRanges, options?.frequency);
 
     return {
       employees: employeesWithWorkingHours,

@@ -1,4 +1,4 @@
-import { Reservation, Status } from '@prisma/client';
+import { Frequency, Reservation, Status } from '@prisma/client';
 import type { Response } from 'express';
 import { Stringified } from 'type-fest';
 
@@ -7,7 +7,7 @@ import { Scheduler } from '~/lib/Scheduler';
 import { EmployeeIdData } from '~/schemas/employee';
 import { ReservationCreationData } from '~/schemas/reservation';
 
-import { checkIsClient, checkIsEmployee } from '~/middlewares/auth/checkRole';
+import { checkIsEmployee } from '~/middlewares/auth/checkAuthentication';
 import { validateEmployeeId } from '~/middlewares/type-validators/employee';
 import { validateReservationCreationData } from '~/middlewares/type-validators/reservation';
 
@@ -15,8 +15,13 @@ import { ReservationService, VisitPartService } from '~/services';
 
 import type { ReservationQueryOptions } from '~/services/ReservationService';
 
-import { isAfter, isAfterOrSame } from '~/utils/dateUtils';
+import {
+  advanceDateByOneYear,
+  isAfter,
+  isAfterOrSame
+} from '~/utils/dateUtils';
 import { queryParamToBoolean } from '~/utils/general';
+import { createVisits } from '~/utils/reservationUtils';
 import { timeslotsIntersection } from '~/utils/timeslotUtils';
 
 import type { DefaultBodyType, DefaultParamsType, TypedRequest } from '~/types';
@@ -33,12 +38,15 @@ export default class ReservationController extends AbstractController {
     this.createRouters();
 
     (async () => {
-      const reservations = await this.reservationService.getAllReservations([Status.ACTIVE]);
-
-      const reservationVisitParts = await this.visitPartService.getVisitPartsFromReservations(
-        reservations?.map((reservation) => reservation.id) ?? [],
+      const reservations = await this.reservationService.getAllReservations([
         Status.ACTIVE
-      );
+      ]);
+
+      const reservationVisitParts =
+        await this.visitPartService.getVisitPartsFromReservations(
+          reservations?.map((reservation) => reservation.id) ?? [],
+          Status.ACTIVE
+        );
 
       if (!reservationVisitParts || reservationVisitParts.length === 0) {
         return;
@@ -93,10 +101,13 @@ export default class ReservationController extends AbstractController {
       });
 
       futureReservations?.forEach(async (reservation) => {
-        const reservationEndDate = reservationVisitParts[reservationVisitParts.length - 1]!.endDate;
+        const reservationEndDate =
+          reservationVisitParts[reservationVisitParts.length - 1]!.endDate;
 
-        this.scheduler.scheduleReservationJob(reservation, new Date(reservationEndDate), () =>
-          this.reservationService.closeReservation(reservation.id)
+        this.scheduler.scheduleReservationJob(
+          reservation,
+          new Date(reservationEndDate),
+          () => this.reservationService.closeReservation(reservation.id)
         );
       });
     })();
@@ -104,7 +115,11 @@ export default class ReservationController extends AbstractController {
 
   public createRouters() {
     this.router.get('/', this.getAllReservations);
-    this.router.post('/', validateReservationCreationData(), this.createReservation);
+    this.router.post(
+      '/',
+      validateReservationCreationData(),
+      this.createReservation
+    );
     this.router.get('/:name', this.getReservationByName);
     this.router.put(
       '/:name/confirm',
@@ -116,7 +131,11 @@ export default class ReservationController extends AbstractController {
   }
 
   private getAllReservations = async (
-    req: TypedRequest<DefaultParamsType, DefaultBodyType, Stringified<ReservationQueryOptions>>,
+    req: TypedRequest<
+      DefaultParamsType,
+      DefaultBodyType,
+      Stringified<ReservationQueryOptions>
+    >,
     res: Response
   ) => {
     const reservations = await this.reservationService.getAllReservations();
@@ -124,19 +143,28 @@ export default class ReservationController extends AbstractController {
     if (reservations !== null) {
       res.status(200).send(reservations);
     } else {
-      res.status(400).send({ message: 'Error when receiving all reservations' });
+      res
+        .status(400)
+        .send({ message: 'Error when receiving all reservations' });
     }
   };
 
   private getReservationByName = async (
-    req: TypedRequest<{ name: string }, DefaultBodyType, Stringified<ReservationQueryOptions>>,
+    req: TypedRequest<
+      { name: string },
+      DefaultBodyType,
+      Stringified<ReservationQueryOptions>
+    >,
     res: Response
   ) => {
-    const reservation = await this.reservationService.getReservationByName(req.params.name, {
-      includeVisits: queryParamToBoolean(req.query.includeVisits),
-      includeServices: queryParamToBoolean(req.query.includeServices),
-      includeAddress: queryParamToBoolean(req.query.includeAddress)
-    });
+    const reservation = await this.reservationService.getReservationByName(
+      req.params.name,
+      {
+        includeVisits: queryParamToBoolean(req.query.includeVisits),
+        includeServices: queryParamToBoolean(req.query.includeServices),
+        includeAddress: queryParamToBoolean(req.query.includeAddress)
+      }
+    );
 
     if (reservation !== null) {
       res.status(200).send(reservation);
@@ -152,10 +180,26 @@ export default class ReservationController extends AbstractController {
     req: TypedRequest<DefaultParamsType, ReservationCreationData>,
     res: Response
   ) => {
-    const visitPartTimeslots = req.body.visitParts.map(({ startDate, endDate }) => ({
-      startDate: new Date(startDate),
-      endDate: new Date(endDate)
-    }));
+    const visitPartTimeslots = req.body.visitParts.map(
+      ({ startDate, endDate, ...other }) => ({
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
+        ...other
+      })
+    );
+
+    const lastEndDate = visitPartTimeslots.at(-1)!.endDate;
+
+    const endDate =
+      req.body.frequency !== Frequency.ONCE
+        ? new Date(advanceDateByOneYear(lastEndDate))
+        : lastEndDate;
+
+    const newVisits = createVisits(
+      req.body,
+      req.body.frequency,
+      endDate.toISOString()
+    );
 
     const allReservations = await this.reservationService.getAllReservations([
       Status.ACTIVE,
@@ -169,22 +213,51 @@ export default class ReservationController extends AbstractController {
       });
     }
 
-    const allVisitParts = allReservations.flatMap((reservation) =>
-      reservation.visits.flatMap((visit) => visit.visitParts)
+    const visitPartEmployees = visitPartTimeslots.map(
+      ({ employeeId }) => employeeId
     );
 
-    allVisitParts.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+    const allVisitParts = allReservations
+      .flatMap((reservation) =>
+        reservation.visits.flatMap((visit) => visit.visitParts)
+      )
+      .filter((visitPart) => visitPartEmployees.includes(visitPart.employeeId));
 
-    const conflicts = timeslotsIntersection([visitPartTimeslots, allVisitParts]);
+    allVisitParts.sort(
+      (a, b) =>
+        new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+    );
+
+    const conflicts = visitPartEmployees.flatMap((employeeId) =>
+      timeslotsIntersection([
+        allVisitParts.filter(
+          (visitPart) => visitPart.employeeId === employeeId
+        ),
+        newVisits
+          .map(({ visitParts }) =>
+            visitParts.create
+              .filter((visitPart) => visitPart.employeeId === employeeId)
+              .map(({ startDate, endDate }) => ({
+                startDate: new Date(startDate),
+                endDate: new Date(endDate)
+              }))
+          )
+          .flat()
+      ])
+    );
 
     if (conflicts.length > 0) {
       return res.status(400).send({
-        message: 'Cannot create reservation because of conflicting dates with other reservations',
+        message:
+          'Cannot create reservation because of conflicting dates with other reservations',
         hasError: true
       });
     }
 
-    const reservation = await this.reservationService.createReservation(req.body);
+    const reservation = await this.reservationService.createReservation(
+      req.body,
+      newVisits
+    );
 
     if (reservation) {
       res.status(201).send(reservation);
@@ -208,9 +281,10 @@ export default class ReservationController extends AbstractController {
     );
 
     if (reservation !== null) {
-      const reservationVisitParts = await this.visitPartService.getVisitPartsByReservationId(
-        reservation.id
-      );
+      const reservationVisitParts =
+        await this.visitPartService.getVisitPartsByReservationId(
+          reservation.id
+        );
 
       if (!reservationVisitParts || reservationVisitParts.length === 0) {
         return res.status(400).send({
@@ -226,7 +300,9 @@ export default class ReservationController extends AbstractController {
 
       this.scheduler.scheduleReservationJob(
         reservation,
-        new Date(reservationVisitParts[reservationVisitParts.length - 1]!.endDate),
+        new Date(
+          reservationVisitParts[reservationVisitParts.length - 1]!.endDate
+        ),
         () => this.reservationService.closeReservation(reservation.id)
       );
 
@@ -242,13 +318,16 @@ export default class ReservationController extends AbstractController {
     req: TypedRequest<{ name: Reservation['name'] }>,
     res: Response
   ) => {
-    const reservation = await this.reservationService.cancelReservation(req.params.name);
+    const reservation = await this.reservationService.cancelReservation(
+      req.params.name
+    );
 
     if (reservation !== null) {
-      const reservationVisitParts = await this.visitPartService.getVisitPartsByReservationId(
-        reservation.id,
-        Status.CANCELLED
-      );
+      const reservationVisitParts =
+        await this.visitPartService.getVisitPartsByReservationId(
+          reservation.id,
+          Status.CANCELLED
+        );
 
       if (!reservationVisitParts || reservationVisitParts.length === 0) {
         return res.status(400).send({

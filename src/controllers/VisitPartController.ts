@@ -2,6 +2,8 @@ import type { Response } from 'express';
 
 import { Scheduler } from '~/lib/Scheduler';
 
+import { checkIsEmployee } from '~/middlewares/auth/checkAuthentication';
+
 import { VisitPartService } from '~/services';
 
 import { TypedRequest } from '~/types';
@@ -19,7 +21,7 @@ export default class VisitPartController extends AbstractController {
 
   public createRouters() {
     this.router.get('/:id', this.getVisitPartById);
-    this.router.put('/:id/cancel', this.cancelVisitPart);
+    this.router.put('/:id/cancel', checkIsEmployee(), this.cancelVisitPart);
   }
 
   private getVisitPartById = async (

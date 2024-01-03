@@ -61,22 +61,35 @@ export default class ClientController extends AbstractController {
     if (user) {
       res.status(201).send(user);
     } else {
-      res.status(400).send({ message: 'Error when creating new user', hasError: true });
+      res
+        .status(400)
+        .send({ message: 'Error when creating new user', hasError: true });
     }
   };
 
-  private getClientById = async (req: TypedRequest<{ id: string }>, res: Response) => {
-    const user = await this.clientService.getClientById(parseInt(req.params.id));
+  private getClientById = async (
+    req: TypedRequest<{ id: string }>,
+    res: Response
+  ) => {
+    const user = await this.clientService.getClientById(
+      parseInt(req.params.id)
+    );
 
     if (user) {
       res.status(200).send(user);
     } else {
-      res.status(404).send({ message: `Client with id=${req.params.id} not found` });
+      res
+        .status(404)
+        .send({ message: `Client with id=${req.params.id} not found` });
     }
   };
 
   private getClientReservations = async (
-    req: Request<Stringified<Pick<Client, 'id'>>, DefaultBodyType, { status?: Status }>,
+    req: Request<
+      Stringified<Pick<Client, 'id'>>,
+      DefaultBodyType,
+      { status?: Status }
+    >,
     res: Response
   ) => {
     const reservations = await this.clientService.getClientReservations(
@@ -87,17 +100,26 @@ export default class ClientController extends AbstractController {
     if (reservations !== null) {
       res.status(200).send(reservations);
     } else {
-      res.status(404).send({ message: `Client with id=${req.params.id} not found` });
+      res
+        .status(404)
+        .send({ message: `Client with id=${req.params.id} not found` });
     }
   };
 
-  private deleteClient = async (req: Request<Stringified<Pick<Client, 'id'>>>, res: Response) => {
-    const deletedClient = await this.clientService.deleteClient(parseInt(req.params.id));
+  private deleteClient = async (
+    req: Request<Stringified<Pick<Client, 'id'>>>,
+    res: Response
+  ) => {
+    const deletedClient = await this.clientService.deleteClient(
+      parseInt(req.params.id)
+    );
 
     if (deletedClient !== null) {
       res.status(200).send(deletedClient);
     } else {
-      res.status(404).send({ message: `Client with id=${req.params.id} not found` });
+      res
+        .status(404)
+        .send({ message: `Client with id=${req.params.id} not found` });
     }
   };
 }

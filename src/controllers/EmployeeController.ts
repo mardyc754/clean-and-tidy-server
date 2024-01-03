@@ -11,8 +11,11 @@ import type {
   EmployeeWorkingHoursOptions
 } from '~/schemas/employee';
 
+import {
+  checkIsAdmin,
+  checkIsEmployee
+} from '~/middlewares/auth/checkAuthentication';
 import { checkIfUserExisits } from '~/middlewares/auth/checkIfUserExists';
-import { checkIsAdmin, checkIsEmployee } from '~/middlewares/auth/checkRole';
 import {
   validateEmployeeChangeData,
   validateEmployeeCreationData,
@@ -36,13 +39,32 @@ export default class EmployeeController extends AbstractController {
   }
 
   public createRouters() {
-    this.router.get('/', checkIsAdmin(), validateEmployeeQueryOptions(), this.getAllEmployees);
-    this.router.post('/', validateEmployeeCreationData(), checkIfUserExisits, this.createEmployee);
+    this.router.get(
+      '/',
+      checkIsAdmin(),
+      validateEmployeeQueryOptions(),
+      this.getAllEmployees
+    );
+    this.router.post(
+      '/',
+      validateEmployeeCreationData(),
+      checkIfUserExisits,
+      this.createEmployee
+    );
     this.router.get('/busy-hours', this.getEmployeesBusyHours);
     this.router.get('/:id', this.getEmployeeById);
     this.router.get('/:id/visits', checkIsEmployee(), this.getEmployeeVisits);
-    this.router.get('/:id/reservations', checkIsEmployee(), this.getEmployeeReservations);
-    this.router.put('/:id', validateEmployeeChangeData(), this.changeEmployeeData);
+    this.router.get(
+      '/:id/reservations',
+      checkIsEmployee(),
+      this.getEmployeeReservations
+    );
+    this.router.put(
+      '/:id',
+      checkIsAdmin(),
+      validateEmployeeChangeData(),
+      this.changeEmployeeData
+    );
   }
 
   private getAllEmployees = async (
@@ -59,27 +81,39 @@ export default class EmployeeController extends AbstractController {
   };
 
   private getEmployeeById = async (
-    req: TypedRequest<{ id: string }, DefaultBodyType, { includeServices?: string }>,
+    req: TypedRequest<
+      { id: string },
+      DefaultBodyType,
+      { includeServices?: string }
+    >,
     res: Response
   ) => {
     const includeEmployees = queryParamToBoolean(req.query.includeServices);
 
     if (includeEmployees) {
-      const employee = await this.employeeService.getEmployeeWithServices(parseInt(req.params.id));
+      const employee = await this.employeeService.getEmployeeWithServices(
+        parseInt(req.params.id)
+      );
 
       if (employee) {
         return res.status(200).send(employee);
       } else {
-        return res.status(404).send({ message: `Employee with id=${req.params.id} not found` });
+        return res
+          .status(404)
+          .send({ message: `Employee with id=${req.params.id} not found` });
       }
     }
 
-    const employee = await this.employeeService.getEmployeeById(parseInt(req.params.id));
+    const employee = await this.employeeService.getEmployeeById(
+      parseInt(req.params.id)
+    );
 
     if (employee) {
       return res.status(200).send(employee);
     } else {
-      return res.status(404).send({ message: `Employee with id=${req.params.id} not found` });
+      return res
+        .status(404)
+        .send({ message: `Employee with id=${req.params.id} not found` });
     }
   };
 
@@ -95,7 +129,9 @@ export default class EmployeeController extends AbstractController {
     if (visits !== null) {
       res.status(200).send(visits);
     } else {
-      res.status(404).send({ message: `Employee with id=${req.params.id} not found` });
+      res
+        .status(404)
+        .send({ message: `Employee with id=${req.params.id} not found` });
     }
   };
 
@@ -103,12 +139,13 @@ export default class EmployeeController extends AbstractController {
     req: TypedRequest<{ id: string }, DefaultBodyType, { status: Status }>,
     res: Response
   ) => {
-    const reservations = await this.employeeService.getReservationsAssignedToEmployee(
-      parseInt(req.params.id),
-      {
-        status: req.query.status
-      }
-    );
+    const reservations =
+      await this.employeeService.getReservationsAssignedToEmployee(
+        parseInt(req.params.id),
+        {
+          status: req.query.status
+        }
+      );
 
     if (reservations !== null) {
       res.status(200).send(reservations);
@@ -176,7 +213,11 @@ export default class EmployeeController extends AbstractController {
   };
 
   private getEmployeesBusyHours = async (
-    req: TypedRequest<DefaultParamsType, DefaultBodyType, Stringified<EmployeeWorkingHoursOptions>>,
+    req: TypedRequest<
+      DefaultParamsType,
+      DefaultBodyType,
+      Stringified<EmployeeWorkingHoursOptions>
+    >,
     res: Response
   ) => {
     const employees = await this.employeeService.getEmployeesBusyHoursForVisit({
@@ -192,7 +233,9 @@ export default class EmployeeController extends AbstractController {
     if (employees !== null) {
       res.status(200).send(employees);
     } else {
-      res.status(400).send({ message: 'Error when fetching employees busy hours' });
+      res
+        .status(400)
+        .send({ message: 'Error when fetching employees busy hours' });
     }
   };
 }
