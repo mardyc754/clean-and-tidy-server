@@ -28,16 +28,14 @@ export default class VisitPartController extends AbstractController {
     req: TypedRequest<{ id: string }>,
     res: Response
   ) => {
-    const visitPart = await this.visitPartService.getVisitPartById(
-      parseInt(req.params.id)
-    );
+    try {
+      const visitPart = await this.visitPartService.getVisitPartById(
+        parseInt(req.params.id)
+      );
 
-    if (visitPart) {
       res.status(200).send(visitPart);
-    } else {
-      res
-        .status(404)
-        .send({ message: `Visit part with id=${req.params.id} not found` });
+    } catch (error) {
+      res.status(400).send({ message: `Error when getting visit part by id` });
     }
   };
 
@@ -45,18 +43,22 @@ export default class VisitPartController extends AbstractController {
     req: TypedRequest<{ id: string }>,
     res: Response
   ) => {
-    const visitPart = await this.visitPartService.cancelVisitPart(
-      parseInt(req.params.id)
-    );
+    try {
+      const visitPart = await this.visitPartService.cancelVisitPart(
+        parseInt(req.params.id)
+      );
 
-    if (visitPart) {
+      if (!visitPart) {
+        return res
+          .status(404)
+          .send({ message: `Visit part with id=${req.params.id} not found` });
+      }
+
       this.scheduler.cancelVisitPartJob(visitPart.id);
 
       res.status(200).send(visitPart);
-    } else {
-      res
-        .status(404)
-        .send({ message: `Visit part with id=${req.params.id} not found` });
+    } catch (error) {
+      res.status(400).send({ message: `Error when cancelling visit part` });
     }
   };
 }

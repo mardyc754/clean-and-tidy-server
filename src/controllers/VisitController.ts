@@ -42,16 +42,13 @@ export default class VisitController extends AbstractController {
     >,
     res: Response
   ) => {
-    const visit = await this.visitService.getVisitById(
-      parseInt(req.params.id),
-      {
-        includeEmployee: queryParamToBoolean(req.query.includeEmployee)
-      }
-    );
+    try {
+      const visit = await this.visitService.getVisitById(
+        parseInt(req.params.id)
+      );
 
-    if (visit) {
       res.status(200).send(visit);
-    } else {
+    } catch (error) {
       res.status(404).send({ message: 'Visit not found' });
     }
   };
@@ -85,9 +82,15 @@ export default class VisitController extends AbstractController {
   };
 
   private cancelVisit = async (req: Request<{ id: string }>, res: Response) => {
-    const visit = await this.visitService.cancelVisit(parseInt(req.params.id));
+    try {
+      const visit = await this.visitService.cancelVisit(
+        parseInt(req.params.id)
+      );
 
-    if (visit) {
+      if (!visit) {
+        return res.status(404).send({ message: 'Visit not found' });
+      }
+
       const visitParts = visit.visitParts.filter(
         ({ status }) => status === Status.CANCELLED
       );
@@ -96,7 +99,7 @@ export default class VisitController extends AbstractController {
         this.scheduler.cancelVisitPartJob(id);
       });
       res.status(200).send(visit);
-    } else {
+    } catch (error) {
       res.status(400).send({ message: 'Error when canceling the visit' });
     }
   };

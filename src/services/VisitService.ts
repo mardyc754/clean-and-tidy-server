@@ -1,11 +1,10 @@
 import { Status, type Visit, VisitPart } from '@prisma/client';
-import { omit } from 'lodash';
 import type { RequireAtLeastOne } from 'type-fest';
 import { RequestError } from '~/errors/RequestError';
 
 import prisma from '~/lib/prisma';
 
-import { ChangeVisitData, VisitPartCreationData } from '~/schemas/visit';
+import { ChangeVisitData } from '~/schemas/visit';
 
 import { visitPartWithEmployee } from '~/queries/serviceQuery';
 
@@ -17,125 +16,58 @@ import {
 } from '~/utils/dateUtils';
 import { flattenNestedVisit } from '~/utils/visits';
 
-import { executeDatabaseOperation } from '../utils/queryUtils';
-
 export type VisitQueryOptions = RequireAtLeastOne<{
   includeEmployee: boolean;
 }>;
 
 export default class VisitService {
   public async getAllVisits() {
-    let visits: Visit[] | null = null;
-
-    try {
-      visits = await prisma.visit.findMany();
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
-    }
-
-    return visits;
+    return await prisma.visit.findMany();
   }
 
-  public async getVisitPartById(
-    id: VisitPart['id'],
-    options?: VisitQueryOptions
-  ) {
-    if (options?.includeEmployee) {
-      const visitPart = await executeDatabaseOperation(
-        prisma.visitPart.findFirst({
-          where: { id },
-          include: {
-            visit: {
-              select: {
-                includeDetergents: true
-              }
-            },
-            employeeService: {
-              include: { employee: true }
-            }
-          }
-        })
-      );
-
-      return visitPart
-        ? {
-            ...omit(visitPart, 'employeeService', 'visit'),
-            includeDetergents: visitPart.visit.includeDetergents,
-            employee: visitPart.employeeService.employee
-          }
-        : null;
-    }
-    return await executeDatabaseOperation(
-      prisma.visitPart.findFirst({
-        where: { id }
-      })
-    );
-  }
-
-  public async getVisitById(id: VisitPart['id'], options?: VisitQueryOptions) {
-    const visit = await executeDatabaseOperation(
-      prisma.visit.findFirst({
-        where: { id },
-        include: {
-          // visitParts: options?.includeEmployee
-          //   ? visitPartWithEmployee
-          //   : undefined
-          visitParts: visitPartWithEmployee
-        }
-      })
-    );
+  public async getVisitById(id: VisitPart['id']) {
+    const visit = await prisma.visit.findUnique({
+      where: { id },
+      include: {
+        visitParts: visitPartWithEmployee
+      }
+    });
 
     return visit ? flattenNestedVisit(visit) : null;
-  }
-
-  // TODO FIXME: this is not working
-  public async createVisit(data: VisitPartCreationData) {
-    // const { employeeIds, ...otherData } = data;
-
-    // return await executeDatabaseOperation(
-    //   prisma.visit.create({
-    //     data: {
-    //       ...otherData,
-    //       name: `${data.reservationId}`, // visit name should contain the visit number
-    //       employees: {
-    //         createMany: {
-    //           data: employeeIds.map((id) => ({
-    //             employeeId: id,
-    //             status: Status.TO_BE_CONFIRMED
-    //           }))
-    //         }
-    //       }
-    //     }
-    //   })
-    // );
-    return null;
   }
 
   public async changeVisitData(data: ChangeVisitData) {
     const { id, startDate } = data;
 
-    const oldVisitData = await this.getVisitById(id);
+    return await prisma.$transaction(async (tx) => {
+      const oldVisit = await tx.visit.findUnique({
+        where: { id },
+        include: {
+          visitParts: visitPartWithEmployee
+        }
+      });
 
-    if (!oldVisitData) {
-      return null;
-    }
+      const oldVisitData = oldVisit ? flattenNestedVisit(oldVisit) : null;
 
-    const oldStartDate = oldVisitData.visitParts[0]!.startDate;
+      if (!oldVisitData) {
+        return null;
+      }
 
-    const newOldStartDateDifference = minutesBetween(oldStartDate, startDate);
+      const oldStartDate = oldVisitData.visitParts[0]!.startDate;
 
-    if (!oldVisitData.canDateBeChanged && newOldStartDateDifference !== 0) {
-      throw new RequestError(
-        'Cannot change the date of a visit because it has been already changed'
-      );
-    }
+      const newOldStartDateDifference = minutesBetween(oldStartDate, startDate);
 
-    if (!isNewStartDateValid(startDate, oldStartDate)) {
-      return null;
-    }
+      if (!oldVisitData.canDateBeChanged && newOldStartDateDifference !== 0) {
+        throw new RequestError(
+          'Cannot change the date of a visit because it has been already changed'
+        );
+      }
 
-    const visit = await executeDatabaseOperation(
-      prisma.visit.update({
+      if (!isNewStartDateValid(startDate, oldStartDate)) {
+        return null;
+      }
+
+      const visit = await tx.visit.update({
         where: { id },
         data: {
           canDateBeChanged:
@@ -171,10 +103,10 @@ export default class VisitService {
         include: {
           visitParts: visitPartWithEmployee
         }
-      })
-    );
+      });
 
-    return visit ? flattenNestedVisit(visit) : null;
+      return visit ? flattenNestedVisit(visit) : null;
+    });
   }
 
   public async deleteVisit(id: Visit['id']) {
@@ -191,30 +123,22 @@ export default class VisitService {
     return deletedVisit;
   }
 
-  // public async autoCloseVisit(id: Visit['id'], endDate: Visit['endDate']) {
-  //   let visitToClose: VisitEmployee[] | null = null;
-
-  //   if (now().isAfter(endDate)) {
-  //     await executeDatabaseOperation(
-  //       prisma.visitEmployee.updateMany({
-  //         where: { visitId: id },
-  //         data: { status: Status.CLOSED }
-  //       })
-  //     );
-  //   }
-
-  //   return visitToClose;
-  // }
-
   public async cancelVisit(id: Visit['id']) {
-    const oldVisitData = await this.getVisitById(id);
+    return await prisma.$transaction(async (tx) => {
+      const oldVisit = await tx.visit.findUnique({
+        where: { id },
+        include: {
+          visitParts: visitPartWithEmployee
+        }
+      });
 
-    if (!oldVisitData) {
-      return null;
-    }
+      const oldVisitData = oldVisit ? flattenNestedVisit(oldVisit) : null;
 
-    const canceledVisit = await executeDatabaseOperation(
-      prisma.visit.update({
+      if (!oldVisitData) {
+        return null;
+      }
+
+      const canceledVisit = await tx.visit.update({
         where: { id },
         data: {
           includeDetergents: false,
@@ -236,9 +160,9 @@ export default class VisitService {
         include: {
           visitParts: visitPartWithEmployee
         }
-      })
-    );
+      });
 
-    return canceledVisit ? flattenNestedVisit(canceledVisit) : null;
+      return canceledVisit ? flattenNestedVisit(canceledVisit) : null;
+    });
   }
 }

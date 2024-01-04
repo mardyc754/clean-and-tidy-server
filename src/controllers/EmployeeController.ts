@@ -88,10 +88,24 @@ export default class EmployeeController extends AbstractController {
     >,
     res: Response
   ) => {
-    const includeEmployees = queryParamToBoolean(req.query.includeServices);
+    try {
+      const includeEmployees = queryParamToBoolean(req.query.includeServices);
 
-    if (includeEmployees) {
-      const employee = await this.employeeService.getEmployeeWithServices(
+      if (includeEmployees) {
+        const employee = await this.employeeService.getEmployeeWithServices(
+          parseInt(req.params.id)
+        );
+
+        if (employee) {
+          return res.status(200).send(employee);
+        } else {
+          return res
+            .status(404)
+            .send({ message: `Employee with id=${req.params.id} not found` });
+        }
+      }
+
+      const employee = await this.employeeService.getEmployeeById(
         parseInt(req.params.id)
       );
 
@@ -102,18 +116,11 @@ export default class EmployeeController extends AbstractController {
           .status(404)
           .send({ message: `Employee with id=${req.params.id} not found` });
       }
-    }
-
-    const employee = await this.employeeService.getEmployeeById(
-      parseInt(req.params.id)
-    );
-
-    if (employee) {
-      return res.status(200).send(employee);
-    } else {
+    } catch (error) {
+      console.log(error);
       return res
-        .status(404)
-        .send({ message: `Employee with id=${req.params.id} not found` });
+        .status(400)
+        .send({ message: `Error when receiving employee data` });
     }
   };
 
@@ -121,17 +128,15 @@ export default class EmployeeController extends AbstractController {
     req: TypedRequest<{ id: string }, DefaultBodyType, { status: Status }>,
     res: Response
   ) => {
-    const visits = await this.employeeService.getEmployeeVisits(
-      parseInt(req.params.id),
-      req.query.status
-    );
+    try {
+      const visits = await this.employeeService.getEmployeeVisits(
+        parseInt(req.params.id),
+        req.query.status
+      );
 
-    if (visits !== null) {
       res.status(200).send(visits);
-    } else {
-      res
-        .status(404)
-        .send({ message: `Employee with id=${req.params.id} not found` });
+    } catch (error) {
+      res.status(400).send({ message: `Error when receiving employee visits` });
     }
   };
 
@@ -139,19 +144,19 @@ export default class EmployeeController extends AbstractController {
     req: TypedRequest<{ id: string }, DefaultBodyType, { status: Status }>,
     res: Response
   ) => {
-    const reservations =
-      await this.employeeService.getReservationsAssignedToEmployee(
-        parseInt(req.params.id),
-        {
-          status: req.query.status
-        }
-      );
+    try {
+      const reservations =
+        await this.employeeService.getReservationsAssignedToEmployee(
+          parseInt(req.params.id),
+          {
+            status: req.query.status
+          }
+        );
 
-    if (reservations !== null) {
       res.status(200).send(reservations);
-    } else {
-      res.status(404).send({
-        message: `Employee with id=${req.params.id} not found`
+    } catch (error) {
+      res.status(400).send({
+        message: `Error when receiving employee reservations`
       });
     }
   };
@@ -163,33 +168,31 @@ export default class EmployeeController extends AbstractController {
     const { email, password, confirmPassword } = req.body;
 
     if (password !== confirmPassword) {
-      res.status(400).send({
+      return res.status(400).send({
         message: 'Password and confirm password do not match',
         affectedField: 'confirmPassword'
       });
-      return;
     }
 
     const hashedPassword = await bcrypt.hash(password, 8);
 
-    const user = await this.employeeService.getEmployeeByEmail(email);
+    try {
+      const user = await this.employeeService.getEmployeeByEmail(email);
 
-    if (user !== null) {
-      res.status(409).send({
-        message: 'Employee with given email already exists',
-        affectedField: 'email'
+      if (user !== null) {
+        return res.status(409).send({
+          message: 'Employee with given email already exists',
+          affectedField: 'email'
+        });
+      }
+
+      const employee = await this.employeeService.createEmployee({
+        ...omit(req.body, 'confirmPassword', 'password'),
+        password: hashedPassword
       });
-      return;
-    }
 
-    const employee = await this.employeeService.createEmployee({
-      ...omit(req.body, 'confirmPassword', 'password'),
-      password: hashedPassword
-    });
-
-    if (employee) {
       res.status(201).send(omit(employee, 'password'));
-    } else {
+    } catch (error) {
       res.status(400).send({ message: `Error when creating new employee` });
     }
   };
@@ -198,16 +201,16 @@ export default class EmployeeController extends AbstractController {
     req: TypedRequest<{ id: string }, EmployeeChangeData>,
     res: Response
   ) => {
-    const newLinkedServices = await this.employeeService.changeEmployeeData(
-      parseInt(req.params.id),
-      req.body
-    );
+    try {
+      const newLinkedServices = await this.employeeService.changeEmployeeData(
+        parseInt(req.params.id),
+        req.body
+      );
 
-    if (newLinkedServices !== null) {
       res.status(200).send(newLinkedServices);
-    } else {
-      res.status(404).send({
-        message: `Employee with id=${req.params.id} not found`
+    } catch (error) {
+      res.status(400).send({
+        message: `Error when changing employee data`
       });
     }
   };
@@ -220,19 +223,20 @@ export default class EmployeeController extends AbstractController {
     >,
     res: Response
   ) => {
-    const employees = await this.employeeService.getEmployeesBusyHoursForVisit({
-      visitIds: req.query.visitIds
-        ? req.query.visitIds.split(',').map((id) => parseInt(id))
-        : undefined,
-      frequency: req.query.frequency as Frequency | undefined,
-      period: req.query.period,
-      excludeFrom: req.query.excludeFrom,
-      excludeTo: req.query.excludeTo
-    });
+    try {
+      const employees =
+        await this.employeeService.getEmployeesBusyHoursForVisit({
+          visitIds: req.query.visitIds
+            ? req.query.visitIds.split(',').map((id) => parseInt(id))
+            : undefined,
+          frequency: req.query.frequency as Frequency | undefined,
+          period: req.query.period,
+          excludeFrom: req.query.excludeFrom,
+          excludeTo: req.query.excludeTo
+        });
 
-    if (employees !== null) {
       res.status(200).send(employees);
-    } else {
+    } catch (error) {
       res
         .status(400)
         .send({ message: 'Error when fetching employees busy hours' });

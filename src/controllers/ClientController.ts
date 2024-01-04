@@ -22,7 +22,6 @@ export default class ClientController extends AbstractController {
   }
 
   public createRouters() {
-    this.router.get('/', this.getAllClients);
     this.router.post(
       '/',
       validateCreateAnonymousClientData(),
@@ -35,35 +34,20 @@ export default class ClientController extends AbstractController {
       // checkAccessToClientData(),
       this.getClientReservations
     );
-    this.router.delete('/:id', this.deleteClient);
   }
-
-  private getAllClients = async (_: Request, res: Response) => {
-    const users = await this.clientService.getAllClients();
-
-    if (users !== null) {
-      res.status(200).send({
-        data: users
-      });
-    } else {
-      res.status(400).send({ message: 'Error when receiving all users' });
-    }
-  };
 
   private createAnonymousClient = async (
     req: TypedRequest<DefaultParamsType, CreateAnonymousClientData>,
     res: Response
   ) => {
-    const { email } = req.body;
+    try {
+      const { email } = req.body;
 
-    const user = await this.clientService.createClient({ email });
+      const user = await this.clientService.createClient({ email });
 
-    if (user) {
       res.status(201).send(user);
-    } else {
-      res
-        .status(400)
-        .send({ message: 'Error when creating new user', hasError: true });
+    } catch (error) {
+      res.status(400).send({ message: 'Error when creating new user' });
     }
   };
 
@@ -71,13 +55,13 @@ export default class ClientController extends AbstractController {
     req: TypedRequest<{ id: string }>,
     res: Response
   ) => {
-    const user = await this.clientService.getClientById(
-      parseInt(req.params.id)
-    );
+    try {
+      const user = await this.clientService.getClientById(
+        parseInt(req.params.id)
+      );
 
-    if (user) {
       res.status(200).send(user);
-    } else {
+    } catch (error) {
       res
         .status(404)
         .send({ message: `Client with id=${req.params.id} not found` });
@@ -92,31 +76,16 @@ export default class ClientController extends AbstractController {
     >,
     res: Response
   ) => {
-    const reservations = await this.clientService.getClientReservations(
-      parseInt(req.params.id),
-      req.query.status as Status | undefined
-    );
+    try {
+      const reservations = await this.clientService.getClientReservations(
+        parseInt(req.params.id),
+        req.query.status as Status | undefined
+      );
 
-    if (reservations !== null) {
-      res.status(200).send(reservations);
-    } else {
-      res
-        .status(404)
-        .send({ message: `Client with id=${req.params.id} not found` });
-    }
-  };
-
-  private deleteClient = async (
-    req: Request<Stringified<Pick<Client, 'id'>>>,
-    res: Response
-  ) => {
-    const deletedClient = await this.clientService.deleteClient(
-      parseInt(req.params.id)
-    );
-
-    if (deletedClient !== null) {
-      res.status(200).send(deletedClient);
-    } else {
+      if (reservations !== null) {
+        res.status(200).send(reservations);
+      }
+    } catch (error) {
       res
         .status(404)
         .send({ message: `Client with id=${req.params.id} not found` });

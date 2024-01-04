@@ -18,7 +18,6 @@ import {
   visitPartTimeframe
 } from '~/queries/serviceQuery';
 
-import { executeDatabaseOperation } from '~/utils/queryUtils';
 import { flattenVisitPartsFromServices } from '~/utils/services';
 import { getCyclicDateRanges } from '~/utils/timeslotUtils';
 import {
@@ -33,96 +32,72 @@ type EmployeeReservationQueryOptions = {
 
 export default class EmployeeService {
   public async getEmployeeById(id: Employee['id']) {
-    let employee: Omit<Employee, 'password'> | null = null;
-
-    try {
-      employee = await prisma.employee.findUnique({
-        where: { id },
-        ...selectEmployee
-      });
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
-    }
-    return employee;
+    return await prisma.employee.findUnique({
+      where: { id },
+      ...selectEmployee
+    });
   }
 
   public async getEmployeeByEmail(email: Employee['email']) {
-    let employee: Employee | null = null;
-
-    try {
-      employee = await prisma.employee.findUnique({
-        where: { email }
-      });
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
-    }
-    return employee;
+    return await prisma.employee.findUnique({
+      where: { email }
+    });
   }
 
   public async getAllEmployees() {
-    const employees = await executeDatabaseOperation(
-      prisma.employee.findMany({
-        include: {
-          services: includeServiceVisitPartsAndReservation
-        },
-        orderBy: { id: 'asc' }
-      })
-    );
+    const employees = await prisma.employee.findMany({
+      include: {
+        services: includeServiceVisitPartsAndReservation
+      },
+      orderBy: { id: 'asc' }
+    });
 
-    return employees
-      ? employees.map((employee) => ({
-          ...omit(employee, 'services'),
-          visitParts: flattenVisitPartsFromServices(employee.services)
-        }))
-      : null;
+    return employees.map((employee) => ({
+      ...omit(employee, 'services'),
+      visitParts: flattenVisitPartsFromServices(employee.services)
+    }));
   }
 
   public async getEmployeeVisits(
     employeeId: Employee['id'],
     status?: VisitPart['status']
   ) {
-    const visits = await executeDatabaseOperation(
-      prisma.visitPart.findMany({
-        where: {
-          employeeId,
-          status: status
-        },
-        ...includeVisitParts
-      })
-    );
+    const visits = await prisma.visitPart.findMany({
+      where: {
+        employeeId,
+        status: status
+      },
+      ...includeVisitParts
+    });
 
-    return visits
-      ? visits.map((visit) => ({
-          ...omit(visit, 'employeeService', 'visit'),
-          reservation: visit.visit.reservation,
-          service: visit.employeeService.service
-        }))
-      : null;
+    return visits.map((visit) => ({
+      ...omit(visit, 'employeeService', 'visit'),
+      reservation: visit.visit.reservation,
+      service: visit.employeeService.service
+    }));
   }
 
   public async getReservationsAssignedToEmployee(
     id: Employee['id'],
     options?: EmployeeReservationQueryOptions
   ) {
-    const reservations = await executeDatabaseOperation(
-      prisma.reservation.findMany({
-        where: {
-          visits: { some: { visitParts: { some: { employeeId: id } } } },
-          status: options?.status
-        },
-        include: {
-          visits: {
-            where: {
-              visitParts: { some: { employeeId: id } }
-            },
-            include: {
-              visitParts: { where: { employeeId: id } }
-            }
+    const reservations = await prisma.reservation.findMany({
+      where: {
+        visits: { some: { visitParts: { some: { employeeId: id } } } },
+        status: options?.status
+      },
+      include: {
+        visits: {
+          where: {
+            visitParts: { some: { employeeId: id } }
           },
-          services: includeFullService
-        }
-      })
-    );
+          include: {
+            visitParts: { where: { employeeId: id } }
+          }
+        },
+        services: includeFullService
+      }
+    });
 
     return (
       reservations?.map((reservation) => ({
@@ -133,42 +108,35 @@ export default class EmployeeService {
   }
 
   public async getEmployeeWithServices(employeeId: Employee['id']) {
-    try {
-      const employeeWithServices = await prisma.employee.findUnique({
-        where: { id: employeeId },
-        select: {
-          ...employeeData,
-          services: includeFullService
-        }
-      });
+    const employeeWithServices = await prisma.employee.findUnique({
+      where: { id: employeeId },
+      select: {
+        ...employeeData,
+        services: includeFullService
+      }
+    });
 
-      return {
-        ...omit(employeeWithServices, 'services'),
-        services:
-          employeeWithServices?.services.flatMap(({ service }) => service) ?? []
-      };
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
-      return null;
-    }
+    return {
+      ...omit(employeeWithServices, 'services'),
+      services:
+        employeeWithServices?.services.flatMap(({ service }) => service) ?? []
+    };
   }
 
   // admin only
   public async createEmployee(
     data: Omit<EmployeeCreationData, 'confirmPassword'>
   ) {
-    return await executeDatabaseOperation(
-      prisma.employee.create({
-        data: {
-          ...data,
-          isAdmin: false,
-          services: {
-            create: data.services?.map((id) => ({ serviceId: id })) ?? []
-          }
-        },
-        ...selectEmployee
-      })
-    );
+    return await prisma.employee.create({
+      data: {
+        ...data,
+        isAdmin: false,
+        services: {
+          create: data.services?.map((id) => ({ serviceId: id })) ?? []
+        }
+      },
+      ...selectEmployee
+    });
   }
 
   public async changeEmployeeData(
@@ -189,30 +157,24 @@ export default class EmployeeService {
     const removedServiceIds = without(employeeServicesIds, ...serviceIds);
     const createdServiceIds = without(serviceIds, ...employeeServicesIds);
 
-    try {
-      const updatedEmployee = await prisma.employee.update({
-        where: { id: employeeId },
-        data: {
-          firstName: data.firstName,
-          lastName: data.lastName,
-          phone: data.phone,
-          isAdmin: data.isAdmin ?? false,
-          services: {
-            deleteMany: removedServiceIds.map((id) => ({ serviceId: id })),
-            createMany: {
-              data: createdServiceIds.map((id) => ({ serviceId: id }))
-            }
+    const updatedEmployee = await prisma.employee.update({
+      where: { id: employeeId },
+      data: {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phone: data.phone,
+        isAdmin: data.isAdmin ?? false,
+        services: {
+          deleteMany: removedServiceIds.map((id) => ({ serviceId: id })),
+          createMany: {
+            data: createdServiceIds.map((id) => ({ serviceId: id }))
           }
-        },
-        ...selectEmployee
-      });
+        }
+      },
+      ...selectEmployee
+    });
 
-      return updatedEmployee;
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
-    }
-
-    return null;
+    return updatedEmployee;
   }
 
   public async getEmployeesBusyHoursForVisit(
@@ -226,33 +188,31 @@ export default class EmployeeService {
 
     const cyclicRanges = getCyclicDateRanges(year, month, options?.frequency);
 
-    const employees = await executeDatabaseOperation(
-      prisma.employee.findMany({
-        where: {
-          services: {
-            some: {
-              visitParts: {
-                some: { visitId: { in: options?.visitIds } }
-              }
-            }
-          }
-        },
-        select: {
-          ...employeeData,
-          services: {
-            include: {
-              visitParts: {
-                ...visitPartTimeframe(
-                  cyclicRanges,
-                  options?.excludeFrom,
-                  options?.excludeTo
-                )
-              }
+    const employees = await prisma.employee.findMany({
+      where: {
+        services: {
+          some: {
+            visitParts: {
+              some: { visitId: { in: options?.visitIds } }
             }
           }
         }
-      })
-    );
+      },
+      select: {
+        ...employeeData,
+        services: {
+          include: {
+            visitParts: {
+              ...visitPartTimeframe(
+                cyclicRanges,
+                options?.excludeFrom,
+                options?.excludeTo
+              )
+            }
+          }
+        }
+      }
+    });
 
     if (!employees) {
       return null;
