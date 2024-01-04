@@ -2,7 +2,7 @@ import type { Response } from 'express';
 
 import { Scheduler } from '~/lib/Scheduler';
 
-import { checkIsEmployee } from '~/middlewares/auth/checkAuthentication';
+import { checkIsEmployee } from '~/middlewares/auth/checkAuthorizarion';
 
 import { VisitPartService } from '~/services';
 

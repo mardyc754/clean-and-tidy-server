@@ -14,7 +14,7 @@ import type {
 import {
   checkIsAdmin,
   checkIsEmployee
-} from '~/middlewares/auth/checkAuthentication';
+} from '~/middlewares/auth/checkAuthorizarion';
 import { checkIfUserExisits } from '~/middlewares/auth/checkIfUserExists';
 import {
   validateEmployeeChangeData,

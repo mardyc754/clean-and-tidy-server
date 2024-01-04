@@ -7,7 +7,7 @@ import { Scheduler } from '~/lib/Scheduler';
 import { EmployeeIdData } from '~/schemas/employee';
 import { ReservationCreationData } from '~/schemas/reservation';
 
-import { checkIsEmployee } from '~/middlewares/auth/checkAuthentication';
+import { checkIsEmployee } from '~/middlewares/auth/checkAuthorizarion';
 import { validateEmployeeId } from '~/middlewares/type-validators/employee';
 import { validateReservationCreationData } from '~/middlewares/type-validators/reservation';
 
@@ -138,11 +138,11 @@ export default class ReservationController extends AbstractController {
     >,
     res: Response
   ) => {
-    const reservations = await this.reservationService.getAllReservations();
+    try {
+      const reservations = await this.reservationService.getAllReservations();
 
-    if (reservations !== null) {
       res.status(200).send(reservations);
-    } else {
+    } catch (err) {
       res
         .status(400)
         .send({ message: 'Error when receiving all reservations' });
@@ -157,21 +157,26 @@ export default class ReservationController extends AbstractController {
     >,
     res: Response
   ) => {
-    const reservation = await this.reservationService.getReservationByName(
-      req.params.name,
-      {
-        includeVisits: queryParamToBoolean(req.query.includeVisits),
-        includeServices: queryParamToBoolean(req.query.includeServices),
-        includeAddress: queryParamToBoolean(req.query.includeAddress)
-      }
-    );
+    try {
+      const reservation = await this.reservationService.getReservationByName(
+        req.params.name,
+        {
+          includeVisits: queryParamToBoolean(req.query.includeVisits),
+          includeServices: queryParamToBoolean(req.query.includeServices),
+          includeAddress: queryParamToBoolean(req.query.includeAddress)
+        }
+      );
 
-    if (reservation !== null) {
-      res.status(200).send(reservation);
-    } else {
-      res.status(404).send({
-        message: `Reservation with name=${req.params.name} not found`,
-        hasError: true
+      if (!reservation) {
+        return res.status(404).send({
+          message: `Reservation with name=${req.params.name} not found`
+        });
+      }
+
+      return res.status(200).send(reservation);
+    } catch (err) {
+      res.status(400).send({
+        message: `Error when creating reservation with name=${req.params.name}`
       });
     }
   };
@@ -180,88 +185,83 @@ export default class ReservationController extends AbstractController {
     req: TypedRequest<DefaultParamsType, ReservationCreationData>,
     res: Response
   ) => {
-    const visitPartTimeslots = req.body.visitParts.map(
-      ({ startDate, endDate, ...other }) => ({
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
-        ...other
-      })
-    );
+    try {
+      const visitPartTimeslots = req.body.visitParts.map(
+        ({ startDate, endDate, ...other }) => ({
+          startDate: new Date(startDate),
+          endDate: new Date(endDate),
+          ...other
+        })
+      );
 
-    const lastEndDate = visitPartTimeslots.at(-1)!.endDate;
+      const lastEndDate = visitPartTimeslots.at(-1)!.endDate;
 
-    const endDate =
-      req.body.frequency !== Frequency.ONCE
-        ? new Date(advanceDateByOneYear(lastEndDate))
-        : lastEndDate;
+      const endDate =
+        req.body.frequency !== Frequency.ONCE
+          ? new Date(advanceDateByOneYear(lastEndDate))
+          : lastEndDate;
 
-    const newVisits = createVisits(
-      req.body,
-      req.body.frequency,
-      endDate.toISOString()
-    );
+      const newVisits = createVisits(
+        req.body,
+        req.body.frequency,
+        endDate.toISOString()
+      );
 
-    const allReservations = await this.reservationService.getAllReservations([
-      Status.ACTIVE,
-      Status.TO_BE_CONFIRMED
-    ]);
+      const allReservations = await this.reservationService.getAllReservations([
+        Status.ACTIVE,
+        Status.TO_BE_CONFIRMED
+      ]);
 
-    if (!allReservations) {
-      return res.status(400).send({
-        message: 'Error when creating reservation',
-        hasError: true
-      });
-    }
+      const visitPartEmployees = visitPartTimeslots.map(
+        ({ employeeId }) => employeeId
+      );
 
-    const visitPartEmployees = visitPartTimeslots.map(
-      ({ employeeId }) => employeeId
-    );
+      const allVisitParts = allReservations
+        .flatMap((reservation) =>
+          reservation.visits.flatMap((visit) => visit.visitParts)
+        )
+        .filter((visitPart) =>
+          visitPartEmployees.includes(visitPart.employeeId)
+        );
 
-    const allVisitParts = allReservations
-      .flatMap((reservation) =>
-        reservation.visits.flatMap((visit) => visit.visitParts)
-      )
-      .filter((visitPart) => visitPartEmployees.includes(visitPart.employeeId));
+      allVisitParts.sort(
+        (a, b) =>
+          new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+      );
 
-    allVisitParts.sort(
-      (a, b) =>
-        new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
-    );
+      const conflicts = visitPartEmployees.flatMap((employeeId) =>
+        timeslotsIntersection([
+          allVisitParts.filter(
+            (visitPart) => visitPart.employeeId === employeeId
+          ),
+          newVisits
+            .map(({ visitParts }) =>
+              visitParts.create
+                .filter((visitPart) => visitPart.employeeId === employeeId)
+                .map(({ startDate, endDate }) => ({
+                  startDate: new Date(startDate),
+                  endDate: new Date(endDate)
+                }))
+            )
+            .flat()
+        ])
+      );
 
-    const conflicts = visitPartEmployees.flatMap((employeeId) =>
-      timeslotsIntersection([
-        allVisitParts.filter(
-          (visitPart) => visitPart.employeeId === employeeId
-        ),
+      if (conflicts.length > 0) {
+        return res.status(400).send({
+          message:
+            'Cannot create reservation because of conflicting dates with other reservations',
+          hasError: true
+        });
+      }
+
+      const reservation = await this.reservationService.createReservation(
+        req.body,
         newVisits
-          .map(({ visitParts }) =>
-            visitParts.create
-              .filter((visitPart) => visitPart.employeeId === employeeId)
-              .map(({ startDate, endDate }) => ({
-                startDate: new Date(startDate),
-                endDate: new Date(endDate)
-              }))
-          )
-          .flat()
-      ])
-    );
+      );
 
-    if (conflicts.length > 0) {
-      return res.status(400).send({
-        message:
-          'Cannot create reservation because of conflicting dates with other reservations',
-        hasError: true
-      });
-    }
-
-    const reservation = await this.reservationService.createReservation(
-      req.body,
-      newVisits
-    );
-
-    if (reservation) {
       res.status(201).send(reservation);
-    } else {
+    } catch (err) {
       res.status(400).send({
         message: 'Error when creating reservation',
         hasError: true
@@ -280,7 +280,13 @@ export default class ReservationController extends AbstractController {
       employeeId
     );
 
-    if (reservation !== null) {
+    if (reservation === null) {
+      return res.status(404).send({
+        message: `Reservation with name=${req.params.name} not found`
+      });
+    }
+
+    try {
       const reservationVisitParts =
         await this.visitPartService.getVisitPartsByReservationId(
           reservation.id
@@ -307,9 +313,9 @@ export default class ReservationController extends AbstractController {
       );
 
       res.status(200).send(reservation);
-    } else {
-      res.status(404).send({
-        message: `Reservation with name=${req.params.name} not found`
+    } catch (err) {
+      res.status(400).send({
+        message: `Error when confirming reservation with name=${req.params.name}`
       });
     }
   };
@@ -318,11 +324,17 @@ export default class ReservationController extends AbstractController {
     req: TypedRequest<{ name: Reservation['name'] }>,
     res: Response
   ) => {
-    const reservation = await this.reservationService.cancelReservation(
-      req.params.name
-    );
+    try {
+      const reservation = await this.reservationService.cancelReservation(
+        req.params.name
+      );
 
-    if (reservation !== null) {
+      if (reservation === null) {
+        return res.status(404).send({
+          message: `Reservation with name=${req.params.name} not found`
+        });
+      }
+
       const reservationVisitParts =
         await this.visitPartService.getVisitPartsByReservationId(
           reservation.id,
@@ -342,9 +354,9 @@ export default class ReservationController extends AbstractController {
       });
 
       res.status(200).send(reservation);
-    } else {
-      res.status(404).send({
-        message: `Reservation with name=${req.params.name} not found`
+    } catch (err) {
+      res.status(400).send({
+        message: `Error when cancelling reservation with name=${req.params.name}`
       });
     }
   };

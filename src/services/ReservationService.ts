@@ -1,9 +1,4 @@
-import {
-  type Client,
-  Employee,
-  type Reservation,
-  Status
-} from '@prisma/client';
+import { Employee, type Reservation, Status } from '@prisma/client';
 import short from 'short-uuid';
 import type { RequireAtLeastOne } from 'type-fest';
 
@@ -34,8 +29,8 @@ export type ReservationQueryOptions = RequireAtLeastOne<{
 
 export default class ReservationService {
   public async getAllReservations(statuses?: Reservation['status'][]) {
-    const allReservations = await executeDatabaseOperation(
-      prisma.reservation.findMany({
+    return await prisma.$transaction(async (tx) => {
+      const allReservations = await tx.reservation.findMany({
         where: { status: { in: statuses } },
         include: {
           visits: {
@@ -46,34 +41,32 @@ export default class ReservationService {
           },
           services: serviceInclude
         }
-      })
-    );
+      });
 
-    return (
-      allReservations?.map((reservation) => ({
-        ...reservation,
-        visits: flattenNestedVisits(reservation.visits),
-        services: flattenNestedReservationServices(reservation.services)
-      })) ?? null
-    );
+      return (
+        allReservations.map((reservation) => ({
+          ...reservation,
+          visits: flattenNestedVisits(reservation.visits),
+          services: flattenNestedReservationServices(reservation.services)
+        })) ?? null
+      );
+    });
   }
 
   public async getReservationByName(
     name: Reservation['name'],
     options?: ReservationQueryOptions
   ) {
-    const reservationData = await executeDatabaseOperation(
-      prisma.reservation.findUnique({
-        where: { name },
-        include: {
-          // include visits only if the option is true
-          visits: includeAllVisitData,
-          // include address only if the option is true
-          address: options?.includeAddress,
-          services: serviceInclude
-        }
-      })
-    );
+    const reservationData = await prisma.reservation.findUnique({
+      where: { name },
+      include: {
+        // include visits only if the option is true
+        visits: includeAllVisitData,
+        // include address only if the option is true
+        address: options?.includeAddress,
+        services: serviceInclude
+      }
+    });
 
     if (!reservationData) {
       return null;
@@ -84,29 +77,6 @@ export default class ReservationService {
       visits: flattenNestedVisits(reservationData.visits),
       services: flattenNestedReservationServices(reservationData.services)
     };
-  }
-
-  public async getClientReservations(
-    clientEmail: Client['email'],
-    status?: Status
-  ) {
-    return await executeDatabaseOperation(
-      prisma.reservation.findMany({
-        where: { bookerEmail: clientEmail },
-        include: {
-          visits: {
-            include: {
-              visitParts: { where: { status } }
-            }
-          },
-          services: {
-            include: {
-              service: true
-            }
-          }
-        }
-      })
-    );
   }
 
   public async getVisits(name: Reservation['name']) {
@@ -132,32 +102,35 @@ export default class ReservationService {
     data: ReservationCreationData,
     visits: ReturnType<typeof createVisits>
   ) {
-    const reservationGroupName = `reservation-${short.generate()}`;
-    let reservation: Reservation | null = null;
+    return await prisma.$transaction(async (tx) => {
+      const reservationGroupName = `reservation-${short.generate()}`;
+      let reservation: Reservation | null = null;
 
-    const {
-      bookerEmail,
-      frequency,
-      address,
-      contactDetails: { firstName: bookerFirstName, lastName: bookerLastName },
-      visitParts,
-      services,
-      extraInfo
-    } = data;
+      const {
+        bookerEmail,
+        frequency,
+        address,
+        contactDetails: {
+          firstName: bookerFirstName,
+          lastName: bookerLastName
+        },
+        visitParts,
+        services,
+        extraInfo
+      } = data;
 
-    const lastEndDate = visitParts.at(-1)?.endDate;
+      const lastEndDate = visitParts.at(-1)?.endDate;
 
-    if (!lastEndDate) {
-      return null;
-    }
+      if (!lastEndDate) {
+        return null;
+      }
 
-    try {
       let addressId: number;
 
       if (typeof address === 'number') {
         addressId = address;
       } else {
-        const addressRecord = await prisma.address.findFirst({
+        const addressRecord = await tx.address.findFirst({
           where: { ...address }
         });
 
@@ -168,7 +141,7 @@ export default class ReservationService {
         addressId = addressRecord.id;
       }
 
-      reservation = await prisma.reservation.create({
+      reservation = await tx.reservation.create({
         data: {
           status: Status.TO_BE_CONFIRMED,
           visits: {
@@ -201,35 +174,41 @@ export default class ReservationService {
           }
         }
       });
-    } catch (err) {
-      console.error(err);
-      reservation = null;
-    }
 
-    return reservation;
+      return reservation;
+    });
   }
 
   public async cancelReservation(name: Reservation['name']) {
-    let reservation: Reservation | null = null;
-    const oldReservation = await this.getReservationByName(name);
-    if (!oldReservation) {
-      return null;
-    }
+    return await prisma.$transaction(async (tx) => {
+      let reservation: Reservation | null = null;
+      const oldReservation = await this.getReservationByName(name);
+      if (!oldReservation) {
+        return null;
+      }
 
-    const visits = await this.getVisits(oldReservation.name);
+      const reservationVisits = await tx.visit.findMany({
+        where: { reservationId: oldReservation.id },
+        include: {
+          visitParts: visitPartWithEmployee
+        }
+      });
 
-    if (!oldReservation || !visits) {
-      return reservation;
-    }
+      const visits = reservationVisits
+        ? flattenNestedVisits(reservationVisits)
+        : [];
 
-    const visitPartsAfterNow = visits
-      .flatMap(({ visitParts }) =>
-        visitParts.filter(({ startDate }) => isAfter(startDate, new Date()))
-      )
-      .map(({ id }) => id);
+      if (!oldReservation || !visits) {
+        return reservation;
+      }
 
-    try {
-      reservation = await prisma.reservation.update({
+      const visitPartsAfterNow = visits
+        .flatMap(({ visitParts }) =>
+          visitParts.filter(({ startDate }) => isAfter(startDate, new Date()))
+        )
+        .map(({ id }) => id);
+
+      reservation = await tx.reservation.update({
         where: { name },
         data: {
           status: Status.CANCELLED,
@@ -265,68 +244,57 @@ export default class ReservationService {
         //   services: serviceInclude
         // }
       });
-    } catch (err) {
-      console.error(err);
-    }
 
-    if (!reservation) {
-      return null;
-    }
-
-    return this.getReservationByName(reservation.name);
+      return this.getReservationByName(reservation.name);
+    });
   }
 
   public async closeReservation(reservationId: Reservation['id']) {
-    let reservation: Reservation | null = null;
+    return await prisma.$transaction(async (tx) => {
+      let reservation: Reservation | null = null;
 
-    const visitParts = await executeDatabaseOperation(
-      prisma.visitPart.findMany({
+      const visitParts = await tx.visitPart.findMany({
         where: {
           status: Status.ACTIVE,
           visit: {
             reservationId
           }
         }
-      })
-    );
+      });
 
-    if ((visitParts?.length ?? 0) > 0) {
-      return null;
-    }
+      if ((visitParts?.length ?? 0) > 0) {
+        return null;
+      }
 
-    try {
-      reservation = await prisma.reservation.update({
+      reservation = await tx.reservation.update({
         where: { id: reservationId },
         data: {
           status: Status.CLOSED
         }
       });
-    } catch (err) {
-      console.error(err);
-    }
-    return reservation;
+
+      return reservation;
+    });
   }
 
   public async closeReservations(reservationIds: Array<Reservation['id']>) {
-    let reservationUpdateCount = 0;
+    return await prisma.$transaction(async (tx) => {
+      let reservationUpdateCount = 0;
 
-    const visitParts = await executeDatabaseOperation(
-      prisma.visitPart.findMany({
+      const visitParts = await tx.visitPart.findMany({
         where: {
           status: Status.ACTIVE,
           visit: {
             reservationId: { in: reservationIds }
           }
         }
-      })
-    );
+      });
 
-    if ((visitParts?.length ?? 0) > 0) {
-      return null;
-    }
+      if ((visitParts?.length ?? 0) > 0) {
+        return null;
+      }
 
-    try {
-      const payload = await prisma.reservation.updateMany({
+      const payload = await tx.reservation.updateMany({
         where: { id: { in: reservationIds } },
         data: {
           status: Status.CLOSED
@@ -334,10 +302,9 @@ export default class ReservationService {
       });
 
       reservationUpdateCount = payload.count;
-    } catch (err) {
-      console.error(err);
-    }
-    return reservationUpdateCount;
+
+      return reservationUpdateCount;
+    });
   }
 
   public async confirmReservation(
@@ -350,37 +317,36 @@ export default class ReservationService {
       return null;
     }
 
-    await prisma.visitPart.updateMany({
-      where: {
-        visit: { reservation: { name: reservationName } },
-        employeeId
-      },
-      data: {
-        status: Status.ACTIVE
-      }
-    });
+    return await prisma.$transaction(async (tx) => {
+      await tx.visitPart.updateMany({
+        where: {
+          visit: { reservation: { name: reservationName } },
+          employeeId
+        },
+        data: {
+          status: Status.ACTIVE
+        }
+      });
 
-    const visitStatuses = await executeDatabaseOperation(
-      prisma.visitPart.findMany({
+      const visitStatuses = await tx.visitPart.findMany({
         where: {
           visit: {
             reservation: { name: reservationName }
           }
         }
-      })
-    );
+      });
 
-    if (visitStatuses?.every(({ status }) => status === Status.ACTIVE)) {
-      return await executeDatabaseOperation(
-        prisma.reservation.update({
-          where: { id: reservation.id },
-          data: {
-            status: Status.ACTIVE
-          }
-        })
-      );
-    }
-
-    return reservation;
+      if (visitStatuses.every(({ status }) => status === Status.ACTIVE)) {
+        return await executeDatabaseOperation(
+          tx.reservation.update({
+            where: { id: reservation.id },
+            data: {
+              status: Status.ACTIVE
+            }
+          })
+        );
+      }
+      return reservation;
+    });
   }
 }

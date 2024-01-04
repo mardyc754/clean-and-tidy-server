@@ -3,9 +3,9 @@ import jwt from 'jsonwebtoken';
 
 import { JWT_SECRET, UserRole } from '~/constants';
 
-type AuthenticationData = { acceptableRoles: UserRole[] };
+type AuthorizationData = { acceptableRoles: UserRole[] };
 
-export function checkAuthentication(data?: AuthenticationData) {
+export function checkAuthorization(data?: AuthorizationData) {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.cookies.authToken) {
       return res.status(401).send({ message: 'Credentials were not provided' });
@@ -30,21 +30,21 @@ export function checkAuthentication(data?: AuthenticationData) {
         return next();
       }
     } catch (err) {
-      res.status(403).send({ message: 'Invalid token', hasError: true });
+      res.status(401).send({ message: 'Invalid token' });
     }
   };
 }
 
 export function checkIsClient() {
-  return checkAuthentication({ acceptableRoles: [UserRole.CLIENT] });
+  return checkAuthorization({ acceptableRoles: [UserRole.CLIENT] });
 }
 
 export function checkIsEmployee() {
-  return checkAuthentication({
+  return checkAuthorization({
     acceptableRoles: [UserRole.EMPLOYEE, UserRole.ADMIN]
   });
 }
 
 export function checkIsAdmin() {
-  return checkAuthentication({ acceptableRoles: [UserRole.ADMIN] });
+  return checkAuthorization({ acceptableRoles: [UserRole.ADMIN] });
 }

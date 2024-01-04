@@ -23,8 +23,6 @@ import {
   timeslotsIntersection
 } from '~/utils/timeslotUtils';
 
-import { executeDatabaseOperation } from '../utils/queryUtils';
-
 export type AllServicesQueryOptions = {
   primaryOnly: boolean;
   includeEmployees: boolean;
@@ -32,38 +30,27 @@ export type AllServicesQueryOptions = {
 
 export default class TypesOfCleaningService {
   public async getServiceById(id: Service['id']) {
-    const service = await executeDatabaseOperation(
-      prisma.service.findUnique(getSingleServiceData(id))
-    );
-
-    if (!service) {
-      return null;
-    }
-
-    return getResponseServiceData(service);
+    const service = await prisma.service.findUnique(getSingleServiceData(id));
+    return service ? getResponseServiceData(service) : null;
   }
 
   public async getAllServices(options?: AllServicesQueryOptions) {
     const services = options?.includeEmployees
-      ? await executeDatabaseOperation(
-          prisma.service.findMany({
-            where: options?.primaryOnly ? { isPrimary: true } : undefined,
-            include: {
-              ...serviceUnit,
-              employees: serviceEmployees
-            }
-          })
-        )
-      : await executeDatabaseOperation(
-          prisma.service.findMany({
-            where: options?.primaryOnly ? { isPrimary: true } : undefined,
-            include: {
-              ...serviceUnit
-            }
-          })
-        );
+      ? await prisma.service.findMany({
+          where: options?.primaryOnly ? { isPrimary: true } : undefined,
+          include: {
+            ...serviceUnit,
+            employees: serviceEmployees
+          }
+        })
+      : await prisma.service.findMany({
+          where: options?.primaryOnly ? { isPrimary: true } : undefined,
+          include: {
+            ...serviceUnit
+          }
+        });
 
-    return services?.map((service) => getResponseServiceData(service));
+    return services.map((service) => getResponseServiceData(service));
   }
 
   // admin only
@@ -78,17 +65,15 @@ export default class TypesOfCleaningService {
         }
       : {};
 
-    return await executeDatabaseOperation(
-      prisma.service.create({
-        data: {
-          ...otherData,
-          ...unitCreationQuery,
-          secondaryServices: {
-            connect: secondaryServices?.map((id) => ({ id })) ?? []
-          }
+    return await prisma.service.create({
+      data: {
+        ...otherData,
+        ...unitCreationQuery,
+        secondaryServices: {
+          connect: secondaryServices?.map((id) => ({ id })) ?? []
         }
-      })
-    );
+      }
+    });
   }
 
   // admin only
@@ -96,23 +81,17 @@ export default class TypesOfCleaningService {
     const {
       unit: { price }
     } = data;
-    const service = await executeDatabaseOperation(
-      prisma.service.update({
-        where: { id },
-        data: {
-          unit: {
-            update: { price }
-          }
-        },
-        include: {
-          ...serviceUnit
+    const service = await prisma.service.update({
+      where: { id },
+      data: {
+        unit: {
+          update: { price }
         }
-      })
-    );
-
-    if (!service) {
-      return null;
-    }
+      },
+      include: {
+        ...serviceUnit
+      }
+    });
 
     return getResponseServiceData(service);
   }
@@ -125,27 +104,21 @@ export default class TypesOfCleaningService {
 
     const cyclicRanges = getCyclicDateRanges(year, month, options?.frequency);
 
-    const employees = await executeDatabaseOperation(
-      prisma.employee.findMany({
-        where: {
-          services: { some: { serviceId: { in: options?.serviceIds } } }
-        },
-        select: {
-          ...employeeData,
-          services: {
-            include: {
-              visitParts: {
-                ...visitPartTimeframe(cyclicRanges)
-              }
+    const employees = await prisma.employee.findMany({
+      where: {
+        services: { some: { serviceId: { in: options?.serviceIds } } }
+      },
+      select: {
+        ...employeeData,
+        services: {
+          include: {
+            visitParts: {
+              ...visitPartTimeframe(cyclicRanges)
             }
           }
         }
-      })
-    );
-
-    if (!employees) {
-      return null;
-    }
+      }
+    });
 
     const { employeesWithWorkingHours, flattenedEmployeeVisitParts } =
       getEmployeesBusyHoursData(employees, cyclicRanges, options?.frequency);
