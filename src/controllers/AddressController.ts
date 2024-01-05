@@ -22,12 +22,12 @@ export default class AddressController extends AbstractController {
   }
 
   private getAddress = async (req: Request, res: Response) => {
-    const address = await this.addressService.getAddress(req.body);
+    const address = await this.addressService.validatePostcode(req.body);
 
     if (address) {
       res.status(200).send(address);
     } else {
-      res.status(404).send({ message: 'Given address does not exist' });
+      res.status(404).send({ message: 'Invalid post code' });
     }
   };
 }
