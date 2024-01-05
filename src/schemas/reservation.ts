@@ -37,7 +37,7 @@ export const reservationCreationSchema = z
     detergentsCost: z.number(),
     // detergentsCost: z.number().int().min(0),
     visitParts: z.array(visitPartCreationData),
-    address: address.or(z.number().int()),
+    address: address,
     contactDetails,
     extraInfo: z.string().max(500).nullish(),
     services: z.array(reservationServiceSchema).refine(

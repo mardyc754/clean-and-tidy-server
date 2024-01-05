@@ -53,8 +53,8 @@ model Reservation {
   client                        Client?                       @relation(fields: [bookerEmail], references: [email])
   bookerEmail                   String?                          
   visits                        Visit[]
-  address                       Address                       @relation(fields: [addressId], references: [id])
-  addressId                     Int                          
+  addressId                     Int                           @unique
+  address                       Address                       @relation(fields: [addressId], references: [id], onDelete: Cascade)
   bookerFirstName               String                        @db.VarChar(50)
   bookerLastName                String                        @db.VarChar(50)
   extraInfo                     String?                       @db.VarChar(500)
@@ -66,7 +66,7 @@ model Address {
   street                        String                        @db.VarChar(100)
   houseNumber                   String                        @db.VarChar(6)        
   postCode                      String                        @db.VarChar(6)
-  reservations                  Reservation[]
+  reservation                   Reservation?
 }
 
 

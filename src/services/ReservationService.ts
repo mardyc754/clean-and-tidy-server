@@ -184,16 +184,6 @@ export default class ReservationService {
         return null;
       }
 
-      const addressRecord = await tx.address.findFirst({
-        where: typeof address === 'number' ? { id: address } : { ...address }
-      });
-
-      if (!addressRecord) {
-        throw new RequestError('Invalid address');
-      }
-
-      const addressId = addressRecord.id;
-
       return await tx.reservation.create({
         data: {
           status: Status.TO_BE_CONFIRMED,
@@ -214,9 +204,7 @@ export default class ReservationService {
             }))
           },
           address: {
-            connect: {
-              id: addressId
-            }
+            create: address
           },
           client: {
             connectOrCreate: {
