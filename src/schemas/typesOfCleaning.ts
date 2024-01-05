@@ -22,7 +22,8 @@ export const createServiceSchema = z.object({
       duration: z.number().max(480)
     })
     .optional(),
-  secondaryServices: z.number().int().array().optional()
+  secondaryServices: z.number().int().array().optional(),
+  detergentsCost: z.number().optional()
 });
 
 export type CreateServiceData = z.infer<typeof createServiceSchema>;

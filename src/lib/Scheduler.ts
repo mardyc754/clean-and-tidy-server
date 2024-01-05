@@ -65,7 +65,7 @@ export class Scheduler {
         include: {
           visit: {
             select: {
-              includeDetergents: true
+              detergentsCost: true
             }
           },
           employeeService: {

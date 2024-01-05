@@ -275,7 +275,7 @@ export default class ReservationService {
             update: oldReservation.visits.map((visit) => ({
               where: { id: visit.id },
               data: {
-                includeDetergents: false,
+                detergentsCost: 0,
                 canDateBeChanged: false,
                 visitParts: {
                   updateMany: visit.visitParts.map((visitPart) => ({

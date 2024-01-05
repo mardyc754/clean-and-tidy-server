@@ -22,7 +22,7 @@ export default class VisitPartService {
       include: {
         visit: {
           select: {
-            includeDetergents: true
+            detergentsCost: true
           }
         },
         employeeService: {
@@ -34,7 +34,7 @@ export default class VisitPartService {
     return visitPart
       ? {
           ...omit(visitPart, 'employeeService', 'visit'),
-          includeDetergents: visitPart.visit.includeDetergents,
+          includeDetergents: visitPart.visit.detergentsCost.toNumber() > 0,
           employee: visitPart.employeeService.employee
         }
       : null;
@@ -50,7 +50,7 @@ export default class VisitPartService {
       include: {
         visit: {
           select: {
-            includeDetergents: true
+            detergentsCost: true
           }
         },
         employeeService: {
@@ -63,7 +63,7 @@ export default class VisitPartService {
 
     return {
       ...omit(canceledVisitPart, 'employeeService', 'visit'),
-      includeDetergents: canceledVisitPart.visit.includeDetergents,
+      includeDetergents: canceledVisitPart.visit.detergentsCost.toNumber() > 0,
       employee: canceledVisitPart.employeeService.employee
     };
   }
@@ -77,7 +77,7 @@ export default class VisitPartService {
       include: {
         visit: {
           select: {
-            includeDetergents: true
+            detergentsCost: true
           }
         },
         employeeService: {
@@ -97,7 +97,7 @@ export default class VisitPartService {
       include: {
         visit: {
           select: {
-            includeDetergents: true
+            detergentsCost: true
           }
         },
         employeeService: {
@@ -117,7 +117,7 @@ export default class VisitPartService {
       include: {
         visit: {
           select: {
-            includeDetergents: true
+            detergentsCost: true
           }
         },
         employeeService: {
@@ -126,43 +126,5 @@ export default class VisitPartService {
       },
       orderBy: { startDate: 'asc' }
     });
-  }
-
-  public async closeVisitPart(id: VisitPart['id']) {
-    const closedVisitPart = await prisma.visitPart.update({
-      where: { id },
-      data: {
-        status: Status.CLOSED
-      },
-      include: {
-        visit: {
-          select: {
-            includeDetergents: true
-          }
-        },
-        employeeService: {
-          include: { employee: true }
-        }
-      }
-    });
-
-    return closedVisitPart
-      ? {
-          ...omit(closedVisitPart, 'employeeService', 'visit'),
-          includeDetergents: closedVisitPart.visit.includeDetergents,
-          employee: closedVisitPart.employeeService.employee
-        }
-      : null;
-  }
-
-  public async closeVisitParts(visitPartIds: Array<VisitPart['id']>) {
-    const payload = await prisma.visitPart.updateMany({
-      where: { id: { in: visitPartIds } },
-      data: {
-        status: Status.CLOSED
-      }
-    });
-
-    return payload?.count ?? 0;
   }
 }

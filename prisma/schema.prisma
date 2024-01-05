@@ -38,7 +38,7 @@ model Client {
 
 model Visit {
   id                            Int                           @id @default(autoincrement())
-  includeDetergents             Boolean 
+  detergentsCost                Decimal                       @db.Money 
   reservation                   Reservation                   @relation(fields: [reservationId], references: [id], onDelete: Cascade)
   reservationId                 Int                          
   visitParts                    VisitPart[]  
@@ -89,6 +89,7 @@ model Service {
   minCostIfPrimary              Decimal?                      @db.Money        
   unitId                        Int?                          @unique
   unit                          Unit?                         @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  detergentsCost                Decimal                       @db.Money @default(0)
   employees                     EmployeeService[]
   cleaningFrequencies           CleaningFrequency[]
   reservations                  ReservationService[]

@@ -34,7 +34,7 @@ export const reservationCreationSchema = z
   .object({
     frequency: FrequencySchema,
     bookerEmail: z.string().email(),
-    includeDetergents: z.boolean(),
+    detergentsCost: z.number(),
     // detergentsCost: z.number().int().min(0),
     visitParts: z.array(visitPartCreationData),
     address: address.or(z.number().int()),

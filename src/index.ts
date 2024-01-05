@@ -11,9 +11,9 @@ import {
 } from '~/controllers';
 
 import App from './App';
-import { Scheduler } from './lib/Scheduler';
+import { setupDB } from './setup';
 
-Scheduler.init();
+setupDB();
 
 const app = new App(
   [

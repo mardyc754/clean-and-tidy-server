@@ -149,7 +149,12 @@ export default class VisitService {
       const canceledVisit = await tx.visit.update({
         where: { id },
         data: {
-          includeDetergents: false,
+          detergentsCost: isAtLeastOneDayBetween(
+            new Date(),
+            oldVisitData.visitParts[0]!.startDate
+          )
+            ? 0
+            : (oldVisitData.detergentsCost?.toNumber() ?? 0) / 2,
           canDateBeChanged: false,
           visitParts: {
             update: oldVisitData.visitParts.map((visitPart) => {

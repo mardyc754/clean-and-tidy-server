@@ -15,12 +15,12 @@ import { flattenNestedVisits } from './visits';
 export function createVisits(
   visitData: Pick<
     ReservationCreationData,
-    'visitParts' | 'includeDetergents' | 'frequency'
+    'visitParts' | 'detergentsCost' | 'frequency'
   >,
   frequency: Reservation['frequency'],
   endDate: string
 ) {
-  const { visitParts, includeDetergents } = visitData;
+  const { visitParts, detergentsCost } = visitData;
 
   const startDate = visitParts[0]?.startDate;
   const lastVisitPartEndDate = visitParts.at(-1)?.endDate;
@@ -52,7 +52,7 @@ export function createVisits(
   ].map((_, i) => i * step);
 
   return unitSteps.map((unit) => ({
-    includeDetergents,
+    detergentsCost,
     visitParts: visitParts.map((visitPart) => {
       let visitPartStartDate = advanceDateCallback
         ? new Date(advanceDateCallback(visitPart.startDate, unit))
