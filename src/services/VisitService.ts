@@ -2,6 +2,7 @@ import { Status, type Visit, VisitPart } from '@prisma/client';
 import type { RequireAtLeastOne } from 'type-fest';
 import { RequestError } from '~/errors/RequestError';
 
+import { Scheduler } from '~/lib/Scheduler';
 import prisma from '~/lib/prisma';
 
 import { ChangeVisitData } from '~/schemas/visit';
@@ -106,7 +107,13 @@ export default class VisitService {
         }
       });
 
-      return flattenNestedVisit(visit);
+      const visitData = flattenNestedVisit(visit);
+
+      Scheduler.getInstance()?.changeVisitPartsCloseSchedule(
+        visitData.visitParts
+      );
+
+      return visitData;
     });
   }
 
@@ -163,7 +170,20 @@ export default class VisitService {
         }
       });
 
-      return canceledVisit ? flattenNestedVisit(canceledVisit) : null;
+      if (!canceledVisit) return null;
+
+      const canceledVisitData = flattenNestedVisit(canceledVisit);
+
+      const visitPartsToCancel = canceledVisitData.visitParts.filter(
+        ({ status }) => status === Status.CANCELLED
+      );
+
+      Scheduler.getInstance()?.cancelReservationsAndVisitParts(
+        [],
+        visitPartsToCancel.map(({ id }) => id)
+      );
+
+      return canceledVisitData;
     });
   }
 }

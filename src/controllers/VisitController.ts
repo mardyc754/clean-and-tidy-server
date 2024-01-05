@@ -1,13 +1,10 @@
-import { Status } from '@prisma/client';
 import type { Request, Response } from 'express';
 import { Stringified } from 'type-fest';
 import { RequestError } from '~/errors/RequestError';
 
-import { Scheduler } from '~/lib/Scheduler';
-
 import { ChangeVisitData } from '~/schemas/visit';
 
-import { VisitPartService, VisitService } from '~/services';
+import { VisitService } from '~/services';
 
 import { VisitQueryOptions } from '~/services/VisitService';
 
@@ -17,9 +14,6 @@ import AbstractController from './AbstractController';
 
 export default class VisitController extends AbstractController {
   private readonly visitService = new VisitService();
-  private readonly visitPartService = new VisitPartService();
-
-  private readonly scheduler = Scheduler.getInstance();
 
   constructor() {
     super('/visits');
@@ -61,16 +55,13 @@ export default class VisitController extends AbstractController {
         id: parseInt(req.params.id)
       });
 
-      if (visit) {
-        this.scheduler.cancelVisitPartJob(visit.visitParts[0]!.id);
-        this.scheduler.scheduleVisitPartJob(visit.visitParts[0]!, () => {
-          this.visitPartService.closeVisitPart(visit.visitParts[0]!.id);
-        });
-        return res.status(200).send(visit);
+      if (!visit) {
+        return res
+          .status(404)
+          .send({ message: 'Visit with given id not found' });
       }
-      return res
-        .status(400)
-        .send({ message: 'Error when updating visit data' });
+
+      return res.status(200).send(visit);
     } catch (error) {
       if (error instanceof RequestError) {
         return res.status(400).send({ message: error.message });
@@ -89,13 +80,6 @@ export default class VisitController extends AbstractController {
         return res.status(404).send({ message: 'Visit not found' });
       }
 
-      const visitParts = visit.visitParts.filter(
-        ({ status }) => status === Status.CANCELLED
-      );
-
-      visitParts.forEach(({ id }) => {
-        this.scheduler.cancelVisitPartJob(id);
-      });
       res.status(200).send(visit);
     } catch (error) {
       res.status(400).send({ message: 'Error when canceling the visit' });

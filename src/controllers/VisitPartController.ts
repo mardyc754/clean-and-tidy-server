@@ -1,7 +1,5 @@
 import type { Response } from 'express';
 
-import { Scheduler } from '~/lib/Scheduler';
-
 import { checkIsEmployee } from '~/middlewares/auth/checkAuthorizarion';
 
 import { VisitPartService } from '~/services';
@@ -12,7 +10,6 @@ import AbstractController from './AbstractController';
 
 export default class VisitPartController extends AbstractController {
   private readonly visitPartService = new VisitPartService();
-  private readonly scheduler = Scheduler.getInstance();
 
   constructor() {
     super('/visit-parts');
@@ -53,8 +50,6 @@ export default class VisitPartController extends AbstractController {
           .status(404)
           .send({ message: `Visit part with id=${req.params.id} not found` });
       }
-
-      this.scheduler.cancelVisitPartJob(visitPart.id);
 
       res.status(200).send(visitPart);
     } catch (error) {

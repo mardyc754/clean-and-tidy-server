@@ -3,6 +3,7 @@ import short from 'short-uuid';
 import type { RequireAtLeastOne } from 'type-fest';
 import { RequestError } from '~/errors/RequestError';
 
+import { Scheduler } from '~/lib/Scheduler';
 import prisma from '~/lib/prisma';
 
 import type { ReservationCreationData } from '~/schemas/reservation';
@@ -303,6 +304,18 @@ export default class ReservationService {
         // }
       });
 
+      const reservationVisitParts = await tx.visitPart.findMany({
+        where: {
+          visit: { reservationId: reservation.id },
+          status: Status.CANCELLED
+        }
+      });
+
+      Scheduler.getInstance()?.cancelReservationsAndVisitParts(
+        [reservation.id],
+        reservationVisitParts.map(({ id }) => id)
+      );
+
       return this.getReservationByName(reservation.name);
     });
   }
@@ -401,11 +414,17 @@ export default class ReservationService {
           }
         });
 
-        return {
+        const reservationData = {
           ...reservation,
           visits: flattenNestedVisits(reservation.visits),
           services: flattenNestedReservationServices(reservation.services)
         };
+
+        Scheduler.getInstance()?.scheduleVisitPartJobsCloseForReservation(
+          reservation.id
+        );
+
+        return reservationData;
       }
 
       return this.getReservationByName(reservationName);
