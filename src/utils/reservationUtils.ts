@@ -1,6 +1,5 @@
 import {
   Frequency,
-  Prisma,
   type Reservation,
   Status,
   type Visit
@@ -10,10 +9,14 @@ import { ReservationCreationData } from '~/schemas/reservation';
 
 import { advanceDateByDays, isTheSameDay } from './dateUtils';
 import { getHolidayBusyHours } from './holidays';
-import { getFrequencyHelpers } from './timeslotUtils';
+import { getFrequencyHelpers, timeslotsIntersection } from './timeslotUtils';
+import { flattenNestedVisits } from './visits';
 
 export function createVisits(
-  visitData: Pick<ReservationCreationData, 'visitParts' | 'includeDetergents'>,
+  visitData: Pick<
+    ReservationCreationData,
+    'visitParts' | 'includeDetergents' | 'frequency'
+  >,
   frequency: Reservation['frequency'],
   endDate: string
 ) {
@@ -48,38 +51,34 @@ export function createVisits(
     ...Array<unknown>(Math.ceil(numberOfVisits / (step || 1)))
   ].map((_, i) => i * step);
 
-  return Prisma.validator<Prisma.VisitCreateWithoutReservationInput[]>()(
-    unitSteps.map((unit) => ({
-      includeDetergents,
-      visitParts: {
-        create: visitParts.map((visitPart) => {
-          let visitPartStartDate = advanceDateCallback
-            ? new Date(advanceDateCallback(visitPart.startDate, unit))
-            : new Date(visitPart.startDate);
-          let visitPartEndDate = advanceDateCallback
-            ? new Date(advanceDateCallback(visitPart.endDate, unit))
-            : new Date(visitPart.endDate);
+  return unitSteps.map((unit) => ({
+    includeDetergents,
+    visitParts: visitParts.map((visitPart) => {
+      let visitPartStartDate = advanceDateCallback
+        ? new Date(advanceDateCallback(visitPart.startDate, unit))
+        : new Date(visitPart.startDate);
+      let visitPartEndDate = advanceDateCallback
+        ? new Date(advanceDateCallback(visitPart.endDate, unit))
+        : new Date(visitPart.endDate);
 
-          // if the visit part is on a holiday, move it to the closest non-holiday day
-          while (
-            holidayBusyHours.some(({ startDate }) =>
-              isTheSameDay(startDate, visitPartStartDate)
-            )
-          ) {
-            visitPartStartDate = advanceDateByDays(visitPartStartDate, 1);
-            visitPartEndDate = advanceDateByDays(visitPartEndDate, 1);
-          }
-
-          return {
-            ...visitPart,
-            status: Status.TO_BE_CONFIRMED,
-            startDate: visitPartStartDate,
-            endDate: visitPartEndDate
-          };
-        })
+      // if the visit part is on a holiday, move it to the closest non-holiday day
+      while (
+        holidayBusyHours.some(({ startDate }) =>
+          isTheSameDay(startDate, visitPartStartDate)
+        )
+      ) {
+        visitPartStartDate = advanceDateByDays(visitPartStartDate, 1);
+        visitPartEndDate = advanceDateByDays(visitPartEndDate, 1);
       }
-    }))
-  );
+
+      return {
+        ...visitPart,
+        status: Status.TO_BE_CONFIRMED,
+        startDate: visitPartStartDate,
+        endDate: visitPartEndDate
+      };
+    })
+  }));
 }
 
 export function shouldChangeVisitFrequency(
@@ -105,3 +104,35 @@ export function changeMultipleVisitsStatus(visits: Visit[], newStatus: Status) {
     status: newStatus
   }));
 }
+
+export const checkReservationConflict = (
+  createdVisits: ReturnType<typeof createVisits>,
+  allPendingVisits: ReturnType<typeof flattenNestedVisits>,
+  visitPartEmployees: number[]
+) => {
+  const allPendingVisitParts = allPendingVisits
+    .flatMap((visit) => visit.visitParts)
+    .filter((visitPart) => visitPartEmployees.includes(visitPart.employeeId));
+
+  allPendingVisitParts.sort(
+    (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+  );
+
+  return visitPartEmployees.flatMap((employeeId) =>
+    timeslotsIntersection([
+      allPendingVisitParts.filter(
+        (visitPart) => visitPart.employeeId === employeeId
+      ),
+      createdVisits
+        .map(({ visitParts }) =>
+          visitParts
+            .filter((visitPart) => visitPart.employeeId === employeeId)
+            .map(({ startDate, endDate }) => ({
+              startDate: new Date(startDate),
+              endDate: new Date(endDate)
+            }))
+        )
+        .flat()
+    ])
+  );
+};

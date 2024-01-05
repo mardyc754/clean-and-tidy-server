@@ -1,6 +1,7 @@
-import { Employee, type Reservation, Status } from '@prisma/client';
+import { Employee, Frequency, type Reservation, Status } from '@prisma/client';
 import short from 'short-uuid';
 import type { RequireAtLeastOne } from 'type-fest';
+import { RequestError } from '~/errors/RequestError';
 
 import prisma from '~/lib/prisma';
 
@@ -12,9 +13,16 @@ import {
   visitPartWithEmployee
 } from '~/queries/serviceQuery';
 
-import { isAfter, isAtLeastOneDayBetween } from '~/utils/dateUtils';
+import {
+  advanceDateByOneYear,
+  isAfter,
+  isAtLeastOneDayBetween
+} from '~/utils/dateUtils';
 import { executeDatabaseOperation } from '~/utils/queryUtils';
-import { createVisits } from '~/utils/reservationUtils';
+import {
+  checkReservationConflict,
+  createVisits
+} from '~/utils/reservationUtils';
 import {
   flattenNestedReservationServices,
   flattenNestedVisits
@@ -98,59 +106,112 @@ export default class ReservationService {
     return visits ? flattenNestedVisits(visits) : [];
   }
 
-  public async createReservation(
-    data: ReservationCreationData,
-    visits: ReturnType<typeof createVisits>
-  ) {
+  public async createReservation(data: ReservationCreationData) {
     return await prisma.$transaction(async (tx) => {
-      const reservationGroupName = `reservation-${short.generate()}`;
-      let reservation: Reservation | null = null;
+      const allPendingReservations = await tx.reservation.findMany({
+        where: {
+          status: { in: [Status.ACTIVE, Status.TO_BE_CONFIRMED] },
+          visits: {
+            some: {
+              visitParts: {
+                some: {
+                  employeeId: {
+                    in: data.visitParts.map(({ employeeId }) => employeeId)
+                  }
+                }
+              }
+            }
+          }
+        },
+        select: {
+          visits: {
+            select: {
+              visitParts: visitPartWithEmployee
+            }
+          }
+        }
+      });
 
       const {
         bookerEmail,
         frequency,
         address,
-        contactDetails: {
-          firstName: bookerFirstName,
-          lastName: bookerLastName
-        },
+        contactDetails,
         visitParts,
         services,
         extraInfo
       } = data;
 
-      const lastEndDate = visitParts.at(-1)?.endDate;
+      const { firstName: bookerFirstName, lastName: bookerLastName } =
+        contactDetails;
+
+      const visitPartTimeslots = visitParts.map(
+        ({ startDate, endDate, ...other }) => ({
+          startDate: new Date(startDate),
+          endDate: new Date(endDate),
+          ...other
+        })
+      );
+
+      const lastEndDate = visitPartTimeslots.at(-1)!.endDate;
+      const endDate =
+        frequency !== Frequency.ONCE
+          ? new Date(advanceDateByOneYear(lastEndDate))
+          : lastEndDate;
+      const newVisits = createVisits(data, frequency, endDate.toISOString());
+
+      const visitPartEmployees = visitPartTimeslots.map(
+        ({ employeeId }) => employeeId
+      );
+      const allPendingVisits = flattenNestedVisits(
+        allPendingReservations.flatMap((reservation) => reservation.visits)
+      );
+
+      const conflicts = checkReservationConflict(
+        newVisits,
+        allPendingVisits,
+        visitPartEmployees
+      );
+
+      if (conflicts.length > 0) {
+        throw new RequestError(
+          'Cannot create reservation because of conflicting dates with other reservations'
+        );
+      }
 
       if (!lastEndDate) {
         return null;
       }
 
-      let addressId: number;
+      const addressRecord = await tx.address.findFirst({
+        where: typeof address === 'number' ? { id: address } : { ...address }
+      });
 
-      if (typeof address === 'number') {
-        addressId = address;
-      } else {
-        const addressRecord = await tx.address.findFirst({
-          where: { ...address }
-        });
-
-        if (!addressRecord) {
-          return null;
-        }
-
-        addressId = addressRecord.id;
+      if (!addressRecord) {
+        throw new RequestError('Invalid address');
       }
 
-      reservation = await tx.reservation.create({
+      const addressId = addressRecord.id;
+
+      return await tx.reservation.create({
         data: {
           status: Status.TO_BE_CONFIRMED,
-          visits: {
-            create: visits
-          },
-          name: reservationGroupName,
+          name: `reservation-${short.generate()}`,
           frequency,
           bookerFirstName,
           bookerLastName,
+          extraInfo,
+          visits: {
+            create: newVisits.map((visit) => ({
+              ...visit,
+              visitParts: {
+                create: visitParts.map((visitPart) => ({
+                  ...visitPart,
+                  status: Status.TO_BE_CONFIRMED
+                }))
+              }
+            }))
+          },
           address: {
             connect: {
               id: addressId
@@ -166,7 +227,6 @@ export default class ReservationService {
               }
             }
           },
-          extraInfo: extraInfo ?? null,
           services: {
             createMany: {
               data: services
@@ -174,8 +234,6 @@ export default class ReservationService {
           }
         }
       });
-
-      return reservation;
     });
   }
 
@@ -311,12 +369,6 @@ export default class ReservationService {
     reservationName: Reservation['name'],
     employeeId: Employee['id']
   ) {
-    const reservation = await this.getReservationByName(reservationName);
-
-    if (!reservation) {
-      return null;
-    }
-
     return await prisma.$transaction(async (tx) => {
       await tx.visitPart.updateMany({
         where: {
@@ -337,16 +389,26 @@ export default class ReservationService {
       });
 
       if (visitStatuses.every(({ status }) => status === Status.ACTIVE)) {
-        return await executeDatabaseOperation(
-          tx.reservation.update({
-            where: { id: reservation.id },
-            data: {
-              status: Status.ACTIVE
-            }
-          })
-        );
+        const reservation = await tx.reservation.update({
+          where: { name: reservationName },
+          data: {
+            status: Status.ACTIVE
+          },
+          include: {
+            visits: includeAllVisitData,
+            address: true,
+            services: serviceInclude
+          }
+        });
+
+        return {
+          ...reservation,
+          visits: flattenNestedVisits(reservation.visits),
+          services: flattenNestedReservationServices(reservation.services)
+        };
       }
-      return reservation;
+
+      return this.getReservationByName(reservationName);
     });
   }
 }

@@ -8,13 +8,14 @@
     "postinstall": "tsc",
     "prisma:migrate": "npx prisma migrate dev --name init",
     "generate-db": "npx prisma generate",
-    "db-push": "dotenv -e .env.test -- npx prisma db push",
+    "db-push": "npx prisma db push",
+    "dev:db-push": "dotenv -e .env.development -- npx prisma db push",
     "dev": "dotenv -e .env.development -- nodemon",
     "prettier": "prettier --write .",
     "build": "holidays2json --pick PL --min",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
-    "test": "pnpm docker:up && pnpm db-push && dotenv -e .env.test -- vitest"
+    "test": "pnpm docker:up && dotenv -e .env.test -- pnpm db-push && dotenv -e .env.test -- vitest"
   },
   "engines": {
     "node": "^18.16.0"

@@ -61,9 +61,7 @@ export default class VisitPartService {
         where: { id },
         data: {
           status: Status.CANCELLED,
-          cost: isAtLeastOneDayBetween(new Date(), oldVisitPart.startDate)
-            ? 0
-            : oldVisitPart.cost.toNumber() / 2
+          cost: 0
         },
         include: {
           visit: {
@@ -77,13 +75,11 @@ export default class VisitPartService {
         }
       });
 
-      return canceledVisitPart
-        ? {
-            ...omit(canceledVisitPart, 'employeeService', 'visit'),
-            includeDetergents: canceledVisitPart.visit.includeDetergents,
-            employee: canceledVisitPart.employeeService.employee
-          }
-        : null;
+      return {
+        ...omit(canceledVisitPart, 'employeeService', 'visit'),
+        includeDetergents: canceledVisitPart.visit.includeDetergents,
+        employee: canceledVisitPart.employeeService.employee
+      };
     });
   }
 

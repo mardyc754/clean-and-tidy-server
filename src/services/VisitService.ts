@@ -47,11 +47,11 @@ export default class VisitService {
         }
       });
 
-      const oldVisitData = oldVisit ? flattenNestedVisit(oldVisit) : null;
-
-      if (!oldVisitData) {
+      if (!oldVisit) {
         return null;
       }
+
+      const oldVisitData = flattenNestedVisit(oldVisit);
 
       const oldStartDate = oldVisitData.visitParts[0]!.startDate;
 
@@ -64,7 +64,9 @@ export default class VisitService {
       }
 
       if (!isNewStartDateValid(startDate, oldStartDate)) {
-        return null;
+        throw new RequestError(
+          'New visit start date should be at most 7 days later from the initial one'
+        );
       }
 
       const visit = await tx.visit.update({
@@ -92,7 +94,6 @@ export default class VisitService {
                 where: { id: visitPart.id },
                 data: {
                   status: Status.TO_BE_CONFIRMED,
-                  // ...visitPart,
                   startDate: newStartDate.toISOString(),
                   endDate: newEndDate.toISOString()
                 }
@@ -105,7 +106,7 @@ export default class VisitService {
         }
       });
 
-      return visit ? flattenNestedVisit(visit) : null;
+      return flattenNestedVisit(visit);
     });
   }
 

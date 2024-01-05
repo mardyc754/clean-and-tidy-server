@@ -11,8 +11,6 @@ import { VisitPartService, VisitService } from '~/services';
 
 import { VisitQueryOptions } from '~/services/VisitService';
 
-import { queryParamToBoolean } from '~/utils/general';
-
 import { DefaultBodyType, TypedRequest } from '~/types';
 
 import AbstractController from './AbstractController';

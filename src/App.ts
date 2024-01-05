@@ -9,7 +9,7 @@ export default class App {
   private app: Express;
   private port: string | number;
 
-  constructor(controllers: AbstractController[]) {
+  constructor(controllers: AbstractController[], port: string | number = 8080) {
     this.app = express();
     this.app.use(express.urlencoded({ extended: true }));
     this.app.use(express.json());
@@ -21,7 +21,7 @@ export default class App {
       })
     );
 
-    this.port = process.env.PORT || 8080;
+    this.port = port;
     controllers.forEach((router) => {
       this.app.use(router.baseURL, router.router);
     });

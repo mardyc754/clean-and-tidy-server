@@ -1,6 +1,7 @@
-import { Frequency, Reservation, Status } from '@prisma/client';
+import { Reservation, Status } from '@prisma/client';
 import type { Response } from 'express';
 import { Stringified } from 'type-fest';
+import { RequestError } from '~/errors/RequestError';
 
 import { Scheduler } from '~/lib/Scheduler';
 
@@ -15,14 +16,8 @@ import { ReservationService, VisitPartService } from '~/services';
 
 import type { ReservationQueryOptions } from '~/services/ReservationService';
 
-import {
-  advanceDateByOneYear,
-  isAfter,
-  isAfterOrSame
-} from '~/utils/dateUtils';
+import { isAfter, isAfterOrSame } from '~/utils/dateUtils';
 import { queryParamToBoolean } from '~/utils/general';
-import { createVisits } from '~/utils/reservationUtils';
-import { timeslotsIntersection } from '~/utils/timeslotUtils';
 
 import type { DefaultBodyType, DefaultParamsType, TypedRequest } from '~/types';
 
@@ -186,85 +181,19 @@ export default class ReservationController extends AbstractController {
     res: Response
   ) => {
     try {
-      const visitPartTimeslots = req.body.visitParts.map(
-        ({ startDate, endDate, ...other }) => ({
-          startDate: new Date(startDate),
-          endDate: new Date(endDate),
-          ...other
-        })
-      );
-
-      const lastEndDate = visitPartTimeslots.at(-1)!.endDate;
-
-      const endDate =
-        req.body.frequency !== Frequency.ONCE
-          ? new Date(advanceDateByOneYear(lastEndDate))
-          : lastEndDate;
-
-      const newVisits = createVisits(
-        req.body,
-        req.body.frequency,
-        endDate.toISOString()
-      );
-
-      const allReservations = await this.reservationService.getAllReservations([
-        Status.ACTIVE,
-        Status.TO_BE_CONFIRMED
-      ]);
-
-      const visitPartEmployees = visitPartTimeslots.map(
-        ({ employeeId }) => employeeId
-      );
-
-      const allVisitParts = allReservations
-        .flatMap((reservation) =>
-          reservation.visits.flatMap((visit) => visit.visitParts)
-        )
-        .filter((visitPart) =>
-          visitPartEmployees.includes(visitPart.employeeId)
-        );
-
-      allVisitParts.sort(
-        (a, b) =>
-          new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
-      );
-
-      const conflicts = visitPartEmployees.flatMap((employeeId) =>
-        timeslotsIntersection([
-          allVisitParts.filter(
-            (visitPart) => visitPart.employeeId === employeeId
-          ),
-          newVisits
-            .map(({ visitParts }) =>
-              visitParts.create
-                .filter((visitPart) => visitPart.employeeId === employeeId)
-                .map(({ startDate, endDate }) => ({
-                  startDate: new Date(startDate),
-                  endDate: new Date(endDate)
-                }))
-            )
-            .flat()
-        ])
-      );
-
-      if (conflicts.length > 0) {
-        return res.status(400).send({
-          message:
-            'Cannot create reservation because of conflicting dates with other reservations',
-          hasError: true
-        });
-      }
-
       const reservation = await this.reservationService.createReservation(
-        req.body,
-        newVisits
+        req.body
       );
 
       res.status(201).send(reservation);
     } catch (err) {
+      if (err instanceof RequestError) {
+        return res.status(400).send({
+          message: err.message
+        });
+      }
       res.status(400).send({
-        message: 'Error when creating reservation',
-        hasError: true
+        message: 'Error when creating reservation'
       });
     }
   };

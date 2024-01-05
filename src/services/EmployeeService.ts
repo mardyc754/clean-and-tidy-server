@@ -58,7 +58,7 @@ export default class EmployeeService {
     }));
   }
 
-  public async getEmployeeVisits(
+  public async getEmployeeVisitParts(
     employeeId: Employee['id'],
     status?: VisitPart['status']
   ) {
