@@ -8,7 +8,6 @@ import prisma from '~/lib/prisma';
 import type { ReservationCreationData } from '~/schemas/reservation';
 
 import {
-  includeAllVisitData,
   includeFullReservationDetails,
   reservationWithGivenStatuses,
   serviceInclude,
@@ -50,7 +49,6 @@ export default class ReservationService {
           visits: {
             include: {
               visitParts: visitPartWithEmployee
-              // include services only if the option is true
             }
           },
           services: serviceInclude
@@ -137,7 +135,7 @@ export default class ReservationService {
         frequency,
         address,
         contactDetails,
-        visitParts,
+        visitParts: firstVisitParts,
         services,
         extraInfo
       } = data;
@@ -145,7 +143,7 @@ export default class ReservationService {
       const { firstName: bookerFirstName, lastName: bookerLastName } =
         contactDetails;
 
-      const visitPartTimeslots = visitParts.map(
+      const visitPartTimeslots = firstVisitParts.map(
         ({ startDate, endDate, ...other }) => ({
           startDate: new Date(startDate),
           endDate: new Date(endDate),
@@ -195,7 +193,7 @@ export default class ReservationService {
             create: newVisits.map((visit) => ({
               ...visit,
               visitParts: {
-                create: visitParts.map((visitPart) => ({
+                create: visit.visitParts.map((visitPart) => ({
                   ...visitPart,
                   status: Status.TO_BE_CONFIRMED
                 }))
