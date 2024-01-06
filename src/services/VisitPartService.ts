@@ -2,8 +2,9 @@ import { Reservation, Status, type Visit, VisitPart } from '@prisma/client';
 import { omit } from 'lodash';
 import type { RequireAtLeastOne } from 'type-fest';
 
-import { Scheduler } from '~/lib/Scheduler';
 import prisma from '~/lib/prisma';
+
+import { Scheduler } from '~/utils/Scheduler';
 
 export type VisitQueryOptions = RequireAtLeastOne<{
   includeEmployee: boolean;

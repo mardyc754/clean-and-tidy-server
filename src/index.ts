@@ -11,7 +11,7 @@ import {
 } from '~/controllers';
 
 import App from './App';
-import { setupDB } from './setup';
+import { setupDB } from './core/setup';
 
 setupDB();
 

@@ -2,13 +2,13 @@ import { Status, type Visit, VisitPart } from '@prisma/client';
 import type { RequireAtLeastOne } from 'type-fest';
 import { RequestError } from '~/errors/RequestError';
 
-import { Scheduler } from '~/lib/Scheduler';
 import prisma from '~/lib/prisma';
 
 import { ChangeVisitData } from '~/schemas/visit';
 
 import { visitPartWithEmployee } from '~/queries/serviceQuery';
 
+import { Scheduler } from '~/utils/Scheduler';
 import {
   advanceDateByMinutes,
   isAtLeastOneDayBetween,
@@ -106,12 +106,20 @@ export default class VisitService {
           visitParts: visitPartWithEmployee
         }
       });
-
       const visitData = flattenNestedVisit(visit);
 
-      Scheduler.getInstance()?.changeVisitPartsCloseSchedule(
-        visitData.visitParts
-      );
+      const scheduler = Scheduler.getInstance();
+      if (!scheduler) return visitData;
+
+      visitData.visitParts.forEach((visitPart) => {
+        scheduler.cancelVisitPartJob(visitPart.id);
+        scheduler.scheduleVisitPartJob(visitPart, () => {
+          prisma.visitPart.update({
+            where: { id: visitPart.id },
+            data: { status: Status.CLOSED }
+          });
+        });
+      });
 
       return visitData;
     });
@@ -140,13 +148,10 @@ export default class VisitService {
         }
       });
 
-      const oldVisitData = oldVisit ? flattenNestedVisit(oldVisit) : null;
+      if (!oldVisit) return null;
+      const oldVisitData = flattenNestedVisit(oldVisit);
 
-      if (!oldVisitData) {
-        return null;
-      }
-
-      const canceledVisit = await tx.visit.update({
+      const cancelledVisit = await tx.visit.update({
         where: { id },
         data: {
           detergentsCost: isAtLeastOneDayBetween(
@@ -175,20 +180,16 @@ export default class VisitService {
         }
       });
 
-      if (!canceledVisit) return null;
-
-      const canceledVisitData = flattenNestedVisit(canceledVisit);
-
-      const visitPartsToCancel = canceledVisitData.visitParts.filter(
+      if (!cancelledVisit) return null;
+      const cancelledVisitData = flattenNestedVisit(cancelledVisit);
+      const visitPartsToCancel = cancelledVisitData.visitParts.filter(
         ({ status }) => status === Status.CANCELLED
       );
+      visitPartsToCancel.map((visitPart) => {
+        Scheduler.getInstance()?.cancelVisitPartJob(visitPart.id);
+      });
 
-      Scheduler.getInstance()?.cancelReservationsAndVisitParts(
-        [],
-        visitPartsToCancel.map(({ id }) => id)
-      );
-
-      return canceledVisitData;
+      return cancelledVisitData;
     });
   }
 }

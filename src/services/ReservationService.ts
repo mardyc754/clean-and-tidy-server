@@ -3,7 +3,6 @@ import short from 'short-uuid';
 import type { RequireAtLeastOne } from 'type-fest';
 import { RequestError } from '~/errors/RequestError';
 
-import { Scheduler } from '~/lib/Scheduler';
 import prisma from '~/lib/prisma';
 
 import type { ReservationCreationData } from '~/schemas/reservation';
@@ -14,6 +13,7 @@ import {
   visitPartWithEmployee
 } from '~/queries/serviceQuery';
 
+import { Scheduler } from '~/utils/Scheduler';
 import {
   advanceDateByOneYear,
   isAfter,
@@ -159,7 +159,6 @@ export default class ReservationService {
         frequency !== Frequency.ONCE
           ? new Date(advanceDateByOneYear(lastEndDate))
           : lastEndDate;
-      const newVisits = createVisits(data, frequency, endDate.toISOString());
 
       const visitPartEmployees = visitPartTimeslots.map(
         ({ employeeId }) => employeeId
@@ -167,6 +166,8 @@ export default class ReservationService {
       const allPendingVisits = flattenNestedVisits(
         allPendingReservations.flatMap((reservation) => reservation.visits)
       );
+
+      const newVisits = createVisits(data, frequency, endDate.toISOString());
 
       const conflicts = checkReservationConflict(
         newVisits,
@@ -283,13 +284,6 @@ export default class ReservationService {
             }))
           }
         }
-        // TODO: receive reservation details from here
-        // include: {
-        //   visits: includeAllVisitData,
-        //   // include address only if the option is true
-        //   address: true,
-        //   services: serviceInclude
-        // }
       });
 
       const reservationVisitParts = await tx.visitPart.findMany({
@@ -299,10 +293,10 @@ export default class ReservationService {
         }
       });
 
-      Scheduler.getInstance()?.cancelReservationsAndVisitParts(
-        [reservation.id],
-        reservationVisitParts.map(({ id }) => id)
-      );
+      Scheduler.getInstance()?.cancelReservationJob(reservation.id);
+      reservationVisitParts.forEach((visitPart) => {
+        Scheduler.getInstance()?.cancelVisitPartJob(visitPart.id);
+      });
 
       return this.getReservationByName(reservation.name);
     });
@@ -408,8 +402,38 @@ export default class ReservationService {
           services: flattenNestedReservationServices(reservation.services)
         };
 
-        Scheduler.getInstance()?.scheduleVisitPartJobsCloseForReservation(
-          reservation.id
+        const reservationVisitParts = await tx.visitPart.findMany({
+          where: { visit: { reservationId: reservation.id } }
+        });
+
+        const scheduler = Scheduler.getInstance();
+        if (!scheduler) {
+          return reservationData;
+        }
+
+        reservationVisitParts.forEach((visitPart) => {
+          scheduler.scheduleVisitPartJob(visitPart, () =>
+            tx.visitPart.updateMany({
+              where: { id: { in: reservationVisitParts.map(({ id }) => id) } },
+              data: {
+                status: Status.CLOSED
+              }
+            })
+          );
+        });
+
+        scheduler.scheduleReservationJob(
+          reservation.id,
+          new Date(
+            reservationVisitParts[reservationVisitParts.length - 1]!.endDate
+          ),
+          () =>
+            tx.reservation.update({
+              where: { id: reservation.id },
+              data: {
+                status: Status.CLOSED
+              }
+            })
         );
 
         return reservationData;
