@@ -49,7 +49,6 @@ model Reservation {
   id                            Int                           @id @default(autoincrement())
   name                          String                        @db.VarChar(100) @unique
   frequency                     Frequency
-  status                        Status
   client                        Client?                       @relation(fields: [bookerEmail], references: [email])
   bookerEmail                   String?                          
   visits                        Visit[]

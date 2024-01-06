@@ -1,4 +1,4 @@
-import { Prisma, Service } from '@prisma/client';
+import { Prisma, Service, Status } from '@prisma/client';
 
 import prisma from '~/lib/prisma';
 import { prismaExclude } from '~/lib/prismaExclude';
@@ -175,3 +175,32 @@ export const visitPartTimeframe = (
     }
   });
 };
+
+export const reservationWithGivenStatuses = (statuses: Status[]) => {
+  return Prisma.validator<Prisma.ReservationWhereInput>()({
+    visits: {
+      some: visitWithVisitPartsWithGivenStatuses(statuses)
+    }
+  });
+};
+
+export const visitWithVisitPartsWithGivenStatuses = (statuses: Status[]) => {
+  return Prisma.validator<Prisma.VisitWhereInput>()({
+    visitParts: { some: visitPartstWithGivenStatuses(statuses) }
+  });
+};
+
+export const visitPartstWithGivenStatuses = (statuses: Status[]) => {
+  return Prisma.validator<Prisma.VisitPartWhereInput>()({
+    status: { in: statuses }
+  });
+};
+
+export const includeFullReservationDetails =
+  Prisma.validator<Prisma.ReservationDefaultArgs>()({
+    include: {
+      visits: includeAllVisitData,
+      address: true,
+      services: serviceInclude
+    }
+  });

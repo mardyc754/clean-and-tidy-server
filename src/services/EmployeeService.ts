@@ -83,8 +83,11 @@ export default class EmployeeService {
   ) {
     const reservations = await prisma.reservation.findMany({
       where: {
-        visits: { some: { visitParts: { some: { employeeId: id } } } },
-        status: options?.status
+        visits: {
+          some: {
+            visitParts: { some: { employeeId: id, status: options?.status } }
+          }
+        }
       },
       include: {
         visits: {

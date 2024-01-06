@@ -14,8 +14,6 @@ import { ReservationService } from '~/services';
 
 import type { ReservationQueryOptions } from '~/services/ReservationService';
 
-import { queryParamToBoolean } from '~/utils/general';
-
 import type { DefaultBodyType, DefaultParamsType, TypedRequest } from '~/types';
 
 import AbstractController from './AbstractController';
@@ -74,12 +72,7 @@ export default class ReservationController extends AbstractController {
   ) => {
     try {
       const reservation = await this.reservationService.getReservationByName(
-        req.params.name,
-        {
-          includeVisits: queryParamToBoolean(req.query.includeVisits),
-          includeServices: queryParamToBoolean(req.query.includeServices),
-          includeAddress: queryParamToBoolean(req.query.includeAddress)
-        }
+        req.params.name
       );
 
       if (!reservation) {

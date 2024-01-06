@@ -60,7 +60,7 @@ export default class VisitPartService {
       }
     });
 
-    Scheduler.getInstance()?.cancelVisitPartJob(canceledVisitPart.id);
+    Scheduler.getInstance()?.cancelJob(`${canceledVisitPart.id}`);
 
     return {
       ...omit(canceledVisitPart, 'employeeService', 'visit'),
@@ -71,7 +71,7 @@ export default class VisitPartService {
 
   public async getVisitPartsByReservationId(
     reservationId: Reservation['id'],
-    status?: Reservation['status']
+    status?: Status
   ) {
     return await prisma.visitPart.findMany({
       where: { visit: { reservationId }, status },
@@ -111,7 +111,7 @@ export default class VisitPartService {
 
   public async getVisitPartsFromReservations(
     reservationIds: Array<Reservation['id']>,
-    status?: Reservation['status']
+    status?: Status
   ) {
     return await prisma.visitPart.findMany({
       where: { visit: { reservationId: { in: reservationIds } }, status },

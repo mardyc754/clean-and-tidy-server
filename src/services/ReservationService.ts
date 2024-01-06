@@ -9,8 +9,11 @@ import type { ReservationCreationData } from '~/schemas/reservation';
 
 import {
   includeAllVisitData,
+  includeFullReservationDetails,
+  reservationWithGivenStatuses,
   serviceInclude,
-  visitPartWithEmployee
+  visitPartWithEmployee,
+  visitPartstWithGivenStatuses
 } from '~/queries/serviceQuery';
 
 import { Scheduler } from '~/utils/Scheduler';
@@ -37,10 +40,12 @@ export type ReservationQueryOptions = RequireAtLeastOne<{
 }>;
 
 export default class ReservationService {
-  public async getAllReservations(statuses?: Reservation['status'][]) {
+  public async getAllReservations(statuses: Status[] = []) {
     return await prisma.$transaction(async (tx) => {
       const allReservations = await tx.reservation.findMany({
-        where: { status: { in: statuses } },
+        where: {
+          ...reservationWithGivenStatuses(statuses)
+        },
         include: {
           visits: {
             include: {
@@ -62,19 +67,10 @@ export default class ReservationService {
     });
   }
 
-  public async getReservationByName(
-    name: Reservation['name'],
-    options?: ReservationQueryOptions
-  ) {
+  public async getReservationByName(name: Reservation['name']) {
     const reservationData = await prisma.reservation.findUnique({
       where: { name },
-      include: {
-        // include visits only if the option is true
-        visits: includeAllVisitData,
-        // include address only if the option is true
-        address: options?.includeAddress,
-        services: serviceInclude
-      }
+      ...includeFullReservationDetails
     });
 
     if (!reservationData) {
@@ -111,11 +107,14 @@ export default class ReservationService {
     return await prisma.$transaction(async (tx) => {
       const allPendingReservations = await tx.reservation.findMany({
         where: {
-          status: { in: [Status.ACTIVE, Status.TO_BE_CONFIRMED] },
           visits: {
             some: {
               visitParts: {
                 some: {
+                  ...visitPartstWithGivenStatuses([
+                    Status.ACTIVE,
+                    Status.TO_BE_CONFIRMED
+                  ]),
                   employeeId: {
                     in: data.visitParts.map(({ employeeId }) => employeeId)
                   }
@@ -187,7 +186,6 @@ export default class ReservationService {
 
       return await tx.reservation.create({
         data: {
-          status: Status.TO_BE_CONFIRMED,
           name: `reservation-${short.generate()}`,
           frequency,
           bookerFirstName,
@@ -259,7 +257,6 @@ export default class ReservationService {
       reservation = await tx.reservation.update({
         where: { name },
         data: {
-          status: Status.CANCELLED,
           visits: {
             update: oldReservation.visits.map((visit) => ({
               where: { id: visit.id },
@@ -293,70 +290,12 @@ export default class ReservationService {
         }
       });
 
-      Scheduler.getInstance()?.cancelReservationJob(reservation.id);
-      reservationVisitParts.forEach((visitPart) => {
-        Scheduler.getInstance()?.cancelVisitPartJob(visitPart.id);
-      });
-
-      return this.getReservationByName(reservation.name);
-    });
-  }
-
-  public async closeReservation(reservationId: Reservation['id']) {
-    return await prisma.$transaction(async (tx) => {
-      let reservation: Reservation | null = null;
-
-      const visitParts = await tx.visitPart.findMany({
-        where: {
-          status: Status.ACTIVE,
-          visit: {
-            reservationId
-          }
-        }
-      });
-
-      if ((visitParts?.length ?? 0) > 0) {
-        return null;
-      }
-
-      reservation = await tx.reservation.update({
-        where: { id: reservationId },
-        data: {
-          status: Status.CLOSED
-        }
-      });
+      Scheduler.getInstance() &&
+        reservationVisitParts.forEach((visitPart) => {
+          Scheduler.getInstance()?.cancelJob(`${visitPart.id}`);
+        });
 
       return reservation;
-    });
-  }
-
-  public async closeReservations(reservationIds: Array<Reservation['id']>) {
-    return await prisma.$transaction(async (tx) => {
-      let reservationUpdateCount = 0;
-
-      const visitParts = await tx.visitPart.findMany({
-        where: {
-          status: Status.ACTIVE,
-          visit: {
-            reservationId: { in: reservationIds }
-          }
-        }
-      });
-
-      if ((visitParts?.length ?? 0) > 0) {
-        return null;
-      }
-
-      const payload = await tx.reservation.updateMany({
-        where: { id: { in: reservationIds } },
-        data: {
-          status: Status.CLOSED
-        }
-      });
-
-      reservationUpdateCount = payload.count;
-
-      return reservationUpdateCount;
     });
   }
 
@@ -375,71 +314,28 @@ export default class ReservationService {
         }
       });
 
-      const visitStatuses = await tx.visitPart.findMany({
+      const reservationVisitParts = await tx.visitPart.findMany({
         where: {
-          visit: {
-            reservation: { name: reservationName }
-          }
+          visit: { reservation: { name: reservationName } },
+          employeeId
         }
       });
 
-      if (visitStatuses.every(({ status }) => status === Status.ACTIVE)) {
-        const reservation = await tx.reservation.update({
-          where: { name: reservationName },
-          data: {
-            status: Status.ACTIVE
-          },
-          include: {
-            visits: includeAllVisitData,
-            address: true,
-            services: serviceInclude
-          }
-        });
-
-        const reservationData = {
-          ...reservation,
-          visits: flattenNestedVisits(reservation.visits),
-          services: flattenNestedReservationServices(reservation.services)
-        };
-
-        const reservationVisitParts = await tx.visitPart.findMany({
-          where: { visit: { reservationId: reservation.id } }
-        });
-
-        const scheduler = Scheduler.getInstance();
-        if (!scheduler) {
-          return reservationData;
-        }
-
-        reservationVisitParts.forEach((visitPart) => {
-          scheduler.scheduleVisitPartJob(visitPart, () =>
+      reservationVisitParts.forEach((visitPart) => {
+        Scheduler.getInstance().scheduleJob(
+          `${visitPart.id}`,
+          visitPart.startDate,
+          () =>
             tx.visitPart.updateMany({
               where: { id: { in: reservationVisitParts.map(({ id }) => id) } },
               data: {
                 status: Status.CLOSED
               }
             })
-          );
-        });
-
-        scheduler.scheduleReservationJob(
-          reservation.id,
-          new Date(
-            reservationVisitParts[reservationVisitParts.length - 1]!.endDate
-          ),
-          () =>
-            tx.reservation.update({
-              where: { id: reservation.id },
-              data: {
-                status: Status.CLOSED
-              }
-            })
         );
+      });
 
-        return reservationData;
-      }
-
-      return this.getReservationByName(reservationName);
+      return await this.getReservationByName(reservationName);
     });
   }
 }

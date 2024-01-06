@@ -107,18 +107,17 @@ export default class VisitService {
         }
       });
       const visitData = flattenNestedVisit(visit);
-
-      const scheduler = Scheduler.getInstance();
-      if (!scheduler) return visitData;
-
       visitData.visitParts.forEach((visitPart) => {
-        scheduler.cancelVisitPartJob(visitPart.id);
-        scheduler.scheduleVisitPartJob(visitPart, () => {
-          prisma.visitPart.update({
-            where: { id: visitPart.id },
-            data: { status: Status.CLOSED }
-          });
-        });
+        Scheduler.getInstance().rescheduleJob(
+          `${visitPart.id}`,
+          visitPart.endDate,
+          () => {
+            prisma.visitPart.update({
+              where: { id: visitPart.id },
+              data: { status: Status.CLOSED }
+            });
+          }
+        );
       });
 
       return visitData;
@@ -181,12 +180,10 @@ export default class VisitService {
       });
 
       if (!cancelledVisit) return null;
+
       const cancelledVisitData = flattenNestedVisit(cancelledVisit);
-      const visitPartsToCancel = cancelledVisitData.visitParts.filter(
-        ({ status }) => status === Status.CANCELLED
-      );
-      visitPartsToCancel.map((visitPart) => {
-        Scheduler.getInstance()?.cancelVisitPartJob(visitPart.id);
+      cancelledVisitData.visitParts.map((visitPart) => {
+        Scheduler.getInstance().cancelJob(`${visitPart.id}`);
       });
 
       return cancelledVisitData;

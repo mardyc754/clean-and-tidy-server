@@ -7,7 +7,11 @@ import { prismaExclude } from '~/lib/prismaExclude';
 import { RegisterData } from '~/schemas/auth';
 import { UserUpdateData } from '~/schemas/common';
 
-import { serviceInclude, visitPartWithEmployee } from '~/queries/serviceQuery';
+import {
+  reservationWithGivenStatuses,
+  serviceInclude,
+  visitPartWithEmployee
+} from '~/queries/serviceQuery';
 
 import {
   flattenNestedReservationServices,
@@ -51,7 +55,7 @@ export default class ClientService {
       select: {
         reservations: {
           where: {
-            status
+            ...reservationWithGivenStatuses(status ? [status] : [])
           },
           include: {
             visits: {
