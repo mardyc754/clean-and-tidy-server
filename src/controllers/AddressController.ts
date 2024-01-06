@@ -22,7 +22,9 @@ export default class AddressController extends AbstractController {
   }
 
   private getAddress = async (req: Request, res: Response) => {
-    const address = await this.addressService.validatePostcode(req.body);
+    const address = this.addressService.validatePostcode(req.body);
+
+    console.log('address', address);
 
     if (address) {
       res.status(200).send(address);

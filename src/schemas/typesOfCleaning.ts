@@ -1,3 +1,4 @@
+import { Frequency } from '@prisma/client';
 import { z } from 'zod';
 
 export const changeServiceDataSchema = z.object({
@@ -23,7 +24,8 @@ export const createServiceSchema = z.object({
     })
     .optional(),
   secondaryServices: z.number().int().array().optional(),
-  detergentsCost: z.number().optional()
+  detergentsCost: z.number().optional(),
+  frequencies: z.array(z.nativeEnum(Frequency)).optional()
 });
 
 export type CreateServiceData = z.infer<typeof createServiceSchema>;

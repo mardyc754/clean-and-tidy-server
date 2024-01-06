@@ -13,7 +13,7 @@ type ReservationServiceNested = ReservationService & {
   service: Service & { unit: Unit | null };
 };
 
-type VisitQueryResult = Partial<Visit> & {
+type VisitQueryResult = Visit & {
   visitParts: Array<VisitPart & { employeeService: EmployeeNested }>;
 };
 

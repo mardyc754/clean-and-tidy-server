@@ -1,0 +1,55 @@
+[
+  {
+    "id": 1,
+    "firstName": "Admin",
+    "lastName": "User",
+    "email": "admin@testmail.com",
+    "password": "password"
+  },
+  {
+    "id": 2,
+    "firstName": "Employee",
+    "lastName": "User1",
+    "email": "employee1@example.com",
+    "password": "password"
+  },
+  {
+    "id": 3,
+    "firstName": "Employee",
+    "lastName": "User2",
+    "email": "employee2@example.com",
+    "password": "password"
+  },
+  {
+    "firstName": "Employee",
+    "lastName": "User3",
+    "email": "employee3@example.com",
+    "password": "password"
+  },
+  {
+    "firstName": "Employee",
+    "lastName": "User4",
+    "email": "employee4@example.com",
+    "password": "password"
+  },
+  {
+    "firstName": "Employee",
+    "lastName": "User5",
+    "email": "employee5@example.com",
+    "password": "password"
+  },
+  {
+    "id": 7,
+    "firstName": "Employee",
+    "lastName": "User6",
+    "email": "employee6@example.com",
+    "password": "password"
+  },
+  {
+    "id": 8,
+    "firstName": "Employee",
+    "lastName": "User7",
+    "email": "employee7@example.com",
+    "password": "password"
+  }
+]

@@ -123,7 +123,7 @@ export const checkReservationConflict = (
       allPendingVisitParts.filter(
         (visitPart) => visitPart.employeeId === employeeId
       ),
-      createdVisits
+      [...createdVisits]
         .map(({ visitParts }) =>
           visitParts
             .filter((visitPart) => visitPart.employeeId === employeeId)

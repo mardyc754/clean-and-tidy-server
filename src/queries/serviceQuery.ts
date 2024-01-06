@@ -179,7 +179,10 @@ export const visitPartTimeframe = (
 export const reservationWithGivenStatuses = (statuses: Status[]) => {
   return Prisma.validator<Prisma.ReservationWhereInput>()({
     visits: {
-      some: visitWithVisitPartsWithGivenStatuses(statuses)
+      some:
+        statuses.length > 0
+          ? visitWithVisitPartsWithGivenStatuses(statuses)
+          : undefined
     }
   });
 };

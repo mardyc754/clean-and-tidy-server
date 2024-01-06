@@ -121,13 +121,7 @@ export default class ReservationService {
             }
           }
         },
-        select: {
-          visits: {
-            select: {
-              visitParts: visitPartWithEmployee
-            }
-          }
-        }
+        ...includeFullReservationDetails
       });
 
       const {
@@ -224,77 +218,77 @@ export default class ReservationService {
   }
 
   public async cancelReservation(name: Reservation['name']) {
-    return await prisma.$transaction(async (tx) => {
-      let reservation: Reservation | null = null;
-      const oldReservation = await this.getReservationByName(name);
-      if (!oldReservation) {
-        return null;
+    // return await prisma.$transaction(async (tx) => {
+    let reservation: Reservation | null = null;
+    const oldReservation = await this.getReservationByName(name);
+    if (!oldReservation) {
+      return null;
+    }
+
+    const reservationVisits = await prisma.visit.findMany({
+      where: { reservationId: oldReservation.id },
+      include: {
+        visitParts: visitPartWithEmployee
       }
-
-      const reservationVisits = await tx.visit.findMany({
-        where: { reservationId: oldReservation.id },
-        include: {
-          visitParts: visitPartWithEmployee
-        }
-      });
-
-      const visits = reservationVisits
-        ? flattenNestedVisits(reservationVisits)
-        : [];
-
-      if (!oldReservation || !visits) {
-        return reservation;
-      }
-
-      const visitPartsAfterNow = visits
-        .flatMap(({ visitParts }) =>
-          visitParts.filter(({ startDate }) => isAfter(startDate, new Date()))
-        )
-        .map(({ id }) => id);
-
-      reservation = await tx.reservation.update({
-        where: { name },
-        data: {
-          visits: {
-            update: oldReservation.visits.map((visit) => ({
-              where: { id: visit.id },
-              data: {
-                detergentsCost: 0,
-                canDateBeChanged: false,
-                visitParts: {
-                  updateMany: visit.visitParts.map((visitPart) => ({
-                    where: { id: { in: visitPartsAfterNow } },
-                    data: {
-                      status: Status.CANCELLED,
-                      cost: isAtLeastOneDayBetween(
-                        new Date(),
-                        visitPart.startDate
-                      )
-                        ? 0
-                        : visitPart.cost.toNumber() / 2
-                    }
-                  }))
-                }
-              }
-            }))
-          }
-        }
-      });
-
-      const reservationVisitParts = await tx.visitPart.findMany({
-        where: {
-          visit: { reservationId: reservation.id },
-          status: Status.CANCELLED
-        }
-      });
-
-      Scheduler.getInstance() &&
-        reservationVisitParts.forEach((visitPart) => {
-          Scheduler.getInstance()?.cancelJob(`${visitPart.id}`);
-        });
-
-      return reservation;
     });
+
+    if (!reservationVisits) {
+      return oldReservation;
+    }
+
+    const visits = flattenNestedVisits(reservationVisits);
+
+    if (!visits) {
+      return oldReservation;
+    }
+
+    const visitPartsAfterNow = visits
+      .flatMap(({ visitParts }) =>
+        visitParts.filter(({ startDate }) => isAfter(startDate, new Date()))
+      )
+      .map(({ id }) => id);
+
+    reservation = await prisma.reservation.update({
+      where: { name },
+      data: {
+        visits: {
+          update: oldReservation.visits.map((visit) => ({
+            where: { id: visit.id },
+            data: {
+              detergentsCost: 0,
+              canDateBeChanged: false,
+              visitParts: {
+                updateMany: visit.visitParts.map((visitPart) => ({
+                  where: { id: { in: visitPartsAfterNow } },
+                  data: {
+                    status: Status.CANCELLED,
+                    cost: isAtLeastOneDayBetween(
+                      new Date(),
+                      visitPart.startDate
+                    )
+                      ? 0
+                      : visitPart.cost.toNumber() / 2
+                  }
+                }))
+              }
+            }
+          }))
+        }
+      }
+    });
+
+    const reservationVisitParts = await prisma.visitPart.findMany({
+      where: {
+        visit: { reservationId: reservation.id },
+        status: Status.CANCELLED
+      }
+    });
+
+    reservationVisitParts.forEach((visitPart) => {
+      Scheduler.getInstance().cancelJob(`${visitPart.id}`);
+    });
+
+    return this.getReservationByName(name);
   }
 
   public async confirmReservation(

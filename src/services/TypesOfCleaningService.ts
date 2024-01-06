@@ -55,7 +55,7 @@ export default class TypesOfCleaningService {
 
   // admin only
   public async createService(data: CreateServiceData) {
-    const { unit, secondaryServices, ...otherData } = data;
+    const { unit, secondaryServices, frequencies, ...otherData } = data;
 
     const unitCreationQuery = unit
       ? {
@@ -65,14 +65,25 @@ export default class TypesOfCleaningService {
         }
       : {};
 
-    return await prisma.service.create({
-      data: {
-        ...otherData,
-        ...unitCreationQuery,
-        secondaryServices: {
-          connect: secondaryServices?.map((id) => ({ id })) ?? []
+    return await prisma.$transaction(async (tx) => {
+      const selectedFrequencies = await prisma.cleaningFrequency.findMany({
+        where: { value: { in: frequencies } }
+      });
+
+      return await tx.service.create({
+        data: {
+          ...otherData,
+          ...unitCreationQuery,
+          secondaryServices: {
+            connect: secondaryServices?.map((id) => ({ id })) ?? []
+          },
+          cleaningFrequencies: {
+            connect: selectedFrequencies.map((frequency) => ({
+              id: frequency.id
+            }))
+          }
         }
-      }
+      });
     });
   }
 
