@@ -83,12 +83,16 @@ export default class ClientController extends AbstractController {
       );
 
       if (reservations !== null) {
-        res.status(200).send(reservations);
+        return res.status(200).send(reservations);
+      } else {
+        return res
+          .status(404)
+          .send({ message: `Client with id=${req.params.id} not found` });
       }
     } catch (error) {
       res
-        .status(404)
-        .send({ message: `Client with id=${req.params.id} not found` });
+        .status(400)
+        .send({ message: 'Error when finding client reservations' });
     }
   };
 }

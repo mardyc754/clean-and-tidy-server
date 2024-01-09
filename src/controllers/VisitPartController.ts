@@ -1,6 +1,6 @@
 import type { Response } from 'express';
 
-import { checkIsEmployee } from '~/middlewares/auth/checkAuthorizarion';
+import { checkIsEmployee } from '~/middlewares/auth/checkAuthorization';
 
 import { VisitPartService } from '~/services';
 

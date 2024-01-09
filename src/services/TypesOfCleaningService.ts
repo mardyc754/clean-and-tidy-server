@@ -139,4 +139,9 @@ export default class TypesOfCleaningService {
       busyHours: timeslotsIntersection(flattenedEmployeeVisitParts)
     };
   }
+
+  public async deleteService(id: Service['id']) {
+    const service = await prisma.service.delete({ where: { id } });
+    return service;
+  }
 }

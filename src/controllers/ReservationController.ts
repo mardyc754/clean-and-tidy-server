@@ -6,7 +6,7 @@ import { RequestError } from '~/errors/RequestError';
 import { EmployeeIdData } from '~/schemas/employee';
 import { ReservationCreationData } from '~/schemas/reservation';
 
-import { checkIsEmployee } from '~/middlewares/auth/checkAuthorizarion';
+import { checkIsEmployee } from '~/middlewares/auth/checkAuthorization';
 import { validateEmployeeId } from '~/middlewares/type-validators/employee';
 import { validateReservationCreationData } from '~/middlewares/type-validators/reservation';
 

@@ -14,7 +14,7 @@ import type {
 import {
   checkIsAdmin,
   checkIsEmployee
-} from '~/middlewares/auth/checkAuthorizarion';
+} from '~/middlewares/auth/checkAuthorization';
 import { checkIfUserExisits } from '~/middlewares/auth/checkIfUserExists';
 import {
   validateEmployeeChangeData,
@@ -47,6 +47,7 @@ export default class EmployeeController extends AbstractController {
     );
     this.router.post(
       '/',
+      checkIsAdmin(),
       validateEmployeeCreationData(),
       checkIfUserExisits,
       this.createEmployee

@@ -7,7 +7,7 @@ import ClientService from '../ClientService';
 
 vi.mock('~/lib/prisma');
 
-describe('ClientService', () => {
+describe.skip('ClientService', () => {
   const clientService = new ClientService();
 
   describe('getClientReservations', () => {

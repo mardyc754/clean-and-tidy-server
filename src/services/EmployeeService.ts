@@ -167,12 +167,15 @@ export default class EmployeeService {
         lastName: data.lastName,
         phone: data.phone,
         isAdmin: data.isAdmin ?? false,
-        services: {
-          deleteMany: removedServiceIds.map((id) => ({ serviceId: id })),
-          createMany: {
-            data: createdServiceIds.map((id) => ({ serviceId: id }))
-          }
-        }
+        services:
+          removedServiceIds.length > 0
+            ? {
+                deleteMany: removedServiceIds.map((id) => ({ serviceId: id })),
+                createMany: {
+                  data: createdServiceIds.map((id) => ({ serviceId: id }))
+                }
+              }
+            : undefined
       },
       ...selectEmployee
     });

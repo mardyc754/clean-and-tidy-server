@@ -4,52 +4,60 @@
     "firstName": "Admin",
     "lastName": "User",
     "email": "admin@testmail.com",
-    "password": "password"
+    "password": "password",
+    "phone": "790 398 757"
   },
   {
     "id": 2,
     "firstName": "Employee",
     "lastName": "User1",
     "email": "employee1@example.com",
-    "password": "password"
+    "password": "password",
+    "phone": "501 060 361"
   },
   {
     "id": 3,
     "firstName": "Employee",
     "lastName": "User2",
     "email": "employee2@example.com",
-    "password": "password"
+    "password": "password",
+    "phone": "604 693 437"
   },
   {
     "firstName": "Employee",
     "lastName": "User3",
     "email": "employee3@example.com",
-    "password": "password"
+    "password": "password",
+    "phone": "784 049 511"
   },
   {
     "firstName": "Employee",
     "lastName": "User4",
     "email": "employee4@example.com",
-    "password": "password"
+    "password": "password",
+    "phone": "785 072 011"
   },
   {
     "firstName": "Employee",
     "lastName": "User5",
     "email": "employee5@example.com",
-    "password": "password"
+    "password": "password",
+    "phone": "691 729 022"
   },
   {
     "id": 7,
     "firstName": "Employee",
     "lastName": "User6",
     "email": "employee6@example.com",
-    "password": "password"
+    "password": "password",
+    "phone": "509 879 798"
   },
   {
     "id": 8,
     "firstName": "Employee",
     "lastName": "User7",
     "email": "employee7@example.com",
-    "password": "password"
+    "password": "password",
+    "phone": "669 955 629"
   }
 ]
