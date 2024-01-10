@@ -24,13 +24,9 @@ export const employeeData = Prisma.validator<Prisma.EmployeeSelect>()(
 );
 
 export const serviceEmployees = Prisma.validator<
-  Pick<Prisma.EmployeeServiceDefaultArgs, 'select'>
+  Pick<Prisma.ServiceDefaultArgs, 'select'>
 >()({
-  select: {
-    employee: {
-      select: prismaExclude('Employee', ['password'])
-    }
-  }
+  select: prismaExclude('Employee', ['password'])
 });
 
 export const getServiceEmployees = (include: boolean) => {
@@ -45,11 +41,7 @@ export const getServiceEmployees = (include: boolean) => {
     'select'
   )({
     employees: {
-      select: {
-        employee: {
-          select: prismaExclude('Employee', ['password'])
-        }
-      }
+      select: prismaExclude('Employee', ['password'])
     }
   });
 };
@@ -80,11 +72,7 @@ export const visitPartWithEmployee = Prisma.validator<
   Prisma.VisitPartAggregateArgs & Prisma.VisitPartDefaultArgs
 >()({
   include: {
-    employeeService: {
-      select: {
-        employee: selectEmployee
-      }
-    }
+    employee: selectEmployee
   },
   orderBy: {
     startDate: 'asc'
@@ -105,22 +93,11 @@ export const includeAllVisitData = Prisma.validator<Prisma.VisitDefaultArgs>()({
   }
 });
 
-export const includeFullService =
-  Prisma.validator<Prisma.EmployeeServiceDefaultArgs>()({
-    include: {
-      service: {
-        include: {
-          unit: true
-        }
-      }
-    }
-  });
-
 export const includeVisitParts = Prisma.validator<
   Prisma.VisitPartAggregateArgs & Prisma.VisitPartDefaultArgs
 >()({
   include: {
-    employeeService: includeFullService,
+    service: serviceWithUnit,
     visit: {
       include: {
         reservation: {
@@ -137,9 +114,9 @@ export const includeVisitParts = Prisma.validator<
 });
 
 export const includeServiceVisitPartsAndReservation =
-  Prisma.validator<Prisma.EmployeeServiceDefaultArgs>()({
+  Prisma.validator<Prisma.EmployeeDefaultArgs>()({
     include: {
-      service: serviceWithUnit,
+      services: serviceWithUnit,
       visitParts: includeVisitParts
     }
   });

@@ -15,7 +15,6 @@ import {
   isNewStartDateValid,
   minutesBetween
 } from '~/utils/dateUtils';
-import { flattenNestedVisit } from '~/utils/visits';
 
 export type VisitQueryOptions = RequireAtLeastOne<{
   includeEmployee: boolean;
@@ -27,14 +26,12 @@ export default class VisitService {
   }
 
   public async getVisitById(id: VisitPart['id']) {
-    const visit = await prisma.visit.findUnique({
+    return await prisma.visit.findUnique({
       where: { id },
       include: {
         visitParts: visitPartWithEmployee
       }
     });
-
-    return visit ? flattenNestedVisit(visit) : null;
   }
 
   public async changeVisitData(data: ChangeVisitData) {
@@ -52,13 +49,11 @@ export default class VisitService {
         return null;
       }
 
-      const oldVisitData = flattenNestedVisit(oldVisit);
-
-      const oldStartDate = oldVisitData.visitParts[0]!.startDate;
+      const oldStartDate = oldVisit.visitParts[0]!.startDate;
 
       const newOldStartDateDifference = minutesBetween(oldStartDate, startDate);
 
-      if (!oldVisitData.canDateBeChanged && newOldStartDateDifference !== 0) {
+      if (oldVisit.canDateBeChanged && newOldStartDateDifference !== 0) {
         throw new RequestError(
           'Cannot change the date of a visit because it has been already changed'
         );
@@ -74,15 +69,15 @@ export default class VisitService {
         where: { id },
         data: {
           canDateBeChanged:
-            oldVisitData.canDateBeChanged &&
+            oldVisit.canDateBeChanged &&
             newOldStartDateDifference === 0 &&
-            !oldVisitData.visitParts.every(
+            !oldVisit.visitParts.every(
               (visitPart) =>
                 visitPart.status === Status.CLOSED ||
                 visitPart.status === Status.CANCELLED
             ),
           visitParts: {
-            update: oldVisitData.visitParts.map((visitPart) => {
+            update: oldVisit.visitParts.map((visitPart) => {
               const newStartDate = advanceDateByMinutes(
                 visitPart.startDate,
                 newOldStartDateDifference
@@ -106,7 +101,7 @@ export default class VisitService {
           visitParts: visitPartWithEmployee
         }
       });
-      const visitData = flattenNestedVisit(visit);
+      const visitData = visit;
       visitData.visitParts.forEach((visitPart) => {
         Scheduler.getInstance().rescheduleJob(
           `${visitPart.id}`,
@@ -134,7 +129,7 @@ export default class VisitService {
       });
 
       if (!oldVisit) return null;
-      const oldVisitData = flattenNestedVisit(oldVisit);
+      const oldVisitData = oldVisit;
 
       const cancelledVisit = await tx.visit.update({
         where: { id },
@@ -167,7 +162,7 @@ export default class VisitService {
 
       if (!cancelledVisit) return null;
 
-      const cancelledVisitData = flattenNestedVisit(cancelledVisit);
+      const cancelledVisitData = cancelledVisit;
       cancelledVisitData.visitParts.map((visitPart) => {
         Scheduler.getInstance().cancelJob(`${visitPart.id}`);
       });

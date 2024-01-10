@@ -4,6 +4,8 @@ import type { RequireAtLeastOne } from 'type-fest';
 
 import prisma from '~/lib/prisma';
 
+import { selectEmployee } from '~/queries/serviceQuery';
+
 import { Scheduler } from '~/utils/Scheduler';
 
 export type VisitQueryOptions = RequireAtLeastOne<{
@@ -26,9 +28,7 @@ export default class VisitPartService {
             detergentsCost: true
           }
         },
-        employeeService: {
-          include: { employee: true }
-        }
+        employee: selectEmployee
       }
     });
 
@@ -36,7 +36,7 @@ export default class VisitPartService {
       ? {
           ...omit(visitPart, 'employeeService', 'visit'),
           includeDetergents: visitPart.visit.detergentsCost.toNumber() > 0,
-          employee: visitPart.employeeService.employee
+          employee: visitPart.employee
         }
       : null;
   }
@@ -54,9 +54,7 @@ export default class VisitPartService {
             detergentsCost: true
           }
         },
-        employeeService: {
-          include: { employee: true }
-        }
+        employee: selectEmployee
       }
     });
 
@@ -65,7 +63,7 @@ export default class VisitPartService {
     return {
       ...omit(canceledVisitPart, 'employeeService', 'visit'),
       includeDetergents: canceledVisitPart.visit.detergentsCost.toNumber() > 0,
-      employee: canceledVisitPart.employeeService.employee
+      employee: canceledVisitPart.employee
     };
   }
 
@@ -81,9 +79,7 @@ export default class VisitPartService {
             detergentsCost: true
           }
         },
-        employeeService: {
-          include: { employee: true }
-        }
+        employee: selectEmployee
       },
       orderBy: { startDate: 'asc' }
     });
@@ -101,9 +97,8 @@ export default class VisitPartService {
             detergentsCost: true
           }
         },
-        employeeService: {
-          include: { employee: true }
-        }
+
+        employee: selectEmployee
       },
       orderBy: { startDate: 'asc' }
     });
@@ -121,9 +116,7 @@ export default class VisitPartService {
             detergentsCost: true
           }
         },
-        employeeService: {
-          include: { employee: true }
-        }
+        employee: selectEmployee
       },
       orderBy: { startDate: 'asc' }
     });

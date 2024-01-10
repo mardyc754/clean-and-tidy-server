@@ -117,7 +117,7 @@ export default class TypesOfCleaningService {
 
     const employees = await prisma.employee.findMany({
       where: {
-        services: { some: { serviceId: { in: options?.serviceIds } } }
+        services: { some: { id: { in: options?.serviceIds } } }
       },
       select: {
         ...employeeData,

@@ -76,7 +76,8 @@ model Employee {
   email                         String                        @unique  @db.VarChar(40)
   password                      String                        @db.VarChar(60)
   phone                         String?                       @db.VarChar(15)
-  services                      EmployeeService[]
+  visitParts                    VisitPart[]
+  services                      Service[]
   isAdmin                       Boolean                       @default(false)
 }
 
@@ -89,7 +90,8 @@ model Service {
   unitId                        Int?                          @unique
   detergentsCost                Decimal?                      @db.Money @default(0)
   unit                          Unit?                         @relation(fields: [unitId], references: [id], onDelete: Cascade)
-  employees                     EmployeeService[]
+  visitParts                    VisitPart[]
+  employees                     Employee[]
   cleaningFrequencies           CleaningFrequency[]
   reservations                  ReservationService[]
   primaryServices               Service[]                     @relation("PrimarySecondaryService")
@@ -106,15 +108,6 @@ model Unit {
 }
 
 
-model EmployeeService {
-  employee                      Employee                      @relation(fields: [employeeId], references: [id])
-  employeeId                    Int                           
-  service                       Service                       @relation(fields: [serviceId], references: [id])
-  serviceId                     Int                           
-  visitParts                    VisitPart[]
-  
-  @@id([employeeId, serviceId])
-}
 
 model CleaningFrequency {
   id                            Int                           @id @default(autoincrement())
@@ -139,7 +132,8 @@ model VisitPart {
   visit                            Visit                         @relation(fields: [visitId], references: [id], onDelete: Cascade)
   visitId                          Int 
   serviceId                        Int
-  employeeService                  EmployeeService               @relation(fields: [employeeId, serviceId], references: [employeeId, serviceId], onDelete: Cascade)
+  service                          Service                       @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  employee                         Employee                      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   employeeId                       Int
   startDate                        DateTime
   endDate                          DateTime

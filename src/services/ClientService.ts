@@ -13,10 +13,7 @@ import {
   visitPartWithEmployee
 } from '~/queries/serviceQuery';
 
-import {
-  flattenNestedReservationServices,
-  flattenNestedVisits
-} from '~/utils/visits';
+import { flattenNestedReservationServices } from '~/utils/visits';
 
 export default class ClientService {
   public async createClient(data: SetOptional<RegisterData, 'password'>) {
@@ -73,7 +70,7 @@ export default class ClientService {
     return (
       clientData?.reservations.map((reservation) => ({
         ...reservation,
-        visits: flattenNestedVisits(reservation.visits),
+        visits: reservation.visits,
         services: flattenNestedReservationServices(reservation.services)
       })) ?? null
     );

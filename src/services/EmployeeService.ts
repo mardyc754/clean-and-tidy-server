@@ -1,6 +1,5 @@
 import { type Employee, Status, VisitPart } from '@prisma/client';
 import { omit, without } from 'lodash';
-import { RequestError } from '~/errors/RequestError';
 
 import prisma from '~/lib/prisma';
 
@@ -12,14 +11,13 @@ import {
 
 import {
   employeeData,
-  includeFullService,
   includeServiceVisitPartsAndReservation,
   includeVisitParts,
   selectEmployee,
+  serviceWithUnit,
   visitPartTimeframe
 } from '~/queries/serviceQuery';
 
-import { flattenVisitPartsFromServices } from '~/utils/services';
 import { getCyclicDateRanges } from '~/utils/timeslotUtils';
 import {
   getEmployeesBusyHoursData,
@@ -48,14 +46,15 @@ export default class EmployeeService {
   public async getAllEmployees() {
     const employees = await prisma.employee.findMany({
       include: {
-        services: includeServiceVisitPartsAndReservation
+        // services: serviceWithUnit,
+        visitParts: includeVisitParts
       },
       orderBy: { id: 'asc' }
     });
 
     return employees.map((employee) => ({
       ...omit(employee, 'services'),
-      visitParts: flattenVisitPartsFromServices(employee.services)
+      visitParts: employee.visitParts
     }));
   }
 
@@ -74,7 +73,7 @@ export default class EmployeeService {
     return visits.map((visit) => ({
       ...omit(visit, 'employeeService', 'visit'),
       reservation: visit.visit.reservation,
-      service: visit.employeeService.service
+      service: visit.service
     }));
   }
 
@@ -99,7 +98,11 @@ export default class EmployeeService {
             visitParts: { where: { employeeId: id } }
           }
         },
-        services: includeFullService
+        services: {
+          include: {
+            service: serviceWithUnit
+          }
+        }
       }
     });
 
@@ -116,14 +119,13 @@ export default class EmployeeService {
       where: { id: employeeId },
       select: {
         ...employeeData,
-        services: includeFullService
+        services: serviceWithUnit
       }
     });
 
     return {
       ...omit(employeeWithServices, 'services'),
-      services:
-        employeeWithServices?.services.flatMap(({ service }) => service) ?? []
+      services: employeeWithServices?.services
     };
   }
 
@@ -136,7 +138,7 @@ export default class EmployeeService {
         ...data,
         isAdmin: false,
         services: {
-          create: data.services?.map((id) => ({ serviceId: id })) ?? []
+          connect: data.services?.map((id) => ({ id })) ?? []
         }
       },
       ...selectEmployee
@@ -152,27 +154,19 @@ export default class EmployeeService {
         where: { id: employeeId },
         select: {
           ...employeeData,
-          services: includeFullService
+          services: serviceWithUnit
         }
       });
 
       if (!employee) return null;
 
-      const employeeServices =
-        employee.services.flatMap(({ service }) => service) ?? [];
+      const employeeServices = employee.services;
 
       const newServiceIds = data.services ?? [];
 
       const oldServicesIds = employeeServices.map((service) => service.id);
 
       const removedServiceIds = without(oldServicesIds, ...newServiceIds);
-
-      if (removedServiceIds.length > 0) {
-        throw new RequestError(
-          'Cannot remove employee service because it is assigned to visit part'
-        );
-      }
-
       const createdServiceIds = without(newServiceIds, ...oldServicesIds);
 
       const updatedEmployee = await tx.employee.update({
@@ -183,7 +177,8 @@ export default class EmployeeService {
           phone: data.phone,
           isAdmin: data.isAdmin ?? false,
           services: {
-            create: createdServiceIds.map((id) => ({ serviceId: id }))
+            connect: createdServiceIds.map((id) => ({ id })),
+            disconnect: removedServiceIds.map((id) => ({ id }))
           }
         },
         ...selectEmployee

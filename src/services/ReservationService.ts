@@ -58,7 +58,7 @@ export default class ReservationService {
       return (
         allReservations.map((reservation) => ({
           ...reservation,
-          visits: flattenNestedVisits(reservation.visits),
+          visits: reservation.visits,
           services: flattenNestedReservationServices(reservation.services)
         })) ?? null
       );
@@ -77,7 +77,7 @@ export default class ReservationService {
 
     return {
       ...reservationData,
-      visits: flattenNestedVisits(reservationData.visits),
+      visits: reservationData.visits,
       services: flattenNestedReservationServices(reservationData.services)
     };
   }
@@ -98,7 +98,7 @@ export default class ReservationService {
       })
     );
 
-    return visits ? flattenNestedVisits(visits) : [];
+    return visits ?? [];
   }
 
   /**
@@ -197,8 +197,8 @@ export default class ReservationService {
       const visitPartEmployees = visitPartTimeslots.map(
         ({ employeeId }) => employeeId
       );
-      const allPendingVisits = flattenNestedVisits(
-        allPendingReservations.flatMap((reservation) => reservation.visits)
+      const allPendingVisits = allPendingReservations.flatMap(
+        (reservation) => reservation.visits
       );
 
       const newVisits = createVisits(data, frequency, endDate.toISOString());
@@ -281,7 +281,7 @@ export default class ReservationService {
       return oldReservation;
     }
 
-    const visits = flattenNestedVisits(reservationVisits);
+    const visits = reservationVisits;
 
     if (!visits) {
       return oldReservation;

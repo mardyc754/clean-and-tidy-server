@@ -1,6 +1,7 @@
 import {
   type Employee,
   Frequency,
+  Service,
   Status,
   type VisitPart
 } from '@prisma/client';
@@ -41,11 +42,11 @@ export type EmployeeNested = {
 };
 
 type EmployeeWithServicesAndVisitParts = Omit<Employee, 'password'> & {
-  services: Array<{
-    employeeId: number;
-    serviceId: number;
-    visitParts: VisitPart[];
-  }>;
+  services: Array<
+    Service & {
+      visitParts: VisitPart[];
+    }
+  >;
 };
 
 export const getFrequencyHelpers = (frequency: Frequency | undefined) => {
@@ -361,7 +362,7 @@ const getSingleEmployeeBusyHours = (
 
   return {
     ...employee,
-    services: employee.services.map((service) => service.serviceId),
+    services: employee.services.map((service) => service.id),
     // squash visit part dates into single range
     // and merge the busy hours
     workingHours: sumOfTimeslots(normalizedBusyHours),
