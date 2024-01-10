@@ -139,8 +139,7 @@ export function validateTypes<
 
       return res.status(400).send({
         message: 'Error when parsing data type',
-        data: errors,
-        hasError: true
+        data: errors
       });
     }
 

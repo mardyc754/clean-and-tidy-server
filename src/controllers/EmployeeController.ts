@@ -3,6 +3,7 @@ import * as bcrypt from 'bcrypt';
 import type { Response } from 'express';
 import { omit } from 'lodash';
 import { Stringified } from 'type-fest';
+import { RequestError } from '~/errors/RequestError';
 
 import type {
   EmployeeChangeData,
@@ -212,10 +213,19 @@ export default class EmployeeController extends AbstractController {
         req.body
       );
 
-      res.status(200).send(newLinkedServices);
+      if (newLinkedServices === null) {
+        return res.status(404).send({
+          message: `Employee with id=${req.params.id} not found`
+        });
+      }
+
+      return res.status(200).send(newLinkedServices);
     } catch (error) {
       res.status(400).send({
-        message: `Error when changing employee data`
+        message:
+          error instanceof RequestError
+            ? error.message
+            : `Error when changing employee data`
       });
     }
   };

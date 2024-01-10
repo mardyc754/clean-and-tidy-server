@@ -1,5 +1,6 @@
 import { type Employee, Status, VisitPart } from '@prisma/client';
 import { omit, without } from 'lodash';
+import { RequestError } from '~/errors/RequestError';
 
 import prisma from '~/lib/prisma';
 
@@ -146,41 +147,50 @@ export default class EmployeeService {
     employeeId: Employee['id'],
     data: Partial<EmployeeChangeData>
   ) {
-    const employeeServices = await this.getEmployeeWithServices(employeeId);
+    return await prisma.$transaction(async (tx) => {
+      const employee = await tx.employee.findUnique({
+        where: { id: employeeId },
+        select: {
+          ...employeeData,
+          services: includeFullService
+        }
+      });
 
-    const serviceIds = data.services ?? [];
+      if (!employee) return null;
 
-    if (employeeServices === null) {
-      return null;
-    }
+      const employeeServices =
+        employee.services.flatMap(({ service }) => service) ?? [];
 
-    const employeeServicesIds = employeeServices.services.map(
-      (service) => service.id
-    );
-    const removedServiceIds = without(employeeServicesIds, ...serviceIds);
-    const createdServiceIds = without(serviceIds, ...employeeServicesIds);
+      const newServiceIds = data.services ?? [];
 
-    const updatedEmployee = await prisma.employee.update({
-      where: { id: employeeId },
-      data: {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        phone: data.phone,
-        isAdmin: data.isAdmin ?? false,
-        services:
-          removedServiceIds.length > 0
-            ? {
-                deleteMany: removedServiceIds.map((id) => ({ serviceId: id })),
-                createMany: {
-                  data: createdServiceIds.map((id) => ({ serviceId: id }))
-                }
-              }
-            : undefined
-      },
-      ...selectEmployee
+      const oldServicesIds = employeeServices.map((service) => service.id);
+
+      const removedServiceIds = without(oldServicesIds, ...newServiceIds);
+
+      if (removedServiceIds.length > 0) {
+        throw new RequestError(
+          'Cannot remove employee service because it is assigned to visit part'
+        );
+      }
+
+      const createdServiceIds = without(newServiceIds, ...oldServicesIds);
+
+      const updatedEmployee = await tx.employee.update({
+        where: { id: employeeId },
+        data: {
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phone: data.phone,
+          isAdmin: data.isAdmin ?? false,
+          services: {
+            create: createdServiceIds.map((id) => ({ serviceId: id }))
+          }
+        },
+        ...selectEmployee
+      });
+
+      return updatedEmployee;
     });
-
-    return updatedEmployee;
   }
 
   public async getEmployeesBusyHoursForVisit(

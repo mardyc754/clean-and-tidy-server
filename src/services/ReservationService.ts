@@ -101,6 +101,49 @@ export default class ReservationService {
     return visits ? flattenNestedVisits(visits) : [];
   }
 
+  /**
+   * Create reservation
+   *
+   * Example body:
+   *
+   * ```json
+   * {
+   *     "frequency": "EVERY_TWO_WEEKS",
+   *     "detergentsCost": 15,
+   *     "visitParts": [
+   *         {
+   *             "serviceId": 1,
+   *             "numberOfUnits": 44,
+   *             "employeeId": 9,
+   *             "startDate": "2024-01-16T09:30:00.000Z",
+   *             "endDate": "2024-01-16T13:54:00.000Z",
+   *             "cost": 220
+   *         }
+   *     ],
+   *     "bookerEmail": "test@example.com",
+   *     "address": {
+   *         "street": "Testowa",
+   *         "houseNumber": "123",
+   *         "postCode": "31-526"
+   *     },
+   *     "contactDetails": {
+   *         "firstName": "Jan",
+   *         "lastName": "Testowy",
+   *         "email": "test@example.com",
+   *         "phone": "+48123456789"
+   *     },
+   *     "services": [
+   *         {
+   *             "serviceId": 1,
+   *             "isMainServiceForReservation": true
+   *         }
+   *     ],
+   *     "extraInfo": null
+   * }
+   * ```
+   * @param data
+   * @returns
+   */
   public async createReservation(data: ReservationCreationData) {
     return await prisma.$transaction(async (tx) => {
       const allPendingReservations = await tx.reservation.findMany({
@@ -203,7 +246,9 @@ export default class ReservationService {
                 email: bookerEmail
               },
               create: {
-                email: bookerEmail
+                email: bookerEmail,
+                firstName: bookerFirstName,
+                lastName: bookerLastName
               }
             }
           },

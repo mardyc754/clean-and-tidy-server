@@ -124,20 +124,6 @@ export default class VisitService {
     });
   }
 
-  public async deleteVisit(id: Visit['id']) {
-    let deletedVisit: Visit | null = null;
-
-    try {
-      deletedVisit = await prisma.visit.delete({
-        where: { id }
-      });
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
-    }
-
-    return deletedVisit;
-  }
-
   public async cancelVisit(id: Visit['id']) {
     return await prisma.$transaction(async (tx) => {
       const oldVisit = await tx.visit.findUnique({
