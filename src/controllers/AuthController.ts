@@ -31,10 +31,10 @@ export default class AuthController extends AbstractController {
     this.clientService = new ClientService();
     this.employeeService = new EmployeeService();
 
-    this.createRouters();
+    this.createRoutes();
   }
 
-  public createRouters() {
+  public createRoutes() {
     this.router.post('/register', checkRegisterData(), this.register);
     this.router.post('/login', checkLoginData(), this.login);
     this.router.post('/logout', this.logout);

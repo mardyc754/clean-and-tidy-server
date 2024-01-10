@@ -18,10 +18,10 @@ export default class ClientController extends AbstractController {
 
   constructor() {
     super('/clients');
-    this.createRouters();
+    this.createRoutes();
   }
 
-  public createRouters() {
+  public createRoutes() {
     this.router.post(
       '/',
       validateCreateAnonymousClientData(),

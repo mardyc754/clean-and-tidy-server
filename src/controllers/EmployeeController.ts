@@ -15,7 +15,7 @@ import {
   checkIsAdmin,
   checkIsEmployee
 } from '~/middlewares/auth/checkAuthorization';
-import { checkIfUserExisits } from '~/middlewares/auth/checkIfUserExists';
+import { checkIfUserExisits as checkIfUserExists } from '~/middlewares/auth/checkIfUserExists';
 import {
   validateEmployeeChangeData,
   validateEmployeeCreationData,
@@ -35,10 +35,10 @@ export default class EmployeeController extends AbstractController {
 
   constructor() {
     super('/employees');
-    this.createRouters();
+    this.createRoutes();
   }
 
-  public createRouters() {
+  public createRoutes() {
     this.router.get(
       '/',
       checkIsAdmin(),
@@ -49,7 +49,7 @@ export default class EmployeeController extends AbstractController {
       '/',
       checkIsAdmin(),
       validateEmployeeCreationData(),
-      checkIfUserExisits,
+      checkIfUserExists,
       this.createEmployee
     );
     this.router.get('/busy-hours', this.getEmployeesBusyHours);

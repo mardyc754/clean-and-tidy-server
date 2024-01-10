@@ -2,8 +2,6 @@ import { Status } from '@prisma/client';
 
 import prisma from '~/lib/prisma';
 
-import { serviceInclude, visitPartWithEmployee } from '~/queries/serviceQuery';
-
 import { Scheduler } from '~/utils/Scheduler';
 import { isAfter, isAfterOrSame } from '~/utils/dateUtils';
 

@@ -17,10 +17,10 @@ export default class VisitController extends AbstractController {
 
   constructor() {
     super('/visits');
-    this.createRouters();
+    this.createRoutes();
   }
 
-  public createRouters() {
+  public createRoutes() {
     this.router.get('/:id', this.getVisitById);
     this.router.put('/:id', this.changeVisitData);
     this.router.put('/:id/cancel', this.cancelVisit);

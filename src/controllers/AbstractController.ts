@@ -27,5 +27,5 @@ export default abstract class AbstractController {
     return this._router;
   }
 
-  abstract createRouters(): void;
+  abstract createRoutes(): void;
 }

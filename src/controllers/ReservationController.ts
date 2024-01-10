@@ -23,10 +23,10 @@ export default class ReservationController extends AbstractController {
 
   constructor() {
     super('/reservations');
-    this.createRouters();
+    this.createRoutes();
   }
 
-  public createRouters() {
+  public createRoutes() {
     this.router.get('/', this.getAllReservations);
     this.router.post(
       '/',

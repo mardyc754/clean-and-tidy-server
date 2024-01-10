@@ -13,10 +13,10 @@ import AbstractController from './AbstractController';
 export default class DateController extends AbstractController {
   constructor() {
     super('/dates');
-    this.createRouters();
+    this.createRoutes();
   }
 
-  public createRouters() {
+  public createRoutes() {
     this.router.get('/holidays', validateGetHolidaysQuery(), this.getHolidays);
   }
 

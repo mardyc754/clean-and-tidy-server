@@ -34,10 +34,10 @@ export default class TypesOfCleaningController extends AbstractController {
 
   constructor() {
     super('/services');
-    this.createRouters();
+    this.createRoutes();
   }
 
-  public createRouters() {
+  public createRoutes() {
     this.router.get('/', this.getAllServices);
     this.router.post(
       '/',

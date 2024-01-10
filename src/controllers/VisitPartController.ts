@@ -13,10 +13,10 @@ export default class VisitPartController extends AbstractController {
 
   constructor() {
     super('/visit-parts');
-    this.createRouters();
+    this.createRoutes();
   }
 
-  public createRouters() {
+  public createRoutes() {
     this.router.get('/:id', this.getVisitPartById);
     this.router.put('/:id/cancel', checkIsEmployee(), this.cancelVisitPart);
   }

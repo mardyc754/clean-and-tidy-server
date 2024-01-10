@@ -12,23 +12,14 @@ export async function checkIfUserExisits(
   const employeeService = new EmployeeService();
   const clientService = new ClientService();
 
-  let userExists = Boolean(await clientService.getClientByEmail(email));
+  const userExists =
+    Boolean(await clientService.getClientByEmail(email)) ||
+    Boolean(await employeeService.getEmployeeByEmail(email));
 
   if (userExists) {
     return res.status(409).send({
       message: 'User with given email already exists',
-      affectedField: 'email',
-      hasError: true
-    });
-  }
-
-  userExists = Boolean(await employeeService.getEmployeeByEmail(email));
-
-  if (userExists) {
-    return res.status(409).send({
-      message: 'User with given email already exists',
-      affectedField: 'email',
-      hasError: true
+      affectedField: 'email'
     });
   }
 

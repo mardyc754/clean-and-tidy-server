@@ -14,10 +14,10 @@ export default class AddressController extends AbstractController {
   constructor() {
     super('/addresses');
     this.addressService = new AddressService();
-    this.createRouters();
+    this.createRoutes();
   }
 
-  public createRouters() {
+  public createRoutes() {
     this.router.post('/check', validateAddress(), this.getAddress);
   }
 
