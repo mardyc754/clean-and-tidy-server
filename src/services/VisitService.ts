@@ -34,7 +34,7 @@ export default class VisitService {
     });
   }
 
-  public async changeVisitData(data: ChangeVisitData) {
+  public async changeVisitData(data: ChangeVisitData & { id: Visit['id'] }) {
     const { id, startDate } = data;
 
     return await prisma.$transaction(async (tx) => {
@@ -71,7 +71,8 @@ export default class VisitService {
             newOldStartDateDifference === 0 &&
             !oldVisit.visitParts.every(
               (visitPart) =>
-                visitPart.status === Status.CLOSED || visitPart.status === Status.CANCELLED
+                visitPart.status === Status.CLOSED ||
+                visitPart.status === Status.CANCELLED
             ),
           visitParts: {
             update: oldVisit.visitParts.map((visitPart) => {
@@ -79,7 +80,10 @@ export default class VisitService {
                 visitPart.startDate,
                 newOldStartDateDifference
               );
-              const newEndDate = advanceDateByMinutes(visitPart.endDate, newOldStartDateDifference);
+              const newEndDate = advanceDateByMinutes(
+                visitPart.endDate,
+                newOldStartDateDifference
+              );
               return {
                 where: { id: visitPart.id },
                 data: {
@@ -97,12 +101,16 @@ export default class VisitService {
       });
 
       visit.visitParts.forEach((visitPart) => {
-        Scheduler.getInstance().rescheduleJob(`${visitPart.id}`, visitPart.endDate, async () => {
-          await prisma.visitPart.update({
-            where: { id: visitPart.id },
-            data: { status: Status.CLOSED }
-          });
-        });
+        Scheduler.getInstance().rescheduleJob(
+          `${visitPart.id}`,
+          visitPart.endDate,
+          async () => {
+            await prisma.visitPart.update({
+              where: { id: visitPart.id },
+              data: { status: Status.CLOSED }
+            });
+          }
+        );
       });
 
       return visit;
@@ -124,7 +132,10 @@ export default class VisitService {
       const cancelledVisit = await tx.visit.update({
         where: { id },
         data: {
-          detergentsCost: isAtLeastOneDayBetween(new Date(), oldVisitData.visitParts[0]!.startDate)
+          detergentsCost: isAtLeastOneDayBetween(
+            new Date(),
+            oldVisitData.visitParts[0]!.startDate
+          )
             ? 0
             : (oldVisitData.detergentsCost?.toNumber() ?? 0) / 2,
           canDateBeChanged: false,

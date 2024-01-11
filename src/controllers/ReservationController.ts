@@ -6,7 +6,10 @@ import { RequestError } from '~/errors/RequestError';
 import { EmployeeIdData } from '~/schemas/employee';
 import { ReservationCreationData } from '~/schemas/reservation';
 
-import { checkIsEmployee } from '~/middlewares/auth/checkAuthorization';
+import {
+  checkIsClient,
+  checkIsEmployee
+} from '~/middlewares/auth/checkAuthorization';
 import { validateEmployeeId } from '~/middlewares/type-validators/employee';
 import { validateReservationCreationData } from '~/middlewares/type-validators/reservation';
 
@@ -40,7 +43,7 @@ export default class ReservationController extends AbstractController {
       validateEmployeeId(),
       this.confirmReservation
     );
-    this.router.put('/:name/cancel', this.cancelReservation);
+    this.router.put('/:name/cancel', checkIsClient(), this.cancelReservation);
   }
 
   private getAllReservations = async (
@@ -122,6 +125,12 @@ export default class ReservationController extends AbstractController {
         req.params.name,
         employeeId
       );
+
+      if (!reservation) {
+        return res.status(404).send({
+          message: `Reservation with name=${req.params.name} not found`
+        });
+      }
       return res.status(200).send(reservation);
     } catch (err) {
       return res.status(400).send({
@@ -138,6 +147,13 @@ export default class ReservationController extends AbstractController {
       const reservation = await this.reservationService.cancelReservation(
         req.params.name
       );
+
+      if (!reservation) {
+        return res.status(404).send({
+          message: `Reservation with name=${req.params.name} not found`
+        });
+      }
+
       res.status(200).send(reservation);
     } catch (err) {
       res.status(400).send({

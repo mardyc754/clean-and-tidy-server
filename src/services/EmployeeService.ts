@@ -202,12 +202,8 @@ export default class EmployeeService {
 
     const employees = await prisma.employee.findMany({
       where: {
-        services: {
-          some: {
-            visitParts: {
-              some: { visitId: { in: options?.visitIds } }
-            }
-          }
+        visitParts: {
+          some: { visitId: { in: options?.visitIds } }
         }
       },
       select: {
@@ -225,10 +221,6 @@ export default class EmployeeService {
         }
       }
     });
-
-    if (!employees) {
-      return null;
-    }
 
     const { employeesWithWorkingHours, flattenedEmployeeVisitParts } =
       getEmployeesBusyHoursData(employees, cyclicRanges, options?.frequency);

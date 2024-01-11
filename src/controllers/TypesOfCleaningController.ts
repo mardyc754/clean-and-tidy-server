@@ -53,7 +53,7 @@ export default class TypesOfCleaningController extends AbstractController {
       validateServiceChangeData(),
       this.changeServicePrice
     );
-    this.router.delete('/:id', checkIsAdmin(), this.deleteService);
+    // this.router.delete('/:id', checkIsAdmin(), this.deleteService);
   }
 
   private getAllServices = async (
@@ -163,23 +163,24 @@ export default class TypesOfCleaningController extends AbstractController {
     }
   };
 
-  private deleteService = async (
-    req: TypedRequest<{ id: string }>,
-    res: Response
-  ) => {
-    try {
-      const service = await this.typesOfCleaningService.deleteService(
-        parseInt(req.params.id)
-      );
+  // not used yet
+  // private deleteService = async (
+  //   req: TypedRequest<{ id: string }>,
+  //   res: Response
+  // ) => {
+  //   try {
+  //     const service = await this.typesOfCleaningService.deleteService(
+  //       parseInt(req.params.id)
+  //     );
 
-      if (service === null) {
-        res
-          .status(404)
-          .send({ message: `Service with id=${req.params.id} not found` });
-      }
-      return res.status(200).send(service);
-    } catch (err) {
-      res.status(400).send({ message: 'Error when deleting service' });
-    }
-  };
+  //     if (service === null) {
+  //       res
+  //         .status(404)
+  //         .send({ message: `Service with id=${req.params.id} not found` });
+  //     }
+  //     return res.status(200).send(service);
+  //   } catch (err) {
+  //     res.status(400).send({ message: 'Error when deleting service' });
+  //   }
+  // };
 }

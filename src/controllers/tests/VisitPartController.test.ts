@@ -1,4 +1,4 @@
-import { Frequency } from '@prisma/client';
+import { Frequency, Status } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 import { omit } from 'lodash';
 import request from 'supertest';
@@ -7,11 +7,12 @@ import { expect, it } from 'vitest';
 import App from '~/App';
 import { createMockDatabaseStructure } from '~/tests/helpers/createEmployeeWithReservation';
 import { visitPartFixture } from '~/tests/helpers/fixtures';
+import prisma from '~/tests/prisma';
 import resetDb from '~/tests/resetDb';
 
 import { UserRole } from '~/constants';
 
-import prisma from '~/lib/prisma';
+import { Scheduler } from '~/utils/Scheduler';
 
 import VisitPartController from '../VisitPartController';
 
@@ -51,7 +52,9 @@ describe('/visit-parts', () => {
         }
       });
 
-      const { status, body } = await request(app).get(`/visit-parts/${visitPart.id}`);
+      const { status, body } = await request(app).get(
+        `/visit-parts/${visitPart.id}`
+      );
 
       expect(status).toBe(200);
       expect(body).toStrictEqual(
@@ -95,7 +98,7 @@ describe('/visit-parts', () => {
     });
 
     it('should return 400 if visit part does not exist', async () => {
-      const { visit, service, employee } = await createMockDatabaseStructure({
+      const { visit } = await createMockDatabaseStructure({
         firstVisitStartDate: '2024-01-02T10:00:00.000Z',
         firstVisitEndDate: '2024-01-02T14:00:00.000Z',
         frequency: Frequency.ONCE
@@ -115,6 +118,44 @@ describe('/visit-parts', () => {
       expect(body).toStrictEqual({
         message: `Error when cancelling visit part`
       });
+    });
+
+    it('should return 200 if visit part was cancelled properly', async () => {
+      const { visit, employee } = await createMockDatabaseStructure({
+        firstVisitStartDate: '2024-01-02T10:00:00.000Z',
+        firstVisitEndDate: '2024-01-02T14:00:00.000Z',
+        frequency: Frequency.ONCE
+      });
+
+      const visitPart = visit.visitParts[0]!;
+
+      vi.spyOn(jwt, 'verify').mockImplementation(() => ({
+        role: UserRole.EMPLOYEE
+      }));
+
+      vi.spyOn(Scheduler.getInstance(), 'cancelJob');
+
+      const { status, body } = await request(app)
+        .put(`/visit-parts/${visitPart?.id}/cancel`)
+        .set('Cookie', 'authToken=token');
+
+      expect(status).toBe(200);
+
+      expect(Scheduler.getInstance().cancelJob).toHaveBeenCalledWith(
+        visitPart.id.toString()
+      );
+
+      expect(body).toStrictEqual(
+        expect.objectContaining({
+          ...visitPart,
+          startDate: visitPart.startDate.toISOString(),
+          endDate: visitPart.endDate.toISOString(),
+          cost: '0',
+          status: Status.CANCELLED,
+          includeDetergents: true,
+          employee
+        })
+      );
     });
   });
 });

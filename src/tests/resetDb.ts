@@ -1,19 +1,16 @@
-// src/tests/helpers/reset-db.ts
-import { PrismaClient } from '@prisma/client';
+import prismaTest from './prisma';
 
-const prisma = new PrismaClient();
-
-export default async () => {
-  await prisma.$transaction([
-    prisma.visitPart.deleteMany(),
-    prisma.visit.deleteMany(),
-    prisma.client.deleteMany(),
-    prisma.employee.deleteMany(),
-    prisma.service.deleteMany(),
-    prisma.unit.deleteMany(),
-    prisma.cleaningFrequency.deleteMany(),
-    prisma.reservationService.deleteMany(),
-    prisma.reservation.deleteMany(),
-    prisma.address.deleteMany()
+export default async function resetDb() {
+  await prismaTest.$transaction([
+    prismaTest.visitPart.deleteMany(),
+    prismaTest.visit.deleteMany(),
+    prismaTest.client.deleteMany(),
+    prismaTest.employee.deleteMany(),
+    prismaTest.service.deleteMany(),
+    prismaTest.unit.deleteMany(),
+    prismaTest.cleaningFrequency.deleteMany(),
+    prismaTest.reservationService.deleteMany(),
+    prismaTest.reservation.deleteMany(),
+    prismaTest.address.deleteMany()
   ]);
-};
+}

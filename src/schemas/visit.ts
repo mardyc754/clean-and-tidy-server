@@ -15,7 +15,7 @@ export const visitPartCreationData = z.object({
 export type VisitPartCreationData = z.infer<typeof visitPartCreationData>;
 
 export const changeVisitDataSchema = z.object({
-  id: z.number(),
+  // id: z.number(),
   startDate: ISOString
 });
 

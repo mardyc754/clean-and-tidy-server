@@ -11,8 +11,7 @@ import {
   visitFixture,
   visitPartFixture
 } from '~/tests/helpers/fixtures';
-
-import prisma from '~/lib/prisma';
+import prisma from '~/tests/prisma';
 
 import { advanceDateByOneYear } from '~/utils/dateUtils';
 import { createVisits } from '~/utils/reservationUtils';
@@ -35,7 +34,12 @@ export async function createMockDatabaseStructure({
   const createdEmployee = await prisma.employee.create({
     data: {
       ...employeeFixture(),
-      email: faker.internet.email()
+      email: faker.internet.email(),
+      services: {
+        connect: {
+          id: createdService.id
+        }
+      }
     }
   });
 
@@ -49,6 +53,8 @@ export async function createMockDatabaseStructure({
 
   return {
     reservation: omit(reservation, 'visits'),
+    visits: reservation.visits,
+    address: reservation.address,
     visit: reservation.visits[0]!,
     employee: omit(createdEmployee, 'password'),
     service: createdService
@@ -124,7 +130,7 @@ export async function createMockReservation({
   const endDate = new Date(advanceDateByOneYear(lastEndDate));
   const newVisits = createVisits(exampleData, frequency, endDate.toISOString());
 
-  return await prisma.reservation.create({
+  const result = await prisma.reservation.create({
     data: {
       ...reservationFixture(),
       frequency,
@@ -166,9 +172,12 @@ export async function createMockReservation({
         include: {
           visitParts: true
         }
-      }
+      },
+      address: true
     }
   });
+
+  return result;
 }
 
 export async function createEmployeeWithReservationAndVisitParts() {

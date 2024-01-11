@@ -13,7 +13,7 @@ export type LoginData = z.infer<typeof loginSchema>;
 
 export const registerSchema = z.object({
   email: z.string().email(),
-  password: z.string().max(32)
+  password: z.string().max(32, { message: 'Password is too long' })
 });
 
 export type RegisterData = z.infer<typeof registerSchema>;

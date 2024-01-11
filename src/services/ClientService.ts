@@ -80,14 +80,20 @@ export default class ClientService {
     clientId: Client['id'],
     userData: UserUpdateData
   ) {
-    return await prisma.client.update({
-      where: { id: clientId },
-      data: {
-        ...userData
-      },
-      select: {
-        ...prismaExclude('Client', ['password'])
-      }
-    });
+    try {
+      const updatedClient = await prisma.client.update({
+        where: { id: clientId },
+        data: {
+          ...userData
+        },
+        select: {
+          ...prismaExclude('Client', ['password'])
+        }
+      });
+
+      return updatedClient;
+    } catch (err) {
+      return null;
+    }
   }
 }

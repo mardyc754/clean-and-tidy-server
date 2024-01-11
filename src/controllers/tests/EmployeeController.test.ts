@@ -15,11 +15,10 @@ import {
   serviceFixture,
   visitPartFixture
 } from '~/tests/helpers/fixtures';
+import prisma from '~/tests/prisma';
 import resetDb from '~/tests/resetDb';
 
 import { UserRole } from '~/constants';
-
-import prisma from '~/lib/prisma';
 
 import EmployeeController from '../EmployeeController';
 
@@ -356,7 +355,7 @@ describe('/employees', () => {
     });
   });
 
-  describe.only('GET /busy-hours', () => {
+  describe('GET /busy-hours', () => {
     it('returns 200 with empty data if employee does not exist', async () => {
       const { status, body } = await request(app).get('/employees/busy-hours');
 
@@ -368,12 +367,11 @@ describe('/employees', () => {
     });
 
     it('returns proper data for busy hours for frequency once', async () => {
-      const { employee, reservation, service } =
-        await createMockDatabaseStructure({
-          frequency: Frequency.ONCE,
-          firstVisitStartDate: '2024-01-12T10:00:00.000Z',
-          firstVisitEndDate: '2024-01-12T11:00:00.000Z'
-        });
+      const { employee, service } = await createMockDatabaseStructure({
+        frequency: Frequency.ONCE,
+        firstVisitStartDate: '2024-01-12T10:00:00.000Z',
+        firstVisitEndDate: '2024-01-12T11:00:00.000Z'
+      });
 
       // this should not affect the result
       await createMockReservation({
@@ -384,16 +382,16 @@ describe('/employees', () => {
         firstVisitEndDate: '2024-02-12T11:00:00.000Z'
       });
 
-      const reservationVisitIds = await prisma.visit
-        .findMany({
-          where: { reservationId: reservation.id }
-        })
-        .then((visits) => visits.map((visit) => visit.id));
+      const employeeVisits = await prisma.visit.findMany({
+        where: {
+          visitParts: { some: { employeeId: employee.id } }
+        }
+      });
 
       const { status, body } = await request(app)
         .get('/employees/busy-hours')
         .query({
-          visitIds: reservationVisitIds.join(','),
+          visitIds: [employeeVisits[0]!.id].join(','),
           frequency: Frequency.ONCE,
           period: '2024-0'
         });

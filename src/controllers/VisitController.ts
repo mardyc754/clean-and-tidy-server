@@ -4,6 +4,8 @@ import { RequestError } from '~/errors/RequestError';
 
 import { ChangeVisitData } from '~/schemas/visit';
 
+import { validateVisitDate } from '~/middlewares/type-validators/visit';
+
 import { VisitService } from '~/services';
 
 import { VisitQueryOptions } from '~/services/VisitService';
@@ -22,7 +24,7 @@ export default class VisitController extends AbstractController {
 
   public createRoutes() {
     this.router.get('/:id', this.getVisitById);
-    this.router.put('/:id', this.changeVisitData);
+    this.router.put('/:id', validateVisitDate(), this.changeVisitData);
     this.router.put('/:id/cancel', this.cancelVisit);
   }
 
@@ -38,10 +40,14 @@ export default class VisitController extends AbstractController {
       const visit = await this.visitService.getVisitById(
         parseInt(req.params.id)
       );
-
+      if (!visit) {
+        return res
+          .status(404)
+          .send({ message: `Visit with id=${req.params.id} not found` });
+      }
       res.status(200).send(visit);
     } catch (error) {
-      res.status(404).send({ message: 'Visit not found' });
+      res.status(400).send({ message: 'Error when finding visit' });
     }
   };
 
@@ -58,7 +64,7 @@ export default class VisitController extends AbstractController {
       if (!visit) {
         return res
           .status(404)
-          .send({ message: 'Visit with given id not found' });
+          .send({ message: `Visit with id=${req.params.id} not found` });
       }
 
       return res.status(200).send(visit);
@@ -77,7 +83,9 @@ export default class VisitController extends AbstractController {
       );
 
       if (!visit) {
-        return res.status(404).send({ message: 'Visit not found' });
+        return res
+          .status(404)
+          .send({ message: `Visit with id=${req.params.id} not found` });
       }
 
       res.status(200).send(visit);

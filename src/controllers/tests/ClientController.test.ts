@@ -3,9 +3,8 @@ import request from 'supertest';
 import { afterEach, describe, expect, it } from 'vitest';
 import App from '~/App';
 import { employeeFixture } from '~/tests/helpers/fixtures';
+import prisma from '~/tests/prisma';
 import resetDb from '~/tests/resetDb';
-
-import prisma from '~/lib/prisma';
 
 import ClientController from '../ClientController';
 

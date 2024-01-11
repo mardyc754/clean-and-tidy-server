@@ -9,10 +9,13 @@ import { JWT_SECRET, UserRole } from '~/constants';
 import { LoginData } from '~/schemas/auth';
 import { UserUpdateData } from '~/schemas/common';
 
+import { checkAuthorization } from '~/middlewares/auth/checkAuthorization';
 import {
+  checkCurrentUserData,
   checkLoginData,
   checkRegisterData
 } from '~/middlewares/type-validators/auth';
+import { validateClientUpdateData } from '~/middlewares/type-validators/client';
 
 import { ClientService, EmployeeService } from '~/services';
 
@@ -37,9 +40,13 @@ export default class AuthController extends AbstractController {
   public createRoutes() {
     this.router.post('/register', checkRegisterData(), this.register);
     this.router.post('/login', checkLoginData(), this.login);
-    this.router.post('/logout', this.logout);
+    this.router.post('/logout', checkAuthorization(), this.logout);
     this.router.get('/user', this.getCurrentUser);
-    this.router.put('/user', this.changeCurrentUserData);
+    this.router.put(
+      '/user',
+      validateClientUpdateData(),
+      this.changeCurrentUserData
+    );
   }
 
   private register = async (req: Request, res: Response) => {
@@ -53,8 +60,7 @@ export default class AuthController extends AbstractController {
     if (userExists) {
       return res.status(409).send({
         message: 'User with given email already exists',
-        affectedField: 'email',
-        hasError: true
+        affectedField: 'email'
       });
     }
 
@@ -63,8 +69,7 @@ export default class AuthController extends AbstractController {
     if (client && client.password) {
       return res.status(409).send({
         message: 'User with given email already exists',
-        affectedField: 'email',
-        hasError: true
+        affectedField: 'email'
       });
     }
 
@@ -77,8 +82,7 @@ export default class AuthController extends AbstractController {
     if (userExists) {
       return res.status(409).send({
         message: 'User with given email already exists',
-        affectedField: 'email',
-        hasError: true
+        affectedField: 'email'
       });
     }
 
@@ -89,9 +93,7 @@ export default class AuthController extends AbstractController {
         message: 'Client created succesfully'
       });
     } else {
-      res
-        .status(400)
-        .send({ message: 'Error when creating new user', hasError: true });
+      res.status(400).send({ message: 'Error when creating new user' });
     }
   };
 

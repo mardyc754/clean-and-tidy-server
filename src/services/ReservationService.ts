@@ -17,13 +17,15 @@ import {
 
 import { Scheduler } from '~/utils/Scheduler';
 import {
-  advanceDateByMinutes,
   advanceDateByOneYear,
   isAfter,
   isAtLeastOneDayBetween
 } from '~/utils/dateUtils';
 import { executeDatabaseOperation } from '~/utils/queryUtils';
-import { checkReservationConflict, createVisits } from '~/utils/reservationUtils';
+import {
+  checkReservationConflict,
+  createVisits
+} from '~/utils/reservationUtils';
 import { flattenNestedReservationServices } from '~/utils/visits';
 
 export type ReservationQueryOptions = RequireAtLeastOne<{
@@ -46,7 +48,8 @@ export default class ReservationService {
               visitParts: visitPartWithEmployee
             }
           },
-          services: serviceInclude
+          services: serviceInclude,
+          address: true
         }
       });
 
@@ -140,104 +143,118 @@ export default class ReservationService {
    * @returns
    */
   public async createReservation(data: ReservationCreationData) {
-    return await prisma.$transaction(async (tx) => {
-      const allPendingReservations = await tx.reservation.findMany({
-        where: {
-          visits: {
-            some: {
-              visitParts: {
-                some: {
-                  ...visitPartstWithGivenStatuses([Status.ACTIVE, Status.TO_BE_CONFIRMED]),
-                  employeeId: {
-                    in: data.visitParts.map(({ employeeId }) => employeeId)
-                  }
+    const allPendingReservations = await prisma.reservation.findMany({
+      where: {
+        visits: {
+          some: {
+            visitParts: {
+              some: {
+                ...visitPartstWithGivenStatuses([
+                  Status.ACTIVE,
+                  Status.TO_BE_CONFIRMED
+                ]),
+                employeeId: {
+                  in: data.visitParts.map(({ employeeId }) => employeeId)
                 }
               }
             }
           }
-        },
-        ...includeFullReservationDetails
-      });
+        }
+      },
+      ...includeFullReservationDetails
+    });
 
-      const {
-        bookerEmail,
-        frequency,
-        address,
-        contactDetails,
-        visitParts: firstVisitParts,
-        services,
-        extraInfo
-      } = data;
+    const {
+      bookerEmail,
+      frequency,
+      address,
+      contactDetails,
+      visitParts: firstVisitParts,
+      services,
+      extraInfo
+    } = data;
 
-      const { firstName: bookerFirstName, lastName: bookerLastName } = contactDetails;
+    const { firstName: bookerFirstName, lastName: bookerLastName } =
+      contactDetails;
 
-      const visitPartTimeslots = firstVisitParts.map(({ startDate, endDate, ...other }) => ({
+    const visitPartTimeslots = firstVisitParts.map(
+      ({ startDate, endDate, ...other }) => ({
         startDate: new Date(startDate),
         endDate: new Date(endDate),
         ...other
-      }));
+      })
+    );
 
-      const lastEndDate = visitPartTimeslots.at(-1)!.endDate;
-      const endDate =
-        frequency !== Frequency.ONCE ? new Date(advanceDateByOneYear(lastEndDate)) : lastEndDate;
+    const lastEndDate = visitPartTimeslots.at(-1)!.endDate;
+    const endDate =
+      frequency !== Frequency.ONCE
+        ? new Date(advanceDateByOneYear(lastEndDate))
+        : lastEndDate;
 
-      const visitPartEmployees = visitPartTimeslots.map(({ employeeId }) => employeeId);
-      const allPendingVisits = allPendingReservations.flatMap((reservation) => reservation.visits);
+    const visitPartEmployees = visitPartTimeslots.map(
+      ({ employeeId }) => employeeId
+    );
+    const allPendingVisits = allPendingReservations.flatMap(
+      (reservation) => reservation.visits
+    );
 
-      const newVisits = createVisits(data, frequency, endDate.toISOString());
+    const newVisits = createVisits(data, frequency, endDate.toISOString());
 
-      const conflicts = checkReservationConflict(newVisits, allPendingVisits, visitPartEmployees);
+    const conflicts = checkReservationConflict(
+      newVisits,
+      allPendingVisits,
+      visitPartEmployees
+    );
 
-      if (conflicts.length > 0) {
-        throw new RequestError(
-          'Cannot create reservation because of conflicting dates with other reservations'
-        );
-      }
+    if (conflicts.length > 0) {
+      throw new RequestError(
+        'Cannot create reservation because of conflicting dates with other reservations'
+      );
+    }
 
-      if (!lastEndDate) {
-        return null;
-      }
+    if (!lastEndDate) {
+      return null;
+    }
 
-      return await tx.reservation.create({
-        data: {
-          name: `reservation-${short.generate()}`,
-          frequency,
-          bookerFirstName,
-          bookerLastName,
-          extraInfo,
-          visits: {
-            create: newVisits.map((visit) => ({
-              ...visit,
-              visitParts: {
-                create: visit.visitParts.map((visitPart) => ({
-                  ...visitPart,
-                  status: Status.TO_BE_CONFIRMED
-                }))
-              }
-            }))
-          },
-          address: {
-            create: address
-          },
-          client: {
-            connectOrCreate: {
-              where: {
-                email: bookerEmail
-              },
-              create: {
-                email: bookerEmail,
-                firstName: bookerFirstName,
-                lastName: bookerLastName
-              }
+    return await prisma.reservation.create({
+      data: {
+        name: `reservation-${short.generate()}`,
+        frequency,
+        bookerFirstName,
+        bookerLastName,
+        extraInfo,
+        visits: {
+          create: newVisits.map((visit) => ({
+            ...visit,
+            visitParts: {
+              create: visit.visitParts.map((visitPart) => ({
+                ...visitPart,
+                status: Status.TO_BE_CONFIRMED
+              }))
             }
-          },
-          services: {
-            createMany: {
-              data: services
+          }))
+        },
+        address: {
+          create: address
+        },
+        client: {
+          connectOrCreate: {
+            where: {
+              email: bookerEmail
+            },
+            create: {
+              email: bookerEmail,
+              firstName: bookerFirstName,
+              lastName: bookerLastName
             }
           }
+        },
+        services: {
+          createMany: {
+            data: services
+          }
         }
-      });
+      }
     });
   }
 
@@ -286,7 +303,10 @@ export default class ReservationService {
                   where: { id: { in: visitPartsAfterNow } },
                   data: {
                     status: Status.CANCELLED,
-                    cost: isAtLeastOneDayBetween(new Date(), visitPart.startDate)
+                    cost: isAtLeastOneDayBetween(
+                      new Date(),
+                      visitPart.startDate
+                    )
                       ? 0
                       : visitPart.cost.toNumber() / 2
                   }
@@ -335,14 +355,18 @@ export default class ReservationService {
       });
 
       reservationVisitParts.forEach((visitPart) => {
-        Scheduler.getInstance().scheduleJob(`${visitPart.id}`, visitPart.endDate, async () => {
-          await prisma.visitPart.updateMany({
-            where: { id: { in: reservationVisitParts.map(({ id }) => id) } },
-            data: {
-              status: Status.CLOSED
-            }
-          });
-        });
+        Scheduler.getInstance().scheduleJob(
+          `${visitPart.id}`,
+          visitPart.endDate,
+          async () => {
+            await prisma.visitPart.updateMany({
+              where: { id: { in: reservationVisitParts.map(({ id }) => id) } },
+              data: {
+                status: Status.CLOSED
+              }
+            });
+          }
+        );
       });
 
       return await this.getReservationByName(reservationName);
