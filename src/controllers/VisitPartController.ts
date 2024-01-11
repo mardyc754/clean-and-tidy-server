@@ -30,7 +30,13 @@ export default class VisitPartController extends AbstractController {
         parseInt(req.params.id)
       );
 
-      res.status(200).send(visitPart);
+      if (!visitPart) {
+        return res
+          .status(404)
+          .send({ message: `Visit part with id=${req.params.id} not found` });
+      }
+
+      return res.status(200).send(visitPart);
     } catch (error) {
       res.status(400).send({ message: `Error when getting visit part by id` });
     }

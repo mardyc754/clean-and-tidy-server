@@ -2,27 +2,21 @@ import { faker } from '@faker-js/faker';
 import request from 'supertest';
 import { afterEach, describe, expect, it } from 'vitest';
 import App from '~/App';
+import { employeeFixture } from '~/tests/helpers/fixtures';
 import resetDb from '~/tests/resetDb';
 
-import ClientController from '../ClientController';
-import EmployeeController from '../EmployeeController';
+import prisma from '~/lib/prisma';
 
-const app = new App([new ClientController(), new EmployeeController()])
-  .instance;
+import ClientController from '../ClientController';
 
 describe('/clients', () => {
+  const app = new App([new ClientController()]).instance;
+
   afterEach(async () => {
     await resetDb();
   });
 
   describe('POST /', () => {
-    // it('should return all clients', async () => {
-    //   const response = await request(app).get('/clients');
-
-    //   expect(response.status).toBe(200);
-    //   expect(response.body.data).toEqual([]);
-    // });
-
     it('should create anonymous client properly', async () => {
       const createAnonymousClientData = {
         email: 'test@xyz.com'
@@ -40,16 +34,8 @@ describe('/clients', () => {
         .post('/clients')
         .send(createAnonymousClientData);
 
-      const createdClientData = createAnonymousClientResponse.body;
       expect(createAnonymousClientResponse.status).toBe(201);
       expect(createAnonymousClientResponse.body).toStrictEqual(expectedClient);
-
-      const response = await request(app).get(
-        `/clients/${createdClientData.id}`
-      );
-
-      expect(response.status).toBe(200);
-      expect(response.body).toStrictEqual(createdClientData);
     });
 
     it('should return 400 when passing wrong data type', async () => {
@@ -73,21 +59,22 @@ describe('/clients', () => {
         email: 'test@xyz.com'
       };
 
-      await request(app).post('/clients').send(createAnonymousClientData);
+      await prisma.client.create({
+        data: {
+          ...createAnonymousClientData
+        }
+      });
 
-      const createConflictingClient = await request(app)
+      const { status, body } = await request(app)
         .post('/clients')
         .send(createAnonymousClientData);
 
-      expect(createConflictingClient.status).toBe(409);
-      expect(createConflictingClient.body).toHaveProperty(
+      expect(status).toBe(409);
+      expect(body).toHaveProperty(
         'message',
         'User with given email already exists'
       );
-      expect(createConflictingClient.body).toHaveProperty(
-        'affectedField',
-        'email'
-      );
+      expect(body).toHaveProperty('affectedField', 'email');
     });
 
     it('should return 409 if employee with given email already existis', async () => {
@@ -95,17 +82,13 @@ describe('/clients', () => {
         email: faker.internet.email()
       };
 
-      const password = faker.internet.password();
-
-      const employeeRespose = await request(app).post('/employees').send({
-        email: createAnonymousClientData.email,
-        firstName: faker.person.firstName(),
-        lastName: faker.person.lastName(),
-        password,
-        confirmPassword: password
+      // create employee with given email
+      await prisma.employee.create({
+        data: {
+          ...employeeFixture(),
+          email: createAnonymousClientData.email
+        }
       });
-
-      expect(employeeRespose.status).toBe(201);
 
       const createConflictingClient = await request(app)
         .post('/clients')
@@ -129,14 +112,14 @@ describe('/clients', () => {
         email: faker.internet.email()
       };
 
-      const createAnonymousClientResponse = await request(app)
-        .post('/clients')
-        .send(createAnonymousClientData);
-
-      const createdClientData = createAnonymousClientResponse.body;
+      const createdClient = await prisma.client.create({
+        data: {
+          ...createAnonymousClientData
+        }
+      });
 
       const response = await request(app).get(
-        `/clients/${createdClientData.id}/reservations`
+        `/clients/${createdClient.id}/reservations`
       );
 
       expect(response.status).toBe(200);

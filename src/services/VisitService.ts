@@ -45,15 +45,13 @@ export default class VisitService {
         }
       });
 
-      if (!oldVisit) {
-        return null;
-      }
+      if (!oldVisit) return null;
 
       const oldStartDate = oldVisit.visitParts[0]!.startDate;
 
       const newOldStartDateDifference = minutesBetween(oldStartDate, startDate);
 
-      if (oldVisit.canDateBeChanged && newOldStartDateDifference !== 0) {
+      if (!oldVisit.canDateBeChanged && newOldStartDateDifference !== 0) {
         throw new RequestError(
           'Cannot change the date of a visit because it has been already changed'
         );
@@ -73,8 +71,7 @@ export default class VisitService {
             newOldStartDateDifference === 0 &&
             !oldVisit.visitParts.every(
               (visitPart) =>
-                visitPart.status === Status.CLOSED ||
-                visitPart.status === Status.CANCELLED
+                visitPart.status === Status.CLOSED || visitPart.status === Status.CANCELLED
             ),
           visitParts: {
             update: oldVisit.visitParts.map((visitPart) => {
@@ -82,10 +79,7 @@ export default class VisitService {
                 visitPart.startDate,
                 newOldStartDateDifference
               );
-              const newEndDate = advanceDateByMinutes(
-                visitPart.endDate,
-                newOldStartDateDifference
-              );
+              const newEndDate = advanceDateByMinutes(visitPart.endDate, newOldStartDateDifference);
               return {
                 where: { id: visitPart.id },
                 data: {
@@ -101,21 +95,17 @@ export default class VisitService {
           visitParts: visitPartWithEmployee
         }
       });
-      const visitData = visit;
-      visitData.visitParts.forEach((visitPart) => {
-        Scheduler.getInstance().rescheduleJob(
-          `${visitPart.id}`,
-          visitPart.endDate,
-          () => {
-            prisma.visitPart.update({
-              where: { id: visitPart.id },
-              data: { status: Status.CLOSED }
-            });
-          }
-        );
+
+      visit.visitParts.forEach((visitPart) => {
+        Scheduler.getInstance().rescheduleJob(`${visitPart.id}`, visitPart.endDate, async () => {
+          await prisma.visitPart.update({
+            where: { id: visitPart.id },
+            data: { status: Status.CLOSED }
+          });
+        });
       });
 
-      return visitData;
+      return visit;
     });
   }
 
@@ -134,10 +124,7 @@ export default class VisitService {
       const cancelledVisit = await tx.visit.update({
         where: { id },
         data: {
-          detergentsCost: isAtLeastOneDayBetween(
-            new Date(),
-            oldVisitData.visitParts[0]!.startDate
-          )
+          detergentsCost: isAtLeastOneDayBetween(new Date(), oldVisitData.visitParts[0]!.startDate)
             ? 0
             : (oldVisitData.detergentsCost?.toNumber() ?? 0) / 2,
           canDateBeChanged: false,

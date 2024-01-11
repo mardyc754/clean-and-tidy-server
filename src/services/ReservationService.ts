@@ -17,19 +17,14 @@ import {
 
 import { Scheduler } from '~/utils/Scheduler';
 import {
+  advanceDateByMinutes,
   advanceDateByOneYear,
   isAfter,
   isAtLeastOneDayBetween
 } from '~/utils/dateUtils';
 import { executeDatabaseOperation } from '~/utils/queryUtils';
-import {
-  checkReservationConflict,
-  createVisits
-} from '~/utils/reservationUtils';
-import {
-  flattenNestedReservationServices,
-  flattenNestedVisits
-} from '~/utils/visits';
+import { checkReservationConflict, createVisits } from '~/utils/reservationUtils';
+import { flattenNestedReservationServices } from '~/utils/visits';
 
 export type ReservationQueryOptions = RequireAtLeastOne<{
   includeVisits: boolean;
@@ -152,10 +147,7 @@ export default class ReservationService {
             some: {
               visitParts: {
                 some: {
-                  ...visitPartstWithGivenStatuses([
-                    Status.ACTIVE,
-                    Status.TO_BE_CONFIRMED
-                  ]),
+                  ...visitPartstWithGivenStatuses([Status.ACTIVE, Status.TO_BE_CONFIRMED]),
                   employeeId: {
                     in: data.visitParts.map(({ employeeId }) => employeeId)
                   }
@@ -177,37 +169,24 @@ export default class ReservationService {
         extraInfo
       } = data;
 
-      const { firstName: bookerFirstName, lastName: bookerLastName } =
-        contactDetails;
+      const { firstName: bookerFirstName, lastName: bookerLastName } = contactDetails;
 
-      const visitPartTimeslots = firstVisitParts.map(
-        ({ startDate, endDate, ...other }) => ({
-          startDate: new Date(startDate),
-          endDate: new Date(endDate),
-          ...other
-        })
-      );
+      const visitPartTimeslots = firstVisitParts.map(({ startDate, endDate, ...other }) => ({
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
+        ...other
+      }));
 
       const lastEndDate = visitPartTimeslots.at(-1)!.endDate;
       const endDate =
-        frequency !== Frequency.ONCE
-          ? new Date(advanceDateByOneYear(lastEndDate))
-          : lastEndDate;
+        frequency !== Frequency.ONCE ? new Date(advanceDateByOneYear(lastEndDate)) : lastEndDate;
 
-      const visitPartEmployees = visitPartTimeslots.map(
-        ({ employeeId }) => employeeId
-      );
-      const allPendingVisits = allPendingReservations.flatMap(
-        (reservation) => reservation.visits
-      );
+      const visitPartEmployees = visitPartTimeslots.map(({ employeeId }) => employeeId);
+      const allPendingVisits = allPendingReservations.flatMap((reservation) => reservation.visits);
 
       const newVisits = createVisits(data, frequency, endDate.toISOString());
 
-      const conflicts = checkReservationConflict(
-        newVisits,
-        allPendingVisits,
-        visitPartEmployees
-      );
+      const conflicts = checkReservationConflict(newVisits, allPendingVisits, visitPartEmployees);
 
       if (conflicts.length > 0) {
         throw new RequestError(
@@ -307,10 +286,7 @@ export default class ReservationService {
                   where: { id: { in: visitPartsAfterNow } },
                   data: {
                     status: Status.CANCELLED,
-                    cost: isAtLeastOneDayBetween(
-                      new Date(),
-                      visitPart.startDate
-                    )
+                    cost: isAtLeastOneDayBetween(new Date(), visitPart.startDate)
                       ? 0
                       : visitPart.cost.toNumber() / 2
                   }
@@ -359,17 +335,14 @@ export default class ReservationService {
       });
 
       reservationVisitParts.forEach((visitPart) => {
-        Scheduler.getInstance().scheduleJob(
-          `${visitPart.id}`,
-          visitPart.startDate,
-          () =>
-            tx.visitPart.updateMany({
-              where: { id: { in: reservationVisitParts.map(({ id }) => id) } },
-              data: {
-                status: Status.CLOSED
-              }
-            })
-        );
+        Scheduler.getInstance().scheduleJob(`${visitPart.id}`, visitPart.endDate, async () => {
+          await prisma.visitPart.updateMany({
+            where: { id: { in: reservationVisitParts.map(({ id }) => id) } },
+            data: {
+              status: Status.CLOSED
+            }
+          });
+        });
       });
 
       return await this.getReservationByName(reservationName);

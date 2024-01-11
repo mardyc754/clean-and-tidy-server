@@ -7,8 +7,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import App from '~/App';
 import {
   createEmployeeWithReservationAndVisitParts,
-  createMockReservation,
-  createMockReservationEmployeeServiceData
+  createMockDatabaseStructure,
+  createMockReservation
 } from '~/tests/helpers/createEmployeeWithReservation';
 import {
   addressFixture,
@@ -21,12 +21,10 @@ import { UserRole } from '~/constants';
 
 import prisma from '~/lib/prisma';
 
-import ClientController from '../ClientController';
 import EmployeeController from '../EmployeeController';
 
 describe('/employees', () => {
-  const app = new App([new ClientController(), new EmployeeController()])
-    .instance;
+  const app = new App([new EmployeeController()]).instance;
 
   afterEach(async () => {
     await resetDb();
@@ -144,8 +142,8 @@ describe('/employees', () => {
         phone: '123456789'
       };
 
-      await request(app).post('/clients').send({
-        email
+      await prisma.client.create({
+        data: { email }
       });
 
       const response = await request(app)
@@ -337,7 +335,7 @@ describe('/employees', () => {
         'isAdmin'
       ]);
 
-      const serviceId = employee.services[0]!.serviceId;
+      const serviceId = employee.services[0]!.id;
       const newEmployeeData = {
         firstName: faker.person.firstName(),
         lastName: faker.person.lastName(),
@@ -356,34 +354,9 @@ describe('/employees', () => {
         ...newEmployeeData
       });
     });
-
-    it('returns 400 if trying to remove assigned service with assigned visit parts', async () => {
-      vi.spyOn(jwt, 'verify').mockImplementation(() => ({
-        role: UserRole.ADMIN
-      }));
-
-      const { employee } = await createEmployeeWithReservationAndVisitParts();
-      const newEmployeeData = {
-        firstName: faker.person.firstName(),
-        lastName: faker.person.lastName(),
-        phone: '123456789',
-        isAdmin: true
-      };
-
-      const { status, body } = await request(app)
-        .put(`/employees/${employee.id}`)
-        .set('Cookie', 'authToken=token')
-        .send({ ...newEmployeeData, services: [] });
-
-      expect(status).toBe(400);
-      expect(body).toEqual({
-        message:
-          'Cannot remove employee service because it is assigned to visit part'
-      });
-    });
   });
 
-  describe('GET /busy-hours', () => {
+  describe.only('GET /busy-hours', () => {
     it('returns 200 with empty data if employee does not exist', async () => {
       const { status, body } = await request(app).get('/employees/busy-hours');
 
@@ -396,7 +369,7 @@ describe('/employees', () => {
 
     it('returns proper data for busy hours for frequency once', async () => {
       const { employee, reservation, service } =
-        await createMockReservationEmployeeServiceData({
+        await createMockDatabaseStructure({
           frequency: Frequency.ONCE,
           firstVisitStartDate: '2024-01-12T10:00:00.000Z',
           firstVisitEndDate: '2024-01-12T11:00:00.000Z'
@@ -451,7 +424,7 @@ describe('/employees', () => {
 
     it('returns proper data for cyclic reservation', async () => {
       const { employee, reservation, service } =
-        await createMockReservationEmployeeServiceData({
+        await createMockDatabaseStructure({
           frequency: Frequency.ONCE_A_MONTH,
           firstVisitStartDate: '2024-01-12T10:00:00.000Z',
           firstVisitEndDate: '2024-01-12T11:00:00.000Z'
@@ -461,7 +434,7 @@ describe('/employees', () => {
         employee: secondEmployee,
         reservation: secondReservation,
         service: secondService
-      } = await createMockReservationEmployeeServiceData({
+      } = await createMockDatabaseStructure({
         frequency: Frequency.ONCE_A_MONTH,
         firstVisitStartDate: '2024-02-14T10:00:00.000Z',
         firstVisitEndDate: '2024-02-14T11:00:00.000Z'

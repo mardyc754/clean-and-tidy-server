@@ -36,7 +36,7 @@ export default class VisitPartService {
       ? {
           ...omit(visitPart, 'employeeService', 'visit'),
           includeDetergents: visitPart.visit.detergentsCost.toNumber() > 0,
-          employee: visitPart.employee
+          employee: omit(visitPart.employee, 'password')
         }
       : null;
   }

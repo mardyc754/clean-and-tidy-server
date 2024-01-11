@@ -1,15 +1,9 @@
 import { faker } from '@faker-js/faker';
-import {
-  Employee,
-  Frequency,
-  Service,
-  Status,
-  Visit,
-  VisitPart
-} from '@prisma/client';
+import { Employee, Frequency, Service, Status, Visit } from '@prisma/client';
 import { omit } from 'lodash';
 import {
   addressFixture,
+  clientFixture,
   employeeFixture,
   reservationFixture,
   reservationServiceFixture,
@@ -23,7 +17,7 @@ import prisma from '~/lib/prisma';
 import { advanceDateByOneYear } from '~/utils/dateUtils';
 import { createVisits } from '~/utils/reservationUtils';
 
-export async function createMockReservationEmployeeServiceData({
+export async function createMockDatabaseStructure({
   firstVisitStartDate,
   firstVisitEndDate,
   frequency
@@ -34,21 +28,14 @@ export async function createMockReservationEmployeeServiceData({
 }) {
   const createdService = await prisma.service.create({
     data: {
-      ...serviceFixture
+      ...serviceFixture()
     }
   });
 
   const createdEmployee = await prisma.employee.create({
     data: {
-      ...employeeFixture,
+      ...employeeFixture(),
       email: faker.internet.email()
-    }
-  });
-
-  await prisma.employeeService.create({
-    data: {
-      employeeId: createdEmployee.id,
-      serviceId: createdService.id
     }
   });
 
@@ -61,7 +48,8 @@ export async function createMockReservationEmployeeServiceData({
   });
 
   return {
-    reservation,
+    reservation: omit(reservation, 'visits'),
+    visit: reservation.visits[0]!,
     employee: omit(createdEmployee, 'password'),
     service: createdService
   };
@@ -80,7 +68,8 @@ export async function createMockReservation({
   employeeId: Employee['id'];
   serviceId: Service['id'];
 }) {
-  const clientEmail = faker.internet.email();
+  const clientData = clientFixture();
+
   const exampleData = {
     frequency,
     detergentsCost: 15,
@@ -94,17 +83,13 @@ export async function createMockReservation({
         cost: 220
       }
     ],
-    bookerEmail: clientEmail,
-    address: {
-      street: 'Testowa',
-      houseNumber: '123',
-      postCode: '31-526'
-    },
+    bookerEmail: clientData.email,
+    address: addressFixture(),
     contactDetails: {
-      firstName: 'Jan',
-      lastName: 'Testowy',
-      email: clientEmail,
-      phone: '+48123456789'
+      firstName: clientData.firstName,
+      lastName: clientData.lastName,
+      email: clientData.email,
+      phone: clientData.phone
     },
     services: [
       {
@@ -175,6 +160,13 @@ export async function createMockReservation({
           data: services
         }
       }
+    },
+    include: {
+      visits: {
+        include: {
+          visitParts: true
+        }
+      }
     }
   });
 }
@@ -183,28 +175,24 @@ export async function createEmployeeWithReservationAndVisitParts() {
   return await prisma.$transaction(async (tx) => {
     const createdEmployee = await tx.employee.create({
       data: {
-        ...employeeFixture,
+        ...employeeFixture(),
         services: {
           create: {
-            service: {
+            ...serviceFixture(),
+            reservations: {
               create: {
-                ...serviceFixture,
-                reservations: {
+                ...reservationServiceFixture(),
+                reservation: {
                   create: {
-                    ...reservationServiceFixture,
-                    reservation: {
+                    ...reservationFixture(),
+                    address: {
                       create: {
-                        ...reservationFixture(),
-                        address: {
-                          create: {
-                            ...addressFixture
-                          }
-                        },
-                        visits: {
-                          create: {
-                            ...visitFixture
-                          }
-                        }
+                        ...addressFixture()
+                      }
+                    },
+                    visits: {
+                      create: {
+                        ...visitFixture()
                       }
                     }
                   }
@@ -217,15 +205,11 @@ export async function createEmployeeWithReservationAndVisitParts() {
       include: {
         services: {
           include: {
-            service: {
+            reservations: {
               include: {
-                reservations: {
+                reservation: {
                   include: {
-                    reservation: {
-                      include: {
-                        visits: true
-                      }
-                    }
+                    visits: true
                   }
                 }
               }
@@ -236,40 +220,40 @@ export async function createEmployeeWithReservationAndVisitParts() {
     });
 
     const visitId =
-      createdEmployee.services[0]!.service.reservations[0]!.reservation
-        .visits[0]!.id;
+      createdEmployee.services[0]!.reservations[0]!.reservation.visits[0]!.id;
 
     // create visit part for employee
     await tx.employee.update({
       where: { id: createdEmployee.id },
       data: {
-        services: {
-          update: {
-            where: {
-              employeeId_serviceId: {
-                employeeId: createdEmployee.id,
-                serviceId: createdEmployee.services[0]!.serviceId
-              }
-            },
-            data: {
-              visitParts: {
-                create: {
-                  ...visitPartFixture,
-                  visitId
-                }
-              }
-            }
+        visitParts: {
+          create: {
+            ...visitPartFixture(),
+            serviceId: createdEmployee.services[0]!.id,
+            visitId
           }
         }
       }
     });
 
+    const visitParts = await tx.visitPart.findMany({
+      where: {
+        visitId
+      }
+    });
+
+    const employeeService = createdEmployee.services[0]!;
+    const serviceReservation = employeeService.reservations[0]!;
+    const reservation = serviceReservation.reservation;
+    const visit = reservation.visits[0]!;
+
     return {
       employee: createdEmployee,
-      reservation: omit(
-        createdEmployee.services[0]!.service.reservations[0]!.reservation,
-        'visits'
-      )
+      reservation: omit(reservation, 'visits'),
+      employeeService: omit(employeeService, 'service'),
+      serviceReservation: omit(serviceReservation, 'reservation'),
+      visit,
+      visitParts: visitParts
     };
   });
 }
@@ -286,11 +270,11 @@ export const createExampleVisitPartForEmployee = async (
       startDate: new Date().toISOString(),
       endDate: new Date().toISOString(),
       status: 'ACTIVE',
-      employeeService: {
-        create: {
-          serviceId,
-          employeeId
-        }
+      service: {
+        connect: { id: serviceId }
+      },
+      employee: {
+        connect: { id: employeeId }
       },
       visit: {
         connect: {

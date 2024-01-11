@@ -45,16 +45,17 @@ export default class EmployeeService {
 
   public async getAllEmployees() {
     const employees = await prisma.employee.findMany({
-      include: {
-        // services: serviceWithUnit,
-        visitParts: includeVisitParts
-      },
+      ...includeServiceVisitPartsAndReservation,
       orderBy: { id: 'asc' }
     });
 
     return employees.map((employee) => ({
-      ...omit(employee, 'services'),
-      visitParts: employee.visitParts
+      ...omit(employee, 'services', 'password'),
+      visitParts: employee.visitParts.map((visitPart) => ({
+        ...omit(visitPart, 'visit'),
+        reservation: visitPart.visit.reservation,
+        service: visitPart.service
+      }))
     }));
   }
 

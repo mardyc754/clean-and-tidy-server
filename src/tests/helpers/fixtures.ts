@@ -17,15 +17,15 @@ export const reservationFixture = () => ({
   name: `reservation-${short.generate()}`
 });
 
-export const unitFixture = {
+export const unitFixture = () => ({
   // id: expect.any(Number),
   fullName: faker.lorem.word(),
   shortName: faker.lorem.word(),
   price: faker.number.int({ min: 1, max: 200 }),
   duration: faker.number.int({ min: 1, max: 60 })
-};
+});
 
-export const serviceFixture = {
+export const serviceFixture = () => ({
   detergentsCost: '0',
   // id: expect.any(Number),
   isPrimary: false,
@@ -34,18 +34,18 @@ export const serviceFixture = {
   name: faker.lorem.word()
   // reservationId: expect.any(Number),
   // unitId: null
-};
+});
 
 const visitStartDate = new Date('2024-01-01').toISOString();
 
-export const visitFixture = {
+export const visitFixture = () => ({
   canDateBeChanged: true,
   detergentsCost: '0'
   // id: expect.any(Number),
   // reservationId: expect.any(Number)
-};
+});
 
-export const visitPartFixture = {
+export const visitPartFixture = () => ({
   cost: '123',
   // employeeId: expect.any(Number),
   endDate: advanceDateByMinutes(visitStartDate, 240).toISOString(),
@@ -55,9 +55,9 @@ export const visitPartFixture = {
   startDate: visitStartDate,
   status: Status.ACTIVE
   // visitId: expect.any(Number)
-};
+});
 
-export const employeeFixture = {
+export const employeeFixture = () => ({
   email: faker.internet.email(),
   firstName: faker.person.firstName(),
   password: bcrypt.hashSync('password', 8),
@@ -65,38 +65,38 @@ export const employeeFixture = {
   isAdmin: false,
   lastName: faker.person.lastName(),
   phone: '123456789'
-};
+});
 
-export const clientFixture = {
+export const clientFixture = () => ({
   // id: expect.any(Number),
   email: faker.internet.email(),
   firstName: faker.person.firstName(),
   lastName: faker.person.lastName(),
   password: bcrypt.hashSync('password', 8),
   phone: '123456789'
-};
+});
 
-export const addressFixture = {
+export const addressFixture = () => ({
   street: faker.location.street(),
   postCode: '12-345',
   houseNumber: faker.location.buildingNumber()
   // id: expect.any(Number)
-};
+});
 
-export const employeeServiceFixture = {
+export const employeeServiceFixture = () => ({
   employeeId: expect.any(Number),
   serviceId: expect.any(Number)
-};
+});
 
-export const cleaningFrequencyFixture = {
+export const cleaningFrequencyFixture = () => ({
   // id: expect.any(Number),
   name: faker.lorem.word(),
   value: Frequency.ONCE
-};
+});
 
-export const reservationServiceFixture = {
+export const reservationServiceFixture = () => ({
   // id: expect.any(Number),
   // reservationId: expect.any(Number),
   // serviceId: expect.any(Number),
   isMainServiceForReservation: false
-};
+});

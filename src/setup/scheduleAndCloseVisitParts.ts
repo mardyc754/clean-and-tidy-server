@@ -35,13 +35,16 @@ export async function scheduleAndCloseVisitParts() {
     );
 
     futureVisitParts.forEach(async (visitPart) => {
-      scheduler.scheduleJob(`${visitPart.id}`, visitPart.endDate, () =>
-        prisma.visitPart.updateMany({
-          where: { id: { in: pastVisitParts.map(({ id }) => id) } },
-          data: {
-            status: Status.CLOSED
-          }
-        })
+      scheduler.scheduleJob(
+        `${visitPart.id}`,
+        visitPart.endDate,
+        async () =>
+          await prisma.visitPart.updateMany({
+            where: { id: { in: pastVisitParts.map(({ id }) => id) } },
+            data: {
+              status: Status.CLOSED
+            }
+          })
       );
     });
   });
