@@ -1,13 +1,9 @@
 import { type Service } from '@prisma/client';
 
-import { prisma } from '~/db';
+import { prisma } from '~/lib/prisma';
 
 import type { ServicesWorkingHoursOptions } from '~/schemas/employee';
-import {
-  ChangeServiceData,
-  CreateServiceData,
-  PrimarySecondaryIds
-} from '~/schemas/typesOfCleaning';
+import { ChangeServiceData, CreateServiceData } from '~/schemas/typesOfCleaning';
 
 import {
   employeeData,
@@ -17,12 +13,9 @@ import {
   visitPartTimeframe
 } from '~/queries/serviceQuery';
 
-import {
-  calculateBusyHours,
-  getEmployeesBusyHours
-} from '~/utils/employeeUtils';
-import { getCyclicDateRanges } from '~/utils/reservationUtils';
 import { getResponseServiceData } from '~/utils/services';
+import { getCyclicDateRanges } from '~/utils/timeslotUtils';
+import { getEmployeesBusyHoursData, timeslotsIntersection } from '~/utils/timeslotUtils';
 
 import { executeDatabaseOperation } from '../utils/queryUtils';
 
@@ -31,19 +24,10 @@ export type AllServicesQueryOptions = {
   includeEmployees: boolean;
 };
 
-export type ServiceQueryOptions = {
-  includeSecondaryServices: boolean;
-  includePrimaryServices: boolean;
-  includeCleaningFrequencies: boolean;
-};
-
 export default class TypesOfCleaningService {
-  public async getServiceById(
-    id: Service['id'],
-    options?: ServiceQueryOptions
-  ) {
+  public async getServiceById(id: Service['id']) {
     const service = await executeDatabaseOperation(
-      prisma.service.findUnique(getSingleServiceData(id, options))
+      prisma.service.findUnique(getSingleServiceData(id))
     );
 
     if (!service) {
@@ -116,7 +100,6 @@ export default class TypesOfCleaningService {
         },
         include: {
           ...serviceUnit
-          // employees: serviceEmployees
         }
       })
     );
@@ -126,39 +109,6 @@ export default class TypesOfCleaningService {
     }
 
     return getResponseServiceData(service);
-  }
-
-  public async linkPrimaryAndSecondaryService(data: PrimarySecondaryIds) {
-    const { primaryServiceId, secondaryServiceId } = data;
-
-    return await executeDatabaseOperation(
-      prisma.service.update({
-        where: { id: primaryServiceId },
-        data: {
-          secondaryServices: {
-            connect: { id: secondaryServiceId }
-          }
-        },
-        include: {
-          secondaryServices: true
-          // primaryServices: true
-        }
-      })
-    );
-  }
-
-  // admin only
-  public async deleteService(id: Service['id']) {
-    let service: Service | null = null;
-
-    try {
-      service = await prisma.service.delete({
-        where: { id }
-      });
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
-    }
-    return service;
   }
 
   public async getAllServicesBusyHours(options?: ServicesWorkingHoursOptions) {
@@ -179,12 +129,7 @@ export default class TypesOfCleaningService {
           services: {
             include: {
               visitParts: {
-                ...visitPartTimeframe(
-                  cyclicRanges,
-                  options?.excludeFrom,
-                  options?.excludeTo
-                )
-                // select: { startDate: true, endDate: true }
+                ...visitPartTimeframe(cyclicRanges, options?.excludeFrom, options?.excludeTo)
               }
             }
           }
@@ -196,12 +141,15 @@ export default class TypesOfCleaningService {
       return null;
     }
 
-    const { employeesWithWorkingHours, flattenedEmployeeVisitParts } =
-      getEmployeesBusyHours(employees, cyclicRanges, options);
+    const { employeesWithWorkingHours, flattenedEmployeeVisitParts } = getEmployeesBusyHoursData(
+      employees,
+      cyclicRanges,
+      options?.frequency
+    );
 
     return {
       employees: employeesWithWorkingHours,
-      busyHours: calculateBusyHours(flattenedEmployeeVisitParts)
+      busyHours: timeslotsIntersection(flattenedEmployeeVisitParts)
     };
   }
 }

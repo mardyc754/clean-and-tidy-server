@@ -1,5 +1,7 @@
 import type { Response } from 'express';
 
+import { Scheduler } from '~/lib/Scheduler';
+
 import { VisitPartService } from '~/services';
 
 import { TypedRequest } from '~/types';
@@ -8,6 +10,7 @@ import AbstractController from './AbstractController';
 
 export default class VisitPartController extends AbstractController {
   private readonly visitPartService = new VisitPartService();
+  private readonly scheduler = Scheduler.getInstance();
 
   constructor() {
     super('/visit-parts');
@@ -45,6 +48,8 @@ export default class VisitPartController extends AbstractController {
     );
 
     if (visitPart) {
+      this.scheduler.cancelVisitPartJob(visitPart.id);
+
       res.status(200).send(visitPart);
     } else {
       res

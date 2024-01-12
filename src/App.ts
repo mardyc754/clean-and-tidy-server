@@ -34,7 +34,7 @@ export default class App {
 
   private initializeControllers(controllers: AbstractController[]) {
     controllers.forEach((router) => {
-      this.app.use(router.baseURL, router.router);
+      this.app.use(`/api${router.baseURL}`, router.router);
     });
   }
 }

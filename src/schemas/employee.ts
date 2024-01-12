@@ -82,3 +82,23 @@ export const employeeWorkingHours = z.object({
 });
 
 export type EmployeeWorkingHoursOptions = z.infer<typeof employeeWorkingHours>;
+
+export const changeEmployeeDataSchema = z.object({
+  firstName: z
+    .string()
+    .min(1, { message: 'First name is required' })
+    .max(50, { message: 'First name is too long' }),
+  lastName: z
+    .string()
+    .min(1, { message: 'Last name is required' })
+    .max(50, { message: 'Last name is too long' }),
+  phone: z
+    .string()
+    .min(9, { message: 'Phone number must have at least 9 digits' })
+    .max(15, { message: 'Phone number is too long' })
+    .nullish(),
+  services: z.array(z.number()).optional(),
+  isAdmin: z.boolean().optional()
+});
+
+export type EmployeeChangeData = z.infer<typeof changeEmployeeDataSchema>;

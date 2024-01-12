@@ -3,7 +3,7 @@ import { omit } from 'lodash';
 import type { RequireAtLeastOne } from 'type-fest';
 import { RequestError } from '~/errors/RequestError';
 
-import { prisma } from '~/db';
+import { prisma } from '~/lib/prisma';
 
 import { ChangeVisitData, VisitPartCreationData } from '~/schemas/visit';
 
@@ -36,10 +36,7 @@ export default class VisitService {
     return visits;
   }
 
-  public async getVisitPartById(
-    id: VisitPart['id'],
-    options?: VisitQueryOptions
-  ) {
+  public async getVisitPartById(id: VisitPart['id'], options?: VisitQueryOptions) {
     if (options?.includeEmployee) {
       const visitPart = await executeDatabaseOperation(
         prisma.visitPart.findFirst({
@@ -143,8 +140,7 @@ export default class VisitService {
             newOldStartDateDifference === 0 &&
             !oldVisitData.visitParts.every(
               (visitPart) =>
-                visitPart.status === Status.CLOSED ||
-                visitPart.status === Status.CANCELLED
+                visitPart.status === Status.CLOSED || visitPart.status === Status.CANCELLED
             ),
           visitParts: {
             update: oldVisitData.visitParts.map((visitPart) => {
@@ -152,10 +148,7 @@ export default class VisitService {
                 visitPart.startDate,
                 newOldStartDateDifference
               );
-              const newEndDate = advanceDateByMinutes(
-                visitPart.endDate,
-                newOldStartDateDifference
-              );
+              const newEndDate = advanceDateByMinutes(visitPart.endDate, newOldStartDateDifference);
               return {
                 where: { id: visitPart.id },
                 data: {

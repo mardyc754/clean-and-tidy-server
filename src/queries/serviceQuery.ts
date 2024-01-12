@@ -1,22 +1,11 @@
 import { Prisma, Service } from '@prisma/client';
 
-import { prisma } from '~/db';
-
+import { prisma } from '~/lib/prisma';
 import { prismaExclude } from '~/lib/prisma';
 
-import {
-  type EmployeeCreationData,
-  EmployeeWorkingHoursOptions,
-  ServicesWorkingHoursOptions
-} from '~/schemas/employee';
+import { AllServicesQueryOptions } from '~/services/TypesOfCleaningService';
 
-import {
-  AllServicesQueryOptions,
-  ServiceQueryOptions
-} from '~/services/TypesOfCleaningService';
-
-import { Timeslot } from '~/utils/employeeUtils';
-import { getCyclicDateRanges } from '~/utils/reservationUtils';
+import { Timeslot } from '~/utils/timeslotUtils';
 
 export const serviceUnit = Prisma.validator<Prisma.ServiceInclude>()({
   unit: true
@@ -70,27 +59,19 @@ export const getAllServicesData = (options?: AllServicesQueryOptions) => {
     where: options?.primaryOnly ? { isPrimary: true } : undefined,
     include: {
       ...serviceUnit,
-      // employees: options?.includeEmployees
-      //   ? getServiceEmployees(!!options?.includeEmployees)
-      //   : undefined
       employees: options?.includeEmployees ? serviceEmployees : undefined
     }
   });
 };
 
-export const getSingleServiceData = (
-  id: Service['id'],
-  options?: ServiceQueryOptions
-) => {
+export const getSingleServiceData = (id: Service['id']) => {
   return Prisma.validator<Prisma.ServiceFindUniqueArgs>()({
     where: { id },
     include: {
       ...serviceUnit,
       primaryServices: serviceWithUnit,
       secondaryServices: serviceWithUnit,
-      cleaningFrequencies: options?.includeCleaningFrequencies
-        ? { select: { name: true, value: true } }
-        : undefined
+      cleaningFrequencies: { select: { name: true, value: true } }
     }
   });
 };
@@ -110,12 +91,11 @@ export const visitPartWithEmployee = Prisma.validator<
   }
 });
 
-export const serviceInclude =
-  Prisma.validator<Prisma.ReservationServiceDefaultArgs>()({
-    include: {
-      service: serviceWithUnit
-    }
-  });
+export const serviceInclude = Prisma.validator<Prisma.ReservationServiceDefaultArgs>()({
+  include: {
+    service: serviceWithUnit
+  }
+});
 
 export const includeAllVisitData = Prisma.validator<Prisma.VisitDefaultArgs>()({
   include: {
@@ -124,16 +104,15 @@ export const includeAllVisitData = Prisma.validator<Prisma.VisitDefaultArgs>()({
   }
 });
 
-export const includeFullService =
-  Prisma.validator<Prisma.EmployeeServiceDefaultArgs>()({
-    include: {
-      service: {
-        include: {
-          unit: true
-        }
+export const includeFullService = Prisma.validator<Prisma.EmployeeServiceDefaultArgs>()({
+  include: {
+    service: {
+      include: {
+        unit: true
       }
     }
-  });
+  }
+});
 
 export const includeVisitParts = Prisma.validator<
   Prisma.VisitPartAggregateArgs & Prisma.VisitPartDefaultArgs
@@ -168,9 +147,7 @@ export const visitPartTimeframe = (
   excludeFrom?: string,
   excludeTo?: string
 ) => {
-  return Prisma.validator<
-    Prisma.VisitPartAggregateArgs & Prisma.VisitPartDefaultArgs
-  >()({
+  return Prisma.validator<Prisma.VisitPartAggregateArgs & Prisma.VisitPartDefaultArgs>()({
     where: {
       OR: cyclicRanges?.map(({ startDate, endDate }) => ({
         startDate: {

@@ -7,8 +7,8 @@ export const visitPartCreationData = z.object({
   employeeId: z.number().int(),
   serviceId: z.number().int(),
   numberOfUnits: z.number().int(),
-  startDate: ISOString,
-  endDate: ISOString,
+  startDate: z.string().datetime(),
+  endDate: z.string().datetime(),
   cost: z.number()
 });
 

@@ -1,11 +1,9 @@
 import type { Employee } from '@prisma/client';
 
-import { prisma } from '~/db';
+import { prisma } from '~/lib/prisma';
 
 export default class AdminService {
-  public async createEmployee(
-    data: Omit<Employee, 'id' | 'services' | 'isAdmin'>
-  ) {
+  public async createEmployee(data: Omit<Employee, 'id' | 'services' | 'isAdmin'>) {
     let employee: Employee | null = null;
 
     try {

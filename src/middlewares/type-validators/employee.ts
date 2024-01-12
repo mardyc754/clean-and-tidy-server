@@ -1,4 +1,5 @@
 import {
+  changeEmployeeDataSchema,
   employeeCreationSchema,
   employeeIdSchema,
   employeeQueryOptions,
@@ -28,5 +29,11 @@ export const validateWorkingHoursRange = () => {
 export const validateEmployeeQueryOptions = () => {
   return validateTypes({
     queryParser: employeeQueryOptions
+  });
+};
+
+export const validateEmployeeChangeData = () => {
+  return validateTypes({
+    bodyParser: changeEmployeeDataSchema
   });
 };

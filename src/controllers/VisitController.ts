@@ -1,12 +1,15 @@
+import { Status } from '@prisma/client';
 import type { Request, Response } from 'express';
 import { Stringified } from 'type-fest';
 import { RequestError } from '~/errors/RequestError';
+
+import { Scheduler } from '~/lib/Scheduler';
 
 import { ChangeVisitData, VisitPartCreationData } from '~/schemas/visit';
 
 import { validateVisitCreationData } from '~/middlewares/type-validators/visit';
 
-import { VisitService } from '~/services';
+import { VisitPartService, VisitService } from '~/services';
 
 import { VisitQueryOptions } from '~/services/VisitService';
 
@@ -18,6 +21,9 @@ import AbstractController from './AbstractController';
 
 export default class VisitController extends AbstractController {
   private readonly visitService = new VisitService();
+  private readonly visitPartService = new VisitPartService();
+
+  private readonly scheduler = Scheduler.getInstance();
 
   constructor() {
     super('/visits');
@@ -25,11 +31,10 @@ export default class VisitController extends AbstractController {
   }
 
   public createRouters() {
-    this.router.get('/', this.getAllVisits); // is this needed somewhere?
+    this.router.get('/', this.getAllVisits);
     this.router.post('/', validateVisitCreationData(), this.createVisit);
     this.router.get('/:id', this.getVisitById);
     this.router.put('/:id', this.changeVisitData);
-    this.router.delete('/:id', this.deleteVisit);
     this.router.put('/:id/cancel', this.cancelVisit);
   }
 
@@ -44,17 +49,12 @@ export default class VisitController extends AbstractController {
   };
 
   private getVisitById = async (
-    req: TypedRequest<
-      { id: string },
-      DefaultBodyType,
-      Stringified<VisitQueryOptions>
-    >,
+    req: TypedRequest<{ id: string }, DefaultBodyType, Stringified<VisitQueryOptions>>,
     res: Response
   ) => {
-    const visit = await this.visitService.getVisitById(
-      parseInt(req.params.id),
-      { includeEmployee: queryParamToBoolean(req.query.includeEmployee) }
-    );
+    const visit = await this.visitService.getVisitById(parseInt(req.params.id), {
+      includeEmployee: queryParamToBoolean(req.query.includeEmployee)
+    });
 
     if (visit) {
       res.status(200).send(visit);
@@ -91,11 +91,13 @@ export default class VisitController extends AbstractController {
       });
 
       if (visit) {
+        this.scheduler.cancelVisitPartJob(visit.visitParts[0]!.id);
+        this.scheduler.scheduleVisitPartJob(visit.visitParts[0]!, () => {
+          this.visitPartService.closeVisitPart(visit.visitParts[0]!.id);
+        });
         return res.status(200).send(visit);
       }
-      return res
-        .status(400)
-        .send({ message: 'Error when updating visit data' });
+      return res.status(400).send({ message: 'Error when updating visit data' });
     } catch (error) {
       if (error instanceof RequestError) {
         return res.status(400).send({ message: error.message });
@@ -104,22 +106,15 @@ export default class VisitController extends AbstractController {
     }
   };
 
-  private deleteVisit = async (req: Request<{ id: string }>, res: Response) => {
-    const visit = await this.visitService.deleteVisit(parseInt(req.params.id));
-
-    if (visit) {
-      res.status(200).send({
-        data: visit
-      });
-    } else {
-      res.status(400).send({ message: 'Error when deleting the visit' });
-    }
-  };
-
   private cancelVisit = async (req: Request<{ id: string }>, res: Response) => {
     const visit = await this.visitService.cancelVisit(parseInt(req.params.id));
 
     if (visit) {
+      const visitParts = visit.visitParts.filter(({ status }) => status === Status.CANCELLED);
+
+      visitParts.forEach(({ id }) => {
+        this.scheduler.cancelVisitPartJob(id);
+      });
       res.status(200).send(visit);
     } else {
       res.status(400).send({ message: 'Error when canceling the visit' });

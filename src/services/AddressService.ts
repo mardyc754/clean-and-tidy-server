@@ -1,7 +1,9 @@
 import type { Address } from '@prisma/client';
 import { RequireAtLeastOne } from 'type-fest';
 
-import { prisma } from '~/db';
+import { prisma } from '~/lib/prisma';
+
+import { executeDatabaseOperation } from '~/utils/queryUtils';
 
 export default class AddressService {
   public async createAddress(data: Omit<Address, 'id'>) {
@@ -42,6 +44,14 @@ export default class AddressService {
     }
 
     return address;
+  }
+
+  public async getAddress(data: Omit<Address, 'id'>) {
+    return await executeDatabaseOperation(
+      prisma.address.findFirst({
+        where: { ...data }
+      })
+    );
   }
 
   public async changeAddressData(data: RequireAtLeastOne<Address, 'id'>) {
