@@ -4,13 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node dist/src/index.js",
+    "start": "ts-node -T -r tsconfig-paths/register dist/index.js",
     "postinstall": "tsc",
     "prisma:migrate": "npx prisma migrate dev --name init",
     "generate-db": "npx prisma generate",
     "db-push": "npx prisma db push",
     "dev:db-push": "dotenv -e .env.development -- npx prisma db push",
-    "dev": "nodemon",
+    "dev": "dotenv -e .env.development -- nodemon",
     "prettier": "prettier --write .",
     "build": "holidays2json --pick PL --min",
     "docker:up": "docker-compose up -d",
@@ -52,6 +52,11 @@
     ],
     "exec": "node -r tsconfig-paths/register -r ts-node/register ./src/index.ts",
     "ext": "ts, json"
+  },
+  "ts-node": {
+    "require": [
+      "tsconfig-paths/register"
+    ]
   },
   "dependencies": {
     "@faker-js/faker": "^8.1.0",
