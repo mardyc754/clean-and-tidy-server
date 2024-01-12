@@ -9,7 +9,6 @@ export async function createFirstEmployee() {
 
     if (employees.length > 0) return;
 
-    const password = short.generate();
     const hashedPassword = await bcrypt.hash('password', 8);
 
     return await prisma.employee
@@ -23,7 +22,7 @@ export async function createFirstEmployee() {
         }
       })
       .then(() => {
-        console.log(`Created first employee with password: ${password}`);
+        console.log(`Created first employee with password: password`);
       });
   });
 }

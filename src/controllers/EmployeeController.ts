@@ -40,12 +40,7 @@ export default class EmployeeController extends AbstractController {
   }
 
   public createRoutes() {
-    this.router.get(
-      '/',
-      checkIsAdmin(),
-      validateEmployeeQueryOptions(),
-      this.getAllEmployees
-    );
+    this.router.get('/', validateEmployeeQueryOptions(), this.getAllEmployees);
     this.router.post(
       '/',
       checkIsAdmin(),
@@ -123,7 +118,6 @@ export default class EmployeeController extends AbstractController {
           .send({ message: `Employee with id=${req.params.id} not found` });
       }
     } catch (error) {
-      console.log(error);
       return res
         .status(400)
         .send({ message: `Error when receiving employee data` });

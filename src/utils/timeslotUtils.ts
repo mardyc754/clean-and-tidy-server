@@ -332,7 +332,6 @@ const getSingleEmployeeBusyHours = (
   cyclicRanges: Timeslot[] | null,
   frequency: Frequency = Frequency.ONCE
 ) => {
-  console.log('employee', employee);
   // add half an hour before and after the visit
   // and include holidays as busy hours
   const employeeWorkingHours = calculateEmployeeBusyHours(
