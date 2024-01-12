@@ -5,7 +5,7 @@ import resetDb from '~/tests/resetDb';
 
 import AddressController from '../AddressController';
 
-describe('/visit-parts', () => {
+describe('/address', () => {
   const app = new App([new AddressController()]).instance;
   afterEach(async () => {
     await resetDb();

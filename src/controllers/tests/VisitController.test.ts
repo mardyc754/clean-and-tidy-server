@@ -75,7 +75,7 @@ describe('/visits', () => {
       expect(body).toHaveProperty('message', 'Error when parsing data type');
     });
 
-    it('should return 200 if new start at most 7 days later', async () => {
+    it('should return 200 if new visit start date at most 7 days later', async () => {
       const { visit, employee } = await createMockDatabaseStructure({
         firstVisitStartDate: '2024-01-02T10:00:00.000Z',
         firstVisitEndDate: '2024-01-02T14:00:00.000Z',
@@ -113,7 +113,7 @@ describe('/visits', () => {
       });
     });
 
-    it('should return 400 if visit start date is at least 7 days later', async () => {
+    it('should return 400 if new visit start date is at least 7 days later', async () => {
       const { visit } = await createMockDatabaseStructure({
         firstVisitStartDate: '2024-01-02T10:00:00.000Z',
         firstVisitEndDate: '2024-01-02T14:00:00.000Z',
@@ -162,7 +162,7 @@ describe('/visits', () => {
       expect(body).toStrictEqual({ message: `Visit with id=1 not found` });
     });
 
-    it('should return 200 and visit with half-reduced costs if cancelled at most 24h before the start date', async () => {
+    it('should return 200 and visit with half-reduced costs if cancelled at most 24h after now', async () => {
       vi.spyOn(Scheduler.getInstance(), 'cancelJob');
 
       const { visit, employee } = await createMockDatabaseStructure({
