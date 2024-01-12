@@ -14,49 +14,22 @@ export default class AddressController extends AbstractController {
   constructor() {
     super('/addresses');
     this.addressService = new AddressService();
-    this.createRouters();
+    this.createRoutes();
   }
 
-  public createRouters() {
-    this.router.get('/', this.getAllAddresses);
-    this.router.get('/:id', this.getAddressById);
+  public createRoutes() {
     this.router.post('/check', validateAddress(), this.getAddress);
   }
 
-  private getAllAddresses = async (_: Request, res: Response) => {
-    const addresses = await this.addressService.getAllAddresses();
-
-    if (addresses) {
-      res.status(200).send(addresses);
-    } else {
-      res.status(400).send({ message: 'Error when receiving all addresses' });
-    }
-  };
-
-  private getAddressById = async (
-    req: TypedRequest<{ id: string }>,
-    res: Response
-  ) => {
-    const address = await this.addressService.getAddressById(
-      parseInt(req.params.id)
-    );
-
-    if (address) {
-      res.status(200).send(address);
-    } else {
-      res
-        .status(404)
-        .send({ message: `Address with id=${req.params.id} does not exist` });
-    }
-  };
-
   private getAddress = async (req: Request, res: Response) => {
-    const address = await this.addressService.getAddress(req.body);
+    const address = this.addressService.validatePostcode(req.body);
+
+    console.log('address', address);
 
     if (address) {
       res.status(200).send(address);
     } else {
-      res.status(404).send({ message: 'Given address does not exist' });
+      res.status(404).send({ message: 'Invalid post code' });
     }
   };
 }

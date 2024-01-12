@@ -2,195 +2,123 @@ import { Reservation, Status, type Visit, VisitPart } from '@prisma/client';
 import { omit } from 'lodash';
 import type { RequireAtLeastOne } from 'type-fest';
 
-import { prisma } from '~/lib/prisma';
+import prisma from '~/lib/prisma';
 
-import { isAtLeastOneDayBetween } from '~/utils/dateUtils';
+import { selectEmployee } from '~/queries/serviceQuery';
 
-import { executeDatabaseOperation } from '../utils/queryUtils';
+import { Scheduler } from '~/utils/Scheduler';
 
 export type VisitQueryOptions = RequireAtLeastOne<{
   includeEmployee: boolean;
 }>;
 
 export default class VisitPartService {
-  public async getAllVisits() {
-    let visits: Visit[] | null = null;
+  private readonly scheduler: Scheduler | undefined;
 
-    try {
-      visits = await prisma.visit.findMany();
-    } catch (err) {
-      console.error(`Something went wrong: ${err}`);
-    }
-
-    return visits;
+  constructor(scheduler?: Scheduler) {
+    this.scheduler = scheduler;
   }
 
   public async getVisitPartById(id: VisitPart['id']) {
-    const visitPart = await executeDatabaseOperation(
-      prisma.visitPart.findFirst({
-        where: { id },
-        include: {
-          visit: {
-            select: {
-              includeDetergents: true
-            }
-          },
-          employeeService: {
-            include: { employee: true }
+    const visitPart = await prisma.visitPart.findUnique({
+      where: { id },
+      include: {
+        visit: {
+          select: {
+            detergentsCost: true
           }
-        }
-      })
-    );
+        },
+        employee: selectEmployee
+      }
+    });
 
     return visitPart
       ? {
           ...omit(visitPart, 'employeeService', 'visit'),
-          includeDetergents: visitPart.visit.includeDetergents,
-          employee: visitPart.employeeService.employee
+          includeDetergents: visitPart.visit.detergentsCost.toNumber() > 0,
+          employee: omit(visitPart.employee, 'password')
         }
       : null;
   }
 
   public async cancelVisitPart(id: VisitPart['id']) {
-    const oldVisitPart = await this.getVisitPartById(id);
-
-    if (!oldVisitPart) {
-      return null;
-    }
-
-    const canceledVisitPart = await executeDatabaseOperation(
-      prisma.visitPart.update({
-        where: { id },
-        data: {
-          status: Status.CANCELLED,
-          cost: isAtLeastOneDayBetween(new Date(), oldVisitPart.startDate)
-            ? 0
-            : oldVisitPart.cost.toNumber() / 2
-        },
-        include: {
-          visit: {
-            select: {
-              includeDetergents: true
-            }
-          },
-          employeeService: {
-            include: { employee: true }
+    const canceledVisitPart = await prisma.visitPart.update({
+      where: { id },
+      data: {
+        status: Status.CANCELLED,
+        cost: 0
+      },
+      include: {
+        visit: {
+          select: {
+            detergentsCost: true
           }
-        }
-      })
-    );
+        },
+        employee: selectEmployee
+      }
+    });
 
-    return canceledVisitPart
-      ? {
-          ...omit(canceledVisitPart, 'employeeService', 'visit'),
-          includeDetergents: canceledVisitPart.visit.includeDetergents,
-          employee: canceledVisitPart.employeeService.employee
-        }
-      : null;
+    Scheduler.getInstance()?.cancelJob(`${canceledVisitPart.id}`);
+
+    return {
+      ...omit(canceledVisitPart, 'employeeService', 'visit'),
+      includeDetergents: canceledVisitPart.visit.detergentsCost.toNumber() > 0,
+      employee: canceledVisitPart.employee
+    };
   }
 
   public async getVisitPartsByReservationId(
     reservationId: Reservation['id'],
-    status?: Reservation['status']
+    status?: Status
   ) {
-    return await executeDatabaseOperation(
-      prisma.visitPart.findMany({
-        where: { visit: { reservationId }, status },
-        include: {
-          visit: {
-            select: {
-              includeDetergents: true
-            }
-          },
-          employeeService: {
-            include: { employee: true }
+    return await prisma.visitPart.findMany({
+      where: { visit: { reservationId }, status },
+      include: {
+        visit: {
+          select: {
+            detergentsCost: true
           }
         },
-        orderBy: { startDate: 'asc' }
-      })
-    );
+        employee: selectEmployee
+      },
+      orderBy: { startDate: 'asc' }
+    });
   }
 
-  public async getVisitPartsByVisitId(visitId: Visit['id'], status?: VisitPart['status']) {
-    return await executeDatabaseOperation(
-      prisma.visitPart.findMany({
-        where: { visitId, status },
-        include: {
-          visit: {
-            select: {
-              includeDetergents: true
-            }
-          },
-          employeeService: {
-            include: { employee: true }
+  public async getVisitPartsByVisitId(
+    visitId: Visit['id'],
+    status?: VisitPart['status']
+  ) {
+    return await prisma.visitPart.findMany({
+      where: { visitId, status },
+      include: {
+        visit: {
+          select: {
+            detergentsCost: true
           }
         },
-        orderBy: { startDate: 'asc' }
-      })
-    );
+
+        employee: selectEmployee
+      },
+      orderBy: { startDate: 'asc' }
+    });
   }
 
   public async getVisitPartsFromReservations(
     reservationIds: Array<Reservation['id']>,
-    status?: Reservation['status']
+    status?: Status
   ) {
-    return await executeDatabaseOperation(
-      prisma.visitPart.findMany({
-        where: { visit: { reservationId: { in: reservationIds } }, status },
-        include: {
-          visit: {
-            select: {
-              includeDetergents: true
-            }
-          },
-          employeeService: {
-            include: { employee: true }
+    return await prisma.visitPart.findMany({
+      where: { visit: { reservationId: { in: reservationIds } }, status },
+      include: {
+        visit: {
+          select: {
+            detergentsCost: true
           }
         },
-        orderBy: { startDate: 'asc' }
-      })
-    );
-  }
-
-  public async closeVisitPart(id: VisitPart['id']) {
-    const closedVisitPart = await executeDatabaseOperation(
-      prisma.visitPart.update({
-        where: { id },
-        data: {
-          status: Status.CLOSED
-        },
-        include: {
-          visit: {
-            select: {
-              includeDetergents: true
-            }
-          },
-          employeeService: {
-            include: { employee: true }
-          }
-        }
-      })
-    );
-
-    return closedVisitPart
-      ? {
-          ...omit(closedVisitPart, 'employeeService', 'visit'),
-          includeDetergents: closedVisitPart.visit.includeDetergents,
-          employee: closedVisitPart.employeeService.employee
-        }
-      : null;
-  }
-
-  public async closeVisitParts(visitPartIds: Array<VisitPart['id']>) {
-    const payload = await executeDatabaseOperation(
-      prisma.visitPart.updateMany({
-        where: { id: { in: visitPartIds } },
-        data: {
-          status: Status.CLOSED
-        }
-      })
-    );
-
-    return payload?.count ?? 0;
+        employee: selectEmployee
+      },
+      orderBy: { startDate: 'asc' }
+    });
   }
 }

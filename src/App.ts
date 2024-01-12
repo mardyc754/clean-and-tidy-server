@@ -9,7 +9,7 @@ export default class App {
   private app: Express;
   private port: string | number;
 
-  constructor(controllers: AbstractController[], port: string | number) {
+  constructor(controllers: AbstractController[], port: string | number = 8080) {
     this.app = express();
     this.app.use(express.urlencoded({ extended: true }));
     this.app.use(express.json());
@@ -22,8 +22,9 @@ export default class App {
     );
 
     this.port = port;
-
-    this.initializeControllers(controllers);
+    controllers.forEach((router) => {
+      this.app.use(router.baseURL, router.router);
+    });
   }
 
   public listen() {
@@ -32,9 +33,7 @@ export default class App {
     });
   }
 
-  private initializeControllers(controllers: AbstractController[]) {
-    controllers.forEach((router) => {
-      this.app.use(`/api${router.baseURL}`, router.router);
-    });
+  get instance() {
+    return this.app;
   }
 }

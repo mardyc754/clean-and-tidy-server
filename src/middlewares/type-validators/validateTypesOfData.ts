@@ -8,11 +8,19 @@ import {
   z
 } from 'zod';
 
-import type { DefaultBodyType, DefaultParamsType, DefaultQueryType, TypedRequest } from '~/types';
+import type {
+  DefaultBodyType,
+  DefaultParamsType,
+  DefaultQueryType,
+  TypedRequest
+} from '~/types';
 
-type ParamsParser<T extends ZodRawShape = Record<string, ZodString>> = ZodObject<T>;
-type BodyParser<T extends ZodRawShape = Record<string, ZodUnknown>> = ZodObject<T>;
-type QueryParser<T extends ZodRawShape = Record<string, ZodUnknown>> = ZodObject<T>;
+type ParamsParser<T extends ZodRawShape = Record<string, ZodString>> =
+  ZodObject<T>;
+type BodyParser<T extends ZodRawShape = Record<string, ZodUnknown>> =
+  ZodObject<T>;
+type QueryParser<T extends ZodRawShape = Record<string, ZodUnknown>> =
+  ZodObject<T>;
 
 type VerifySchemas<
   P extends ZodRawShape = Record<string, ZodString>,
@@ -28,9 +36,13 @@ type ZodObjectOrDefault<
   typeToCheck,
   zodSchemaType extends ZodRawShape,
   fallbackType
-> = typeToCheck extends ZodObject<zodSchemaType> ? z.infer<typeToCheck> : fallbackType;
+> = typeToCheck extends ZodObject<zodSchemaType>
+  ? z.infer<typeToCheck>
+  : fallbackType;
 
-export function validateParamsTypes<T extends ZodRawShape>(parser: ParamsParser<T>) {
+export function validateParamsTypes<T extends ZodRawShape>(
+  parser: ParamsParser<T>
+) {
   return (
     req: TypedRequest<ZodObjectOrDefault<typeof parser, T, DefaultParamsType>>,
     res: Response,
@@ -40,16 +52,23 @@ export function validateParamsTypes<T extends ZodRawShape>(parser: ParamsParser<
       parser.parse(req.params);
     } catch (err) {
       console.error(err);
-      return res.status(400).send({ message: 'Error when parsing params type', hasError: true });
+      return res
+        .status(400)
+        .send({ message: 'Error when parsing params type', hasError: true });
     }
 
     return next();
   };
 }
 
-export function validateBodyTypes<T extends ZodRawShape>(parser: BodyParser<T>) {
+export function validateBodyTypes<T extends ZodRawShape>(
+  parser: BodyParser<T>
+) {
   return (
-    req: TypedRequest<DefaultParamsType, ZodObjectOrDefault<typeof parser, T, DefaultBodyType>>,
+    req: TypedRequest<
+      DefaultParamsType,
+      ZodObjectOrDefault<typeof parser, T, DefaultBodyType>
+    >,
     res: Response,
     next: NextFunction
   ) => {
@@ -57,14 +76,18 @@ export function validateBodyTypes<T extends ZodRawShape>(parser: BodyParser<T>) 
       parser.parse(req.body);
     } catch (err) {
       console.error(err);
-      return res.status(400).send({ message: 'Error when parsing body type', hasError: true });
+      return res
+        .status(400)
+        .send({ message: 'Error when parsing body type', hasError: true });
     }
 
     return next();
   };
 }
 
-export function validateQueryTypes<T extends ZodRawShape>(parser: QueryParser<T>) {
+export function validateQueryTypes<T extends ZodRawShape>(
+  parser: QueryParser<T>
+) {
   return (
     req: TypedRequest<
       DefaultParamsType,
@@ -88,11 +111,11 @@ export function validateQueryTypes<T extends ZodRawShape>(parser: QueryParser<T>
   };
 }
 
-export function validateTypes<P extends ZodRawShape, B extends ZodRawShape, Q extends ZodRawShape>({
-  paramsParser,
-  bodyParser,
-  queryParser
-}: VerifySchemas<P, B, Q>) {
+export function validateTypes<
+  P extends ZodRawShape,
+  B extends ZodRawShape,
+  Q extends ZodRawShape
+>({ paramsParser, bodyParser, queryParser }: VerifySchemas<P, B, Q>) {
   return (
     req: TypedRequest<
       ZodObjectOrDefault<typeof paramsParser, P, DefaultParamsType>,
@@ -116,8 +139,7 @@ export function validateTypes<P extends ZodRawShape, B extends ZodRawShape, Q ex
 
       return res.status(400).send({
         message: 'Error when parsing data type',
-        data: errors,
-        hasError: true
+        data: errors
       });
     }
 

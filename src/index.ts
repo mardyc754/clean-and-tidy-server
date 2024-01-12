@@ -11,8 +11,9 @@ import {
 } from '~/controllers';
 
 import App from './App';
+import { setupDB } from './setup/setup';
 
-const port = process.env.PORT || 8080;
+setupDB();
 
 const app = new App(
   [
@@ -26,7 +27,7 @@ const app = new App(
     new DateController(),
     new VisitPartController()
   ],
-  port
+  process.env.PORT || 8080
 );
 
 app.listen();

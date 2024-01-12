@@ -1,4 +1,10 @@
-import { type Employee, Frequency, Status, type VisitPart } from '@prisma/client';
+import {
+  type Employee,
+  Frequency,
+  Service,
+  Status,
+  type VisitPart
+} from '@prisma/client';
 
 import {
   ValidDayjsDate,
@@ -36,20 +42,22 @@ export type EmployeeNested = {
 };
 
 type EmployeeWithServicesAndVisitParts = Omit<Employee, 'password'> & {
-  services: Array<{
-    employeeId: number;
-    serviceId: number;
-    visitParts: VisitPart[];
-  }>;
+  services: Array<
+    Service & {
+      visitParts: VisitPart[];
+    }
+  >;
 };
 
-const getFrequencyHelpers = (frequency: Frequency | undefined) => {
+export const getFrequencyHelpers = (frequency: Frequency | undefined) => {
   let step: number;
   let unit: 'week' | 'month' | undefined = undefined;
   let numberOfUnitsBetweenStartEndCallback:
     | ((endDate: ValidDayjsDate, startDate: ValidDayjsDate) => number)
     | undefined = undefined;
-  let advanceDateCallback: ((date: ValidDayjsDate, step: number) => Date) | undefined = undefined;
+  let advanceDateCallback:
+    | ((date: ValidDayjsDate, step: number) => Date)
+    | undefined = undefined;
   switch (frequency) {
     case Frequency.ONCE_A_WEEK:
       step = 1;
@@ -82,7 +90,10 @@ const getFrequencyHelpers = (frequency: Frequency | undefined) => {
 };
 
 const numberOfWorkingHours = (workingHours: Timeslot[]) => {
-  return workingHours.reduce((acc, curr) => acc + hoursBetween(curr.startDate, curr.endDate), 0);
+  return workingHours.reduce(
+    (acc, curr) => acc + hoursBetween(curr.startDate, curr.endDate),
+    0
+  );
 };
 
 /**
@@ -109,7 +120,9 @@ const calculateEmployeeWorkingHours = (timeslots: Timeslot[]) => {
   const workingHours: Timeslot[] = [];
 
   uniqueDays.forEach((day) => {
-    const dayTimeslots = timeslots.filter((timeslot) => isTheSameDay(timeslot.startDate, day));
+    const dayTimeslots = timeslots.filter((timeslot) =>
+      isTheSameDay(timeslot.startDate, day)
+    );
 
     dayTimeslots.sort((a, b) => getTime(a.startDate) - getTime(b.startDate));
 
@@ -117,13 +130,19 @@ const calculateEmployeeWorkingHours = (timeslots: Timeslot[]) => {
 
     dayTimeslots.forEach((timeslot, i) => {
       if (i === 0) {
-        currentTimeslot.startDate = advanceDateByMinutes(timeslot.startDate, -30);
+        currentTimeslot.startDate = advanceDateByMinutes(
+          timeslot.startDate,
+          -30
+        );
         currentTimeslot.endDate = timeslot.endDate;
       }
 
       const nextTimeslot = dayTimeslots[i + 1];
 
-      if (nextTimeslot && minutesBetween(nextTimeslot?.startDate, currentTimeslot.endDate) <= 30) {
+      if (
+        nextTimeslot &&
+        minutesBetween(nextTimeslot?.startDate, currentTimeslot.endDate) <= 30
+      ) {
         currentTimeslot.endDate = nextTimeslot.endDate;
       } else {
         workingHoursForDay.push({ ...currentTimeslot });
@@ -131,7 +150,9 @@ const calculateEmployeeWorkingHours = (timeslots: Timeslot[]) => {
         currentTimeslot.startDate = nextTimeslot
           ? advanceDateByMinutes(nextTimeslot.startDate, -30)
           : timeslot.startDate;
-        currentTimeslot.endDate = nextTimeslot ? nextTimeslot.endDate : timeslot.startDate;
+        currentTimeslot.endDate = nextTimeslot
+          ? nextTimeslot.endDate
+          : timeslot.startDate;
       }
     });
 
@@ -172,7 +193,9 @@ const calculateEmployeeBusyHours = (timeslots: Timeslot[]) => {
   ]);
 
   uniqueDays.forEach((day) => {
-    const dayTimeslots = workingHours.filter((timeslot) => isTheSameDay(timeslot.startDate, day));
+    const dayTimeslots = workingHours.filter((timeslot) =>
+      isTheSameDay(timeslot.startDate, day)
+    );
     dayTimeslots.sort((a, b) => getTime(a.startDate) - getTime(b.startDate));
     const numberOfHoursInADay = numberOfWorkingHours(dayTimeslots);
 
@@ -238,12 +261,13 @@ const normalizeBusyHoursFromSingleCycle = (
 
   const employeeVisitsInTimeRange = employeeWorkingHours.filter(
     (visitPart) =>
-      isAfterOrSame(visitPart.startDate, startDate) && isBeforeOrSame(visitPart.endDate, endDate)
+      isAfterOrSame(visitPart.startDate, startDate) &&
+      isBeforeOrSame(visitPart.endDate, endDate)
   );
 
-  const holidaysInTimeRange = getHolidayBusyHours(employeeVisitsInTimeRange).map(
-    (holiday) => holiday.startDate
-  );
+  const holidaysInTimeRange = getHolidayBusyHours(
+    employeeVisitsInTimeRange
+  ).map((holiday) => holiday.startDate);
 
   const employeeBusyHoursInTimeRange: Timeslot[] = [];
 
@@ -261,8 +285,12 @@ const normalizeBusyHoursFromSingleCycle = (
     // if the visit part starts on a holiday, then consider visit part from the next day which is not a holiday
     // and then treat the visit part as if it started on the previous day
     let dayIncrement = 1;
-    let nextDay = startOfDay(advanceDateByDays(visitPartStartDate, dayIncrement));
-    while (holidaysInTimeRange.some((holiday) => isTheSameDay(holiday, nextDay))) {
+    let nextDay = startOfDay(
+      advanceDateByDays(visitPartStartDate, dayIncrement)
+    );
+    while (
+      holidaysInTimeRange.some((holiday) => isTheSameDay(holiday, nextDay))
+    ) {
       dayIncrement++;
       nextDay = startOfDay(advanceDateByDays(visitPartStartDate, dayIncrement));
     }
@@ -271,7 +299,9 @@ const normalizeBusyHoursFromSingleCycle = (
       isTheSameDay(visitPart.startDate, nextDay)
     );
 
-    nextDayBusyHours.sort((a, b) => getTime(a.startDate) - getTime(b.startDate));
+    nextDayBusyHours.sort(
+      (a, b) => getTime(a.startDate) - getTime(b.startDate)
+    );
 
     nextDayBusyHours.forEach((visitPart) => {
       const newVisitPart = {
@@ -286,8 +316,12 @@ const normalizeBusyHoursFromSingleCycle = (
     // flatten visit parts to single range
     advanceDateCallback
       ? {
-          startDate: new Date(advanceDateCallback(visitPart.startDate, -rangeIndex * step)),
-          endDate: new Date(advanceDateCallback(visitPart.endDate, -rangeIndex * step))
+          startDate: new Date(
+            advanceDateCallback(visitPart.startDate, -rangeIndex * step)
+          ),
+          endDate: new Date(
+            advanceDateCallback(visitPart.endDate, -rangeIndex * step)
+          )
         }
       : visitPart
   );
@@ -298,13 +332,16 @@ const getSingleEmployeeBusyHours = (
   cyclicRanges: Timeslot[] | null,
   frequency: Frequency = Frequency.ONCE
 ) => {
+  console.log('employee', employee);
   // add half an hour before and after the visit
   // and include holidays as busy hours
   const employeeWorkingHours = calculateEmployeeBusyHours(
     employee.services.flatMap((service) =>
       service.visitParts
         .filter(
-          (visitPart) => visitPart.status !== Status.CANCELLED && visitPart.status !== Status.CLOSED
+          (visitPart) =>
+            visitPart.status !== Status.CANCELLED &&
+            visitPart.status !== Status.CLOSED
         )
         .map((visitPart) => ({
           startDate: visitPart.startDate,
@@ -316,12 +353,17 @@ const getSingleEmployeeBusyHours = (
   // flatten visit parts to single range
   const normalizedBusyHours =
     cyclicRanges?.map((range, i) =>
-      normalizeBusyHoursFromSingleCycle(range, i, employeeWorkingHours, frequency)
+      normalizeBusyHoursFromSingleCycle(
+        range,
+        i,
+        employeeWorkingHours,
+        frequency
+      )
     ) ?? employeeWorkingHours.map((visitPart) => [visitPart]);
 
   return {
     ...employee,
-    services: employee.services.map((service) => service.serviceId),
+    services: employee.services.map((service) => service.id),
     // squash visit part dates into single range
     // and merge the busy hours
     workingHours: sumOfTimeslots(normalizedBusyHours),
@@ -329,7 +371,9 @@ const getSingleEmployeeBusyHours = (
     // we need the working hours with added extra time
     // only before the visit
     numberOfWorkingHours: numberOfWorkingHours(
-      calculateEmployeeWorkingHours(employee.services.flatMap((service) => service.visitParts))
+      calculateEmployeeWorkingHours(
+        employee.services.flatMap((service) => service.visitParts)
+      )
     )
   };
 };
@@ -341,7 +385,11 @@ const getSingleEmployeeBusyHours = (
  * @param frequency the frequency of the visits, determining the step, unit and number of cycles
  * @returns the cyclic date ranges in the intervals based on the frequency
  */
-export const getCyclicDateRanges = (year?: number, month?: number, frequency?: Frequency) => {
+export const getCyclicDateRanges = (
+  year?: number,
+  month?: number,
+  frequency?: Frequency
+) => {
   if (month === undefined || year === undefined) {
     return null;
   }
@@ -363,11 +411,14 @@ export const getCyclicDateRanges = (year?: number, month?: number, frequency?: F
 
   const finalDate = advanceDateByOneYear(end);
 
-  const numberOfUnitsBetweenStartEnd = numberOfUnitsBetweenStartEndCallback(finalDate, start);
-
-  const unitIndices = [...Array<unknown>(Math.ceil((numberOfUnitsBetweenStartEnd + 1) / step))].map(
-    (_, i) => i * step
+  const numberOfUnitsBetweenStartEnd = numberOfUnitsBetweenStartEndCallback(
+    finalDate,
+    start
   );
+
+  const unitIndices = [
+    ...Array<unknown>(Math.ceil((numberOfUnitsBetweenStartEnd + 1) / step))
+  ].map((_, i) => i * step);
 
   return unitIndices.map((unitIndex) => ({
     startDate: new Date(advanceDateCallback(start, unitIndex)),
@@ -377,43 +428,45 @@ export const getCyclicDateRanges = (year?: number, month?: number, frequency?: F
 
 /**
  * Calculates the busy hours by using intersection on the sets of working hours
- * @param allEmployeeWorkingHours the working hours of all employees
+ * @param schedules the working hours of all employees
  * @returns the list with time intervals when all employees are busy
  */
-export const timeslotsIntersection = (allEmployeeWorkingHours: Timeslot[][]) => {
-  let busyHours = allEmployeeWorkingHours[0] ?? [];
+export const timeslotsIntersection = (schedules: Timeslot[][]) => {
+  let commonTimeslots = schedules[0] ?? [];
 
-  allEmployeeWorkingHours.slice(1).forEach((singleEmployeeWorkingHours) => {
-    const newBusyHours: Timeslot[] = [];
+  schedules.slice(1).forEach((timeslots) => {
+    const newCommonTimeslots: Timeslot[] = [];
 
     // check the hour conflicts between employees
     // by comparing employee working hours with the rest of the employees
-    singleEmployeeWorkingHours.forEach((interval) => {
-      const conflicts = busyHours.filter(
-        (busyInterval) =>
+    timeslots.forEach((timeslot) => {
+      const conflicts = commonTimeslots.filter(
+        (commonTimeslot) =>
           // four cases:
           // - interval starts before and finishes while busy
           // - interval is contained inside busy interval
           // - busy interval contains interval
           // - interval starts while busy and finishes after
-          isAfter(interval.endDate, busyInterval.startDate) &&
-          isAfter(busyInterval.endDate, interval.startDate)
+          isAfter(timeslot.endDate, commonTimeslot.startDate) &&
+          isAfter(commonTimeslot.endDate, timeslot.startDate)
       );
 
       conflicts.forEach((conflict) => {
-        newBusyHours.push({
-          startDate: isAfter(interval.startDate, conflict.startDate)
-            ? interval.startDate
+        newCommonTimeslots.push({
+          startDate: isAfter(timeslot.startDate, conflict.startDate)
+            ? timeslot.startDate
             : conflict.startDate,
-          endDate: isAfter(interval.endDate, conflict.endDate) ? conflict.endDate : interval.endDate
+          endDate: isAfter(timeslot.endDate, conflict.endDate)
+            ? conflict.endDate
+            : timeslot.endDate
         });
       });
     });
 
-    busyHours = [...newBusyHours];
+    commonTimeslots = [...newCommonTimeslots];
   });
 
-  return busyHours;
+  return commonTimeslots;
 };
 
 /**
@@ -443,15 +496,25 @@ export const sumOfTimeslots = (busyHours: Timeslot[][]) => {
     }
     const nextTimeslot = mergedBusyHours[i + 1];
 
-    if (nextTimeslot && isAfterOrSame(currentTimeslot.endDate, nextTimeslot.startDate)) {
-      currentTimeslot.endDate = isBeforeOrSame(currentTimeslot.endDate, nextTimeslot.endDate)
+    if (
+      nextTimeslot &&
+      isAfterOrSame(currentTimeslot.endDate, nextTimeslot.startDate)
+    ) {
+      currentTimeslot.endDate = isBeforeOrSame(
+        currentTimeslot.endDate,
+        nextTimeslot.endDate
+      )
         ? nextTimeslot.endDate
         : currentTimeslot.endDate;
     } else {
       newBusyHours.push({ ...currentTimeslot });
 
-      currentTimeslot.endDate = nextTimeslot ? nextTimeslot.endDate : timeslot.endDate;
-      currentTimeslot.startDate = nextTimeslot ? nextTimeslot.startDate : timeslot.startDate;
+      currentTimeslot.endDate = nextTimeslot
+        ? nextTimeslot.endDate
+        : timeslot.endDate;
+      currentTimeslot.startDate = nextTimeslot
+        ? nextTimeslot.startDate
+        : timeslot.startDate;
     }
   });
 

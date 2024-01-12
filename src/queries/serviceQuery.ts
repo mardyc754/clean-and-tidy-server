@@ -1,7 +1,7 @@
-import { Prisma, Service } from '@prisma/client';
+import { Prisma, Service, Status } from '@prisma/client';
 
-import { prisma } from '~/lib/prisma';
-import { prismaExclude } from '~/lib/prisma';
+import prisma from '~/lib/prisma';
+import { prismaExclude } from '~/lib/prismaExclude';
 
 import { AllServicesQueryOptions } from '~/services/TypesOfCleaningService';
 
@@ -24,13 +24,9 @@ export const employeeData = Prisma.validator<Prisma.EmployeeSelect>()(
 );
 
 export const serviceEmployees = Prisma.validator<
-  Pick<Prisma.EmployeeServiceDefaultArgs, 'select'>
+  Pick<Prisma.ServiceDefaultArgs, 'select'>
 >()({
-  select: {
-    employee: {
-      select: prismaExclude('Employee', ['password'])
-    }
-  }
+  select: prismaExclude('Employee', ['password'])
 });
 
 export const getServiceEmployees = (include: boolean) => {
@@ -45,11 +41,7 @@ export const getServiceEmployees = (include: boolean) => {
     'select'
   )({
     employees: {
-      select: {
-        employee: {
-          select: prismaExclude('Employee', ['password'])
-        }
-      }
+      select: prismaExclude('Employee', ['password'])
     }
   });
 };
@@ -80,22 +72,19 @@ export const visitPartWithEmployee = Prisma.validator<
   Prisma.VisitPartAggregateArgs & Prisma.VisitPartDefaultArgs
 >()({
   include: {
-    employeeService: {
-      select: {
-        employee: selectEmployee
-      }
-    }
+    employee: selectEmployee
   },
   orderBy: {
     startDate: 'asc'
   }
 });
 
-export const serviceInclude = Prisma.validator<Prisma.ReservationServiceDefaultArgs>()({
-  include: {
-    service: serviceWithUnit
-  }
-});
+export const serviceInclude =
+  Prisma.validator<Prisma.ReservationServiceDefaultArgs>()({
+    include: {
+      service: serviceWithUnit
+    }
+  });
 
 export const includeAllVisitData = Prisma.validator<Prisma.VisitDefaultArgs>()({
   include: {
@@ -104,21 +93,11 @@ export const includeAllVisitData = Prisma.validator<Prisma.VisitDefaultArgs>()({
   }
 });
 
-export const includeFullService = Prisma.validator<Prisma.EmployeeServiceDefaultArgs>()({
-  include: {
-    service: {
-      include: {
-        unit: true
-      }
-    }
-  }
-});
-
 export const includeVisitParts = Prisma.validator<
   Prisma.VisitPartAggregateArgs & Prisma.VisitPartDefaultArgs
 >()({
   include: {
-    employeeService: includeFullService,
+    service: serviceWithUnit,
     visit: {
       include: {
         reservation: {
@@ -135,9 +114,9 @@ export const includeVisitParts = Prisma.validator<
 });
 
 export const includeServiceVisitPartsAndReservation =
-  Prisma.validator<Prisma.EmployeeServiceDefaultArgs>()({
+  Prisma.validator<Prisma.EmployeeDefaultArgs>()({
     include: {
-      service: serviceWithUnit,
+      services: serviceWithUnit,
       visitParts: includeVisitParts
     }
   });
@@ -147,7 +126,9 @@ export const visitPartTimeframe = (
   excludeFrom?: string,
   excludeTo?: string
 ) => {
-  return Prisma.validator<Prisma.VisitPartAggregateArgs & Prisma.VisitPartDefaultArgs>()({
+  return Prisma.validator<
+    Prisma.VisitPartAggregateArgs & Prisma.VisitPartDefaultArgs
+  >()({
     where: {
       OR: cyclicRanges?.map(({ startDate, endDate }) => ({
         startDate: {
@@ -171,3 +152,35 @@ export const visitPartTimeframe = (
     }
   });
 };
+
+export const reservationWithGivenStatuses = (statuses: Status[]) => {
+  return Prisma.validator<Prisma.ReservationWhereInput>()({
+    visits: {
+      some:
+        statuses.length > 0
+          ? visitWithVisitPartsWithGivenStatuses(statuses)
+          : undefined
+    }
+  });
+};
+
+export const visitWithVisitPartsWithGivenStatuses = (statuses: Status[]) => {
+  return Prisma.validator<Prisma.VisitWhereInput>()({
+    visitParts: { some: visitPartstWithGivenStatuses(statuses) }
+  });
+};
+
+export const visitPartstWithGivenStatuses = (statuses: Status[]) => {
+  return Prisma.validator<Prisma.VisitPartWhereInput>()({
+    status: { in: statuses }
+  });
+};
+
+export const includeFullReservationDetails =
+  Prisma.validator<Prisma.ReservationDefaultArgs>()({
+    include: {
+      visits: includeAllVisitData,
+      address: true,
+      services: serviceInclude
+    }
+  });

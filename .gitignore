@@ -1,6 +1,9 @@
 node_modules
 .env
+.env.test
+.env.development
 dist
+html
 # temp
 
 prisma/migrations

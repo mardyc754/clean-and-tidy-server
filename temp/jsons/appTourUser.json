@@ -1,0 +1,63 @@
+[
+  {
+    "id": 1,
+    "firstName": "Jan",
+    "lastName": "Testowy",
+    "email": "test@example.com",
+    "password": "password",
+    "phone": "123456789"
+  },
+  {
+    "id": 2,
+    "firstName": "Client",
+    "lastName": "User1",
+    "email": "client1@example.com",
+    "password": "password",
+    "phone": "889 509 719"
+  },
+  {
+    "id": 3,
+    "firstName": "Client",
+    "lastName": "User2",
+    "email": "client2@example.com",
+    "password": "password",
+    "phone": "698 685 542"
+  },
+  {
+    "firstName": "Client",
+    "lastName": "User3",
+    "email": "client3@example.com",
+    "password": "password",
+    "phone": "12 415 27 72"
+  },
+  {
+    "firstName": "Client",
+    "lastName": "User4",
+    "email": "client4@example.com",
+    "password": "password",
+    "phone": "502 779 574"
+  },
+  {
+    "firstName": "Client",
+    "lastName": "User5",
+    "email": "client5@example.com",
+    "password": "password",
+    "phone": "12 421 68 94"
+  },
+  {
+    "id": 7,
+    "firstName": "Client",
+    "lastName": "User6",
+    "email": "client6@example.com",
+    "password": "password",
+    "phone": "698 380 473"
+  },
+  {
+    "id": 8,
+    "firstName": "Client",
+    "lastName": "User7",
+    "email": "client7@example.com",
+    "password": "password",
+    "phone": "533 709 007"
+  }
+]

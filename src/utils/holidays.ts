@@ -10,7 +10,9 @@ export function getHolidaysForYear(year: number) {
 
   return holidays
     .getHolidays(year)
-    .filter((holiday) => holiday.type === 'public' && holiday.rule !== 'easter 49')
+    .filter(
+      (holiday) => holiday.type === 'public' && holiday.rule !== 'easter 49'
+    )
     .map((holiday) => holiday.start.toISOString());
 }
 
