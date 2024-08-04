@@ -1,6 +1,6 @@
 # Clean and Tidy Server
 
-Backend part of the application for the cleaning company, written in TypeScript, Node.js and Express.js.
+Backend part of the application for the cleaning company, written in TypeScript, Node.js, Express.js and Prisma.
 
 ## To run the project
 
